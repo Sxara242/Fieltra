@@ -24,7 +24,7 @@ SUFFIXES = frozenset({'.py', '.json', '.sql', '.txt', '.md', '.rst', '.html',
                      '.c', '.h', '.rc', '.manifest'})
 PRIVATE_PARTS = frozenset({'data', 'backups', 'logs', 'profile_trash',
                            '__pycache__', '.git', '.env', 'secrets'})
-PRIVATE_SUFFIXES = frozenset({'.db', '.sqlite', '.sqlite3', '.mastixaprofile',
+PRIVATE_SUFFIXES = frozenset({'.db', '.sqlite', '.sqlite3', '.mastixaprofile', '.fieltraprofile',
                               '.pem', '.pfx', '.p12', '.key', '.log', '.pyc'})
 
 def source_files(root=ROOT):

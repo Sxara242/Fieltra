@@ -15,14 +15,29 @@ ICON_DIR = APP_DIR / "assets" / "icons" / "mastixa_menu"
 LIGHT_ICON = ICON_DIR / "light_mode.png"
 DARK_ICON = ICON_DIR / "dark_mode.png"
 
-_SETTINGS_ORG = "Mastixa"
-_SETTINGS_APP = "Mastixa Manager"
+_SETTINGS_ORG = "Fieltra"
+_SETTINGS_APP = "Fieltra"
 _SETTINGS_KEY = "appearance/theme"
 _SETTINGS_FILE = BASE_DIR / "data" / "appearance.ini"
-_LEGACY_SETTINGS_FILE = APP_DIR.parent / "data" / "appearance.ini"
+
+
+NAVIGATION_LIGHT_STYLESHEET = """
+QTreeView#farmNavigation {
+    border: 0; outline: 0;
+    background: #F1F4F2; color: #21483A;
+    alternate-background-color: #E1EAE5;
+    selection-background-color: #DFEEE3; selection-color: #244C37;
+}
+QTreeView#farmNavigation::item { padding: 0; border: 0; }
+"""
 
 
 DARK_STYLESHEET = """
+QTreeView#farmNavigation {
+    background: #20272C; color: #E7ECEF;
+    alternate-background-color: #2B3338;
+    selection-background-color: #314B3C; selection-color: #E5F0E8;
+}
 QMainWindow, QDialog { background: #151A1E; color: #E7ECEF; }
 QWidget { color: #E7ECEF; }
 QWidget#sidebar, QListWidget#categoryList {
@@ -341,16 +356,6 @@ def _saved_theme() -> str:
     if _SETTINGS_FILE.exists():
         return str(settings.value(_SETTINGS_KEY, "light")).casefold()
 
-    # Source runs normally use the same path. Frozen builds may still have the
-    # old preference under _internal/data. Never remove or write to that file.
-    legacy = QSettings(str(_LEGACY_SETTINGS_FILE), QSettings.Format.IniFormat)
-    saved = str(legacy.value(_SETTINGS_KEY, "")).casefold()
-    if saved in {"light", "dark"}:
-        settings.setValue(_SETTINGS_KEY, saved)
-        settings.sync()
-        # Even if sync reports AccessError, use the legacy value for this run.
-        # A later startup can retry; an existing destination always wins.
-        return saved
     return "light"
 
 
@@ -384,7 +389,7 @@ class ThemeController(QObject):
     ) -> None:
         super().__init__(app)
         self.app = app
-        self.light_stylesheet = light_stylesheet
+        self.light_stylesheet = light_stylesheet + "\n" + NAVIGATION_LIGHT_STYLESHEET
         self.light_palette = QPalette(light_palette)
         saved = _saved_theme()
         self._theme = "dark" if saved == "dark" else "light"

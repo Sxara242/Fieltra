@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "scope": "Explicit predecessors of the acceptance-polish RC2; executable fingerprints identify legacy lineage, never identical-build repair.",
+  "builds": [
+    {
+      "id": "legacy-year-display-20261012",
+      "version": "1.0.0-rc.2",
+      "setup_sha256": "865d2068ac03f4d18a7553a40b6dfea94c4cfac47f3491c22944665bcf9a7edc",
+      "files": {"MastixaManager.exe": "b7b474aa65093b7fc147e3f7c9bd38a181a1935888233b14f92bc43d2dcdb573"}
+    },
+    {
+      "id": "legacy-external-vc-20261012-ec648df0",
+      "version": "1.0.0-rc.2",
+      "setup_sha256": "9457f1f4a8223de76caa49c1ba88a6dddd3e5176868dc25eb88a93eb9293875f",
+      "files": {
+        "MastixaManager.exe": "e6b85f013d27ed08680ab0a165e7d25d258574d47781ae387d0cbead284cba87",
+        "engine/MastixaManager.exe": "b7b474aa65093b7fc147e3f7c9bd38a181a1935888233b14f92bc43d2dcdb573"
+      }
+    }
+  ]
+}

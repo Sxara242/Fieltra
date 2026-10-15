@@ -5,7 +5,8 @@ param(
     [string]$PyInstallerWorkPath = "",
     [string]$PyInstallerDistPath = "",
     [string]$InstallerOutputDir = "",
-    [int]$InstallerBuildAttempts = 3
+    [int]$InstallerBuildAttempts = 1,
+    [string[]]$PredecessorIdentity = @()
 )
 
 $ErrorActionPreference = "Stop"
@@ -64,8 +65,8 @@ try {
         throw "PyInstaller failed with exit code $LASTEXITCODE"
     }
 
-    $bundle = Join-Path $releaseDist "MastixaManager"
-    $exe = Join-Path $bundle "MastixaManager.exe"
+    $bundle = Join-Path $releaseDist "Fieltra"
+    $exe = Join-Path $bundle "Fieltra.exe"
     if (-not (Test-Path -LiteralPath $exe)) {
         throw "Packaged executable was not created: $exe"
     }
@@ -146,7 +147,7 @@ try {
     # Build a CRT-independent front end; keep the frozen payload unchanged.
     $launcherOutput = Join-Path $releaseWork "windows-launcher"
     & (Join-Path $PSScriptRoot "build_windows_launcher.ps1") -OutputDir $launcherOutput
-    $launcher = Join-Path $launcherOutput "MastixaManager.exe"
+    $launcher = Join-Path $launcherOutput "Fieltra.exe"
     & $python -B (Join-Path $PSScriptRoot "launcher_audit.py") $launcher
     if ($LASTEXITCODE -ne 0) { throw "Independent launcher dependency/hardening validation failed." }
     $installerText = Get-Content -LiteralPath $installerScript -Raw
@@ -162,6 +163,13 @@ try {
         throw "Installer version does not match release metadata: $version / $releaseVersion"
     }
 
+    $identityPath = Join-Path $launcherOutput 'build-identity.json'
+    $identityArgs = @('--payload', $bundle, '--launcher', $launcher, '--compiler', $compiler,
+        '--version', $version, '--output', $identityPath)
+    foreach ($predecessor in $PredecessorIdentity) { $identityArgs += @('--predecessor', $predecessor) }
+    & $python -B (Join-Path $PSScriptRoot 'installer_identity.py') @identityArgs
+    if ($LASTEXITCODE -ne 0) { throw 'Installer build identity generation failed.' }
+
     if ($InstallerOutputDir) {
         $installerOutput = [System.IO.Path]::GetFullPath($InstallerOutputDir)
     }
@@ -170,98 +178,12 @@ try {
     }
     New-Item -ItemType Directory -Force -Path $installerOutput | Out-Null
 
-    $setup = Join-Path $installerOutput "MastixaManager-$version-Setup.exe"
-    $outputArg = "/O$installerOutput"
-    $compilerExitCode = $null
-    $successfulAttemptSetup = $null
-
-    # Antivirus/indexing on Windows can briefly lock a freshly generated EXE.
-    # Each compiler retry therefore uses a fresh output filename so a lock on
-    # a failed attempt cannot poison the next attempt. Only a successful build
-    # is promoted to the stable release filename expected by verification and
-    # artifact upload.
-    for ($attempt = 1; $attempt -le $InstallerBuildAttempts; $attempt++) {
-        $attemptBaseName = "MastixaManager-$version-Setup-attempt-$attempt"
-        $attemptSetup = Join-Path $installerOutput "$attemptBaseName.exe"
-        $filenameArg = "/F$attemptBaseName"
-
-        if (Test-Path -LiteralPath $attemptSetup) {
-            for ($removeAttempt = 1; $removeAttempt -le 10; $removeAttempt++) {
-                try {
-                    Remove-Item -LiteralPath $attemptSetup -Force -ErrorAction Stop
-                    break
-                }
-                catch {
-                    if ($removeAttempt -eq 10) {
-                        Write-Warning "Installer attempt output is still locked: $attemptSetup"
-                        break
-                    }
-                    Start-Sleep -Seconds 1
-                }
-            }
-        }
-
-        & $compiler $outputArg $filenameArg "/DMyAppSourceDir=$bundle" "/DMyLauncherPath=$launcher" "/DMyPrerequisiteMode=external-launch" $installerScript
-        $compilerExitCode = $LASTEXITCODE
-        if ($compilerExitCode -eq 0) {
-            $successfulAttemptSetup = $attemptSetup
-            break
-        }
-
-        if ($attempt -lt $InstallerBuildAttempts) {
-            $delaySeconds = 5 * $attempt
-            Write-Warning (
-                "Inno Setup attempt $attempt failed with exit code " +
-                "$compilerExitCode. Retrying in $delaySeconds seconds."
-            )
-            Start-Sleep -Seconds $delaySeconds
-        }
-    }
-
-    if ($compilerExitCode -ne 0) {
-        throw (
-            "Inno Setup failed with exit code $compilerExitCode after " +
-            "$InstallerBuildAttempts attempt(s)"
-        )
-    }
-
-    if (-not $successfulAttemptSetup -or -not (Test-Path -LiteralPath $successfulAttemptSetup)) {
-        throw "Successful installer attempt output was not created."
-    }
-
-    $promoted = $false
-    for ($promoteAttempt = 1; $promoteAttempt -le 15; $promoteAttempt++) {
-        try {
-            Copy-Item -LiteralPath $successfulAttemptSetup -Destination $setup -Force -ErrorAction Stop
-            $promoted = $true
-            break
-        }
-        catch {
-            if ($promoteAttempt -eq 15) {
-                throw "Installer was built but could not be promoted to the release filename: $setup"
-            }
-            Start-Sleep -Seconds 1
-        }
-    }
-
-    if (-not $promoted -or -not (Test-Path -LiteralPath $setup)) {
-        throw "Installer was not created: $setup"
-    }
-
-    $hash = $null
-    for ($hashAttempt = 1; $hashAttempt -le 10; $hashAttempt++) {
-        try {
-            $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $setup).Hash.ToLowerInvariant()
-            break
-        }
-        catch {
-            if ($hashAttempt -eq 10) {
-                throw
-            }
-            Start-Sleep -Seconds 1
-        }
-    }
-
+    if ($InstallerBuildAttempts -ne 1) { throw 'One installer build only; diagnose a failure before retrying.' }
+    $setup = Join-Path $installerOutput "Fieltra-$version-Setup.exe"
+    if (Test-Path -LiteralPath $setup) { throw 'Fresh installer output required; preserve the existing artifact.' }
+    & $compiler "/O$installerOutput" "/FFieltra-$version-Setup" "/DMyAppSourceDir=$bundle" "/DMyLauncherPath=$launcher" "/DMyPrerequisiteMode=external-launch" "/DMyBuildIdentityFile=$([IO.Path]::ChangeExtension($identityPath, '.iss'))" $installerScript
+    if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed ($LASTEXITCODE); preserve logs and stop. No automatic retry." }
+    $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $setup).Hash.ToLowerInvariant()
     Set-Content -LiteralPath "$setup.sha256" -Encoding ascii -Value "$hash  $(Split-Path -Leaf $setup)"
     Write-Host "Installer: $setup"
     Write-Host "SHA256:    $hash"

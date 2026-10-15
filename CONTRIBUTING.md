@@ -1,6 +1,6 @@
 # Contribution policy
 
-Public Mastixa Manager code is licensed under **AGPL-3.0-only**. The owner
+Public Fieltra code is licensed under **AGPL-3.0-only**. The owner
 intends to offer separate commercial licenses for code for which they hold
 sufficient rights. Third-party libraries retain their own licenses.
 

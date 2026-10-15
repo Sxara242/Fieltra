@@ -20,7 +20,7 @@ UPDATE_FEED_URL = (
 # Staging is deliberately offline until a reviewed production feed is published.
 UPDATE_FEED_MODE = "staging"
 STAGING_FEED = Path(__file__).resolve().parents[1] / "updates" / "staging" / f"{RELEASE_CHANNEL}.json"
-USER_AGENT = f"MastixaManager/{APP_VERSION}"
+USER_AGENT = f"Fieltra/{APP_VERSION}"
 
 
 class UpdateError(RuntimeError):
@@ -76,7 +76,7 @@ def parse_manifest(payload: bytes | str, *, expected_channel: str | None = None)
 
     if not isinstance(data, dict) or data.get("schema") != 1:
         raise UpdateError("Unsupported update feed schema")
-    if data.get("product") != "Mastixa Manager":
+    if data.get("product") != "Fieltra":
         raise UpdateError("Update feed belongs to a different product")
 
     version = str(data.get("version") or "").strip()
@@ -167,7 +167,7 @@ def download_windows_update(
             or device in reserved):
         raise UpdateError("Unsafe Windows installer filename in update feed")
 
-    root = destination_dir or (Path(tempfile.gettempdir()) / "MastixaManager-updates")
+    root = destination_dir or (Path(tempfile.gettempdir()) / "Fieltra-updates")
     root.mkdir(parents=True, exist_ok=True)
     target = root / asset.filename
     partial = target.with_suffix(target.suffix + ".part")

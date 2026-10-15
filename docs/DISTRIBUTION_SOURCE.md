@@ -1,3 +1,32 @@
+# Fieltra v1.0.0 — corresponding source and library replacement
+
+Fieltra is free, open-source software under AGPL-3.0-only. Application, native
+launcher and installer source correspond to the accepted Stable installer;
+all source correspondence items PASS, including the timestamp-only launcher comparison.
+
+Use the [tagged Fieltra source](https://github.com/Sxara242/Fieltra/tree/v1.0.0)
+and both Release source companion archives. [FIELTRA_V1_RELEASE.md](FIELTRA_V1_RELEASE.md)
+provides exact hashes, download links and the demonstrated source binding.
+[source-artifacts.json](source-artifacts.json) retains dependency/source identities.
+Historical application ZIPs in the companion do not replace Fieltra source.
+
+For the external-launcher layout, covered libraries reside under `engine/_internal/`.
+Close Fieltra and back up a writable application copy, replace compatible x64
+libraries preserving ABI/exports/dependencies, and use synthetic data for experiments.
+Build-input hash checks do not remove runtime modification or debugging rights.
+Explicit repair/updates can overwrite replacements; keep your modified sources/copies.
+See [replacement instructions](WINDOWS_LIBRARY_REPLACEMENT.md) and
+[dependency build controls](WINDOWS_DEPENDENCY_REBUILD.md).
+
+The historical records below retain their original dated scope. Their pending
+or blocked statuses do not override the current Fieltra release correspondence.
+
+
+---
+
+Historical records and retained technical instructions follow. Earlier status statements
+do not override the Fieltra v1.0.0 preparation status above.
+
 > Retained historical engineering record, sanitized for public review.
 > Current status: [RELEASE_STATUS.md](RELEASE_STATUS.md). This record does not
 > establish approval of the current source or a new binary release. Local-only
@@ -166,8 +195,3 @@ Authoritative references: [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.html),
 [Qt LGPL obligations](https://www.qt.io/development/open-source-lgpl-obligations),
 [Qt 6.11 licensing / SBOM](https://doc.qt.io/qt-6.11/licensing.html),
 [PyInstaller licensing](https://pyinstaller.org/en/v6.22.2/license.html).
-
-
-## QtPdf libjpeg-turbo license cross-reference
-
-The upstream `licenses/QtPdf-6.11.2/third_party/libjpeg_turbo/LICENSE.md` refers to `README.ijg`. Its exact, unmodified text is already included at [README.ijg](../licenses/GIS-native/libjpeg-turbo-3.1.4.1/README.ijg), SHA-256 `75815e3bf6484201a3c3d17a1bbf10f2e8e3237f84df10a2357ea896db2a81d6`. The same bytes were recovered from the retained QtWebEngine 6.11.2 source archive at `qtwebengine-everywhere-src-6.11.2/src/3rdparty/chromium/third_party/libjpeg_turbo/README.ijg`; the adjacent upstream LICENSE.md also matches the retained QtPdf notice exactly. This cross-reference identifies shared license text and does not equate the different component versions. No vendor license text is changed.

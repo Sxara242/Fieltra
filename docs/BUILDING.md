@@ -1,13 +1,30 @@
-## Current public-source installer route
+# Building Fieltra v1.0.0 Stable
 
-For the newly reviewed external-VC builder, use the prerequisites, hash-map
-manifest format and guest-only sequence in [PUBLICATION_CANDIDATE.md](PUBLICATION_CANDIDATE.md).
-This is new build code, not recovery of the historical 3,008-byte script.
-Use `build_release.ps1 -SkipInstaller` followed by the explicit external candidate
-builder; no build, installer execution or distribution is authorized by this guide.
-Older instructions below retain their original scope.
+Use the existing qualified CPython 3.14.8 environment, locked wheels, TLS/CRT/EPSG/
+Mesa controls and Inno Setup 6.7.3 with all 16 accepted signatures. No third-party
+library rebuild is needed. Internal recipe filenames remain unchanged.
+
+The final Windows recipe is `packaging/build_fieltra_sandbox.ps1`; it reuses an
+existing build venv and produces one application package, one native launcher and
+one `Fieltra-1.0.0-Setup.exe`. Run only inside an authorized Windows Sandbox.
+See [source and build controls](FIELTRA_V1_RELEASE.md). The accepted final installer has already been built and owner-accepted.
+These controls are supplied for recipient modification and reconstruction;
+publication preparation does not require another build.
+
+The accepted installation, startup and branding/version results remain closed.
+Do not rebuild or repeat these checks to publish the existing source.
+Older exhaustive qualification lists below are historical, not additional tasks
+for this finalization. Source development instructions and Android information
+remain available below.
+
+Native launcher source correspondence is PASS; the guest comparison found only
+two linker timestamps. Use the [v1.0.0 source tag](https://github.com/Sxara242/Fieltra/tree/v1.0.0)
+and both companion archives. No new build is needed to distribute the accepted installer.
 
 ---
+
+Historical records and retained technical instructions follow. Earlier status statements
+do not override the Fieltra v1.0.0 preparation status above.
 
 # Development, CI and packaging
 

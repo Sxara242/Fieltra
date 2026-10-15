@@ -1,7 +1,7 @@
 VSVersionInfo(
   ffi=FixedFileInfo(
-    filevers=(1, 0, 0, 2),
-    prodvers=(1, 0, 0, 2),
+    filevers=(1, 0, 0, 0),
+    prodvers=(1, 0, 0, 0),
     mask=0x3f,
     flags=0x0,
     OS=0x40004,
@@ -14,14 +14,14 @@ VSVersionInfo(
       StringTable(
         '040904B0',
         [
-          StringStruct('CompanyName', 'Mastixa Manager'),
-          StringStruct('FileDescription', 'Mastixa Manager'),
-          StringStruct('FileVersion', '1.0.0-rc.2'),
-          StringStruct('InternalName', 'MastixaManager'),
+          StringStruct('CompanyName', 'Fieltra'),
+          StringStruct('FileDescription', 'Fieltra - Farm Management'),
+          StringStruct('FileVersion', '1.0.0'),
+          StringStruct('InternalName', 'Fieltra'),
           StringStruct('LegalCopyright', 'Mastixa Manager contributors'),
-          StringStruct('OriginalFilename', 'MastixaManager.exe'),
-          StringStruct('ProductName', 'Mastixa Manager'),
-          StringStruct('ProductVersion', '1.0.0-rc.2')
+          StringStruct('OriginalFilename', 'Fieltra.exe'),
+          StringStruct('ProductName', 'Fieltra'),
+          StringStruct('ProductVersion', '1.0.0')
         ]
       )
     ]),

@@ -36,8 +36,7 @@ class DashboardThemeContrastTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             with patch.object(dashboard, "BASE_DIR", root), \
-                 patch.object(appearance_theme, "_SETTINGS_FILE", root / "appearance.ini"), \
-                 patch.object(appearance_theme, "_LEGACY_SETTINGS_FILE", root / "legacy.ini"):
+                 patch.object(appearance_theme, "_SETTINGS_FILE", root / "appearance.ini"):
                 self.app.setStyleSheet(STYLESHEET)
                 self.app.setPalette(build_app_palette())
                 controller = appearance_theme.ThemeController(

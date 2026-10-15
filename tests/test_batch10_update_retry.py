@@ -30,7 +30,7 @@ class UpdateRetryTests(unittest.TestCase):
 
     def available_update(self):
         return update_manager.parse_manifest(_manifest(windows={
-            "filename": "MastixaManager-0.40.0-alpha.3-Setup.exe",
+            "filename": "Fieltra-0.40.0-alpha.3-Setup.exe",
             "url": "https://example.invalid/update.exe",
             "sha256": "0" * 64,
         }))

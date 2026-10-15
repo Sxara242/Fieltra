@@ -375,7 +375,7 @@ class Batch5UiTests(unittest.TestCase):
         from app.field_finance import FieldFinancePage
         from app.reports import ReportsPage
         from PySide6.QtWidgets import QLabel, QGroupBox
-        with patch.object(appearance_theme, '_SETTINGS_FILE', self.root/'appearance.ini'), patch.object(appearance_theme, '_LEGACY_SETTINGS_FILE', self.root/'legacy.ini'):
+        with patch.object(appearance_theme, '_SETTINGS_FILE', self.root/'appearance.ini'):
             theme = appearance_theme.ThemeController(self.app, STYLESHEET, build_app_palette())
             try:
                 pages = [self.keep(cls(self.db)) for cls in (AlertsPage, FieldFinancePage, ReportsPage)]

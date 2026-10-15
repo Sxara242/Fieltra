@@ -97,12 +97,12 @@ class ExternalVcLauncherTests(unittest.TestCase):
     def test_existing_output_and_manifest_mismatch_never_modify_payload(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder); payload = root / 'payload'; payload.mkdir()
-            app = payload / 'MastixaManager.exe'; app.write_bytes(b'original')
+            app = payload / 'Fieltra.exe'; app.write_bytes(b'original')
             output = root / 'existing'; output.mkdir()
             with self.assertRaisesRegex(ValueError, 'Fresh output'):
                 layout.create_layout(payload, root / 'launcher', output)
             with self.assertRaisesRegex(ValueError, 'differs from the retained'):
-                layout.create_layout(payload, root / 'launcher', root / 'fresh', {'MastixaManager.exe': '0'*64})
+                layout.create_layout(payload, root / 'launcher', root / 'fresh', {'Fieltra.exe': '0'*64})
             self.assertEqual(b'original', app.read_bytes())
             self.assertFalse((root / 'fresh').exists())
 
@@ -116,7 +116,7 @@ class ExternalVcLauncherTests(unittest.TestCase):
     def test_layout_keeps_every_payload_byte_and_copies_only_one_launcher(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder); payload = root / 'payload'; payload.mkdir()
-            (payload / 'MastixaManager.exe').write_bytes(b'unchanged frozen app')
+            (payload / 'Fieltra.exe').write_bytes(b'unchanged frozen app')
             (payload / '_internal').mkdir(); (payload / '_internal/library.bin').write_bytes(b'library')
             launcher = root / 'native.exe'; launcher.write_bytes(b'native fixture')
             expected = layout.safe_files(payload)
@@ -125,7 +125,7 @@ class ExternalVcLauncherTests(unittest.TestCase):
             self.assertEqual(expected, layout.safe_files(payload))
             self.assertEqual(expected, layout.safe_files(root / 'output/engine'))
             self.assertEqual(3, len(result['layout_members_sha256']))
-            self.assertEqual(b'native fixture', (root / 'output/MastixaManager.exe').read_bytes())
+            self.assertEqual(b'native fixture', (root / 'output/Fieltra.exe').read_bytes())
 
 
 if __name__ == '__main__':

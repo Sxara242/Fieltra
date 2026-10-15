@@ -1,3 +1,18 @@
+# Fieltra 1.0.0 Stable
+
+- First production identity: Fieltra — Farm Management, executable `Fieltra.exe`.
+- Stable `1.0.0` / Windows `1.0.0.0` metadata and consistent application/Setup branding.
+- New per-user installation and Fieltra data/preferences; no pre-release migration.
+- Existing offline farm-management behavior, icon and dependency stack retained.
+- AGPL-3.0-only and historical/third-party notices preserved.
+- Final installer owner-accepted for Sandbox installation, startup and branding/version;
+  source publication metadata records content matching and the closed launcher provenance result and matching source downloads.
+
+---
+
+Historical records and retained technical instructions follow. Earlier status statements
+do not override the Fieltra v1.0.0 preparation status above.
+
 # Public source preparation — 2026-10-09 (unpublished)
 
 - First-party AGPL-3.0-only scope and owner contribution-rights baseline recorded;

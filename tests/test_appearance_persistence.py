@@ -31,8 +31,7 @@ class AppearancePersistenceTests(unittest.TestCase):
         self.new = self.root / "user" / "data" / "appearance.ini"
         self.install = self.root / "install"
         self.legacy = self.install / "_internal" / "data" / "appearance.ini"
-        for name, value in (("_SETTINGS_FILE", self.new),
-                            ("_LEGACY_SETTINGS_FILE", self.legacy)):
+        for name, value in (("_SETTINGS_FILE", self.new),):
             mock = patch.object(theme, name, value)
             mock.start()
             self.addCleanup(mock.stop)
@@ -69,7 +68,7 @@ print(_SETTINGS_FILE)
         result = subprocess.run([sys.executable, "-c", code], env=env,
                                 capture_output=True, text=True, check=True)
         actual = Path(result.stdout.strip())
-        self.assertEqual(self.root / "local" / "MastixaManager" / "data" /
+        self.assertEqual(self.root / "local" / "Fieltra" / "data" /
                          "appearance.ini", actual)
         self.assertFalse(actual.is_relative_to(self.install))
 
@@ -111,43 +110,12 @@ print(_SETTINGS_FILE)
         self.assertEqual("light", self.controller().theme)
         self.assertEqual(before, self.new.read_bytes())
 
-    def test_valid_legacy_values_migrate_without_changing_source(self):
-        for value in ("dark", "light"):
-            with self.subTest(value=value):
-                self.write(self.legacy, value)
-                if self.new.exists():
-                    self.new.unlink()
-                before = self.legacy.read_bytes()
-                self.assertEqual(value, self.controller().theme)
-                self.assertTrue(self.new.is_file())
-                self.assertEqual(value, QSettings(str(self.new),
-                    QSettings.Format.IniFormat).value("appearance/theme"))
-                self.assertEqual(before, self.legacy.read_bytes())
-
-    def test_invalid_legacy_value_defaults_to_light(self):
-        self.write(self.legacy, "not-a-theme")
+    def test_developer_theme_is_ignored_and_preserved(self):
+        self.write(self.legacy, "dark")
+        before = self.legacy.read_bytes()
         self.assertEqual("light", self.controller().theme)
         self.assertFalse(self.new.exists())
-
-    def test_failed_migration_uses_legacy_and_does_not_block_startup(self):
-        self.write(self.legacy, "dark")
-        # A file in place of a directory reliably simulates an unwritable target.
-        blocked = self.root / "blocked"
-        blocked.write_text("not a directory", encoding="utf-8")
-        with patch.object(theme, "_SETTINGS_FILE", blocked / "appearance.ini"):
-            self.assertEqual("dark", self.controller().theme)
-            self.assertFalse((blocked / "appearance.ini").exists())
-        self.assertEqual("dark", self.controller().theme)
-        self.assertTrue(self.new.exists())
-
-    def test_install_tree_removal_keeps_migrated_theme_and_purge_resets_it(self):
-        self.write(self.legacy, "dark")
-        self.assertEqual("dark", self.controller().theme)
-        shutil.rmtree(self.install)
-        self.install.mkdir()  # Reinstall does not recreate a legacy preference.
-        self.assertEqual("dark", self.controller().theme)
-        shutil.rmtree(self.new.parent.parent)  # Existing explicit full-data purge.
-        self.assertEqual("light", self.controller().theme)
+        self.assertEqual(before, self.legacy.read_bytes())
 
 
 if __name__ == "__main__":

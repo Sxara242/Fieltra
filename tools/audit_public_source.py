@@ -16,7 +16,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME_PARTS = {'.git', '__pycache__', '.gradle', '.venv', 'venv', 'build', 'dist', '.tools'}
 PRIVATE_PARTS = {'data', 'backups', 'logs', 'profile_trash', 'secrets', '.aws', '.ssh'}
-PRIVATE_SUFFIXES = {'.db', '.sqlite', '.sqlite3', '.pem', '.pfx', '.p12', '.key', '.jks', '.keystore', '.mastixaprofile', '.log', '.apk', '.aab', '.exe', '.dll'}
+PRIVATE_SUFFIXES = {'.db', '.sqlite', '.sqlite3', '.pem', '.pfx', '.p12', '.key', '.jks', '.keystore', '.mastixaprofile', '.fieltraprofile', '.log', '.apk', '.aab', '.exe', '.dll'}
 PATTERNS = {
     'credential-token': re.compile(r'gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{25,}|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{30,}|sk-(?:proj-)?[A-Za-z0-9_-]{25,}'),
     'signed-token': re.compile(r'eyJ[A-Za-z0-9_-]{15,}\.[A-Za-z0-9_-]{15,}\.[A-Za-z0-9_-]{15,}'),
@@ -43,6 +43,33 @@ def text_findings(data, name):
             if pattern.search(line):
                 findings.append({'path': name, 'line': number, 'kind': kind})
     return findings
+
+
+def publication_findings(data, name):
+    """Stricter recipient checks; return locations/kinds, never matched values.
+
+    Existing checks remain enabled. Literal credentials require review even when
+    they resemble examples; no global fixture/placeholder waiver is applied.
+    This bounded detector does not certify absence of every possible secret.
+    """
+    extra = {
+        'credential-assignment': re.compile(
+            r'''(?i)\b(?:password|passwd|api[_-]?key|access[_-]?token|client[_-]?secret|secret[_-]?key)\b\s*[:=]\s*["']([^"'\r\n]{4,})["']'''),
+        'encrypted-private-key': re.compile(r'-----BEGIN ' r'ENCRYPTED PRIVATE KEY-----'),
+        'authorization-secret': re.compile(r'(?i)authorization\s*[:=]\s*["\']?(?:bearer|basic)\s+[A-Za-z0-9+/=_-]{12,}'),
+        'connection-credential': re.compile(r'(?i)\b(?:password|pwd)=[^;\s"\']{4,}'),
+    }
+    texts = [data.decode('utf-8-sig', errors='replace')]
+    if data.startswith((b'\xff\xfe', b'\xfe\xff')):
+        texts.append(data.decode('utf-16', errors='replace'))
+    elif data and data.count(b'\x00') > len(data)//4:
+        texts.extend(data.decode(codec, errors='replace') for codec in ('utf-16-le','utf-16-be'))
+    result = {(r['path'],r['line'],r['kind']) for r in text_findings(data,name)}
+    for value in texts:
+        for number,line in enumerate(value.splitlines(),1):
+            for kind,pattern in {**PATTERNS,**extra}.items():
+                if pattern.search(line):result.add((name,number,kind))
+    return [{'path':p,'line':n,'kind':k} for p,n,k in sorted(result)]
 
 def audit(root=ROOT):
     root = Path(root).resolve()

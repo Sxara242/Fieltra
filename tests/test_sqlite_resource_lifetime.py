@@ -87,9 +87,9 @@ class SQLiteResourceLifetimeTests(unittest.TestCase):
             source, sqlite3.OperationalError('snapshot denied'),
         ]):
             with self.assertRaisesRegex(ProfileError, 'snapshot denied'):
-                profiles.export_profile(profile.id, self.root / 'export.mastixaprofile')
+                profiles.export_profile(profile.id, self.root / 'export.fieltraprofile')
         self.assert_closed(source)
-        self.assertFalse((self.root / 'export.mastixaprofile').exists())
+        self.assertFalse((self.root / 'export.fieltraprofile').exists())
 
     def test_local_context_commit_rollback_reopen_and_windows_handle_release(self):
         with self.db.connect() as connection:

@@ -68,7 +68,7 @@ class InvoiceOwnershipTests(unittest.TestCase):
             return [(i.filename, package.read(i)) for i in package.infolist()]
 
     def package(self, entries):
-        target = self.root / "modified.mastixaprofile"
+        target = self.root / "modified.fieltraprofile"
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", UserWarning)  # Deliberate duplicate ZIP fixture.
             with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as package:

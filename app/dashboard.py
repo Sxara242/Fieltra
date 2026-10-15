@@ -57,7 +57,7 @@ class DashboardPage(QWidget):
 
         layout = QVBoxLayout(self)
 
-        title = QLabel("Mastixa Manager")
+        title = QLabel("Fieltra")
         title.setObjectName("pageTitle")
         self.subtitle = QLabel("Συνολική εικόνα εκμετάλλευσης")
         self.subtitle.setObjectName("pageSubtitle")
@@ -260,7 +260,7 @@ class DashboardPage(QWidget):
             )
 
             # Ensure any schema additions are created if restoring an older
-            # compatible Mastixa Manager database.
+            # compatible Fieltra database.
             self.db.initialize()
             self.refresh()
 

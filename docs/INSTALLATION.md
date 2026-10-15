@@ -1,3 +1,36 @@
+# Fieltra v1.0.0 — Windows installation
+
+The final installer is `Fieltra-1.0.0-Setup.exe`; it installs per user into
+`%LOCALAPPDATA%\Programs\Fieltra`, with Start Menu and optional desktop shortcuts
+opening `Fieltra.exe`. Windows Installed Apps and the uninstaller identify Fieltra.
+The first production release does not migrate Mastixa pre-release installations.
+
+Install the official Microsoft Visual C++ Redistributable **x64 14.51.36247.0 or
+newer** separately: [Microsoft download](https://aka.ms/vc14/vc_redist.x64.exe).
+Fieltra Setup neither bundles nor executes that package. The native launcher
+checks it before Python/Qt and offers Download / Recheck / Cancel when necessary.
+Offline operation needs no account; obtain the runtime beforehand if needed.
+
+Data, profiles, backups and appearance settings use `%LOCALAPPDATA%\Fieltra`.
+Source runs also default to this clean namespace. The existing internal
+`MASTIXA_DATA_HOME` diagnostic override selects an explicit alternative.
+Normal uninstall keeps Fieltra data. `/PURGEDATA` or an explicit Yes to full
+removal removes Fieltra data only, not Mastixa developer data or backups.
+
+The final Fieltra installer passed owner-observed Sandbox installation, startup
+and branding/version acceptance. [Release/source status](FIELTRA_V1_RELEASE.md)
+records its exact hash, source correspondence and official downloads.
+The old installation identities below describe historical RC2 only.
+
+
+[Download the official Windows installer](https://github.com/Sxara242/Fieltra/releases/download/v1.0.0/Fieltra-1.0.0-Setup.exe).
+Supported platform: Windows 10 or Windows 11, x64.
+
+---
+
+Historical records and retained technical instructions follow. Earlier status statements
+do not override the Fieltra v1.0.0 preparation status above.
+
 # Installation and local data
 
 Windows x64 is the current release target. No public rc.2 installer is approved;

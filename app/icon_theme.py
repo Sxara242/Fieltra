@@ -91,7 +91,7 @@ _ICON_ALIASES = {
 # "Αποθήκευση ρυθμίσεων" while still covering the tab and page-title wording.
 _EXACT_ONLY_ICON_ALIASES = {
     "settings.png": ("Γενικές Ρυθμίσεις", "Ρυθμίσεις", "General Settings", "Settings"),
-    "dashboard.png": ("Dashboard", "Mastixa Manager"),
+    "dashboard.png": ("Dashboard", "Fieltra"),
     "alerts.png": ("Ειδοποιήσεις", "Ειδοποιήσεις & Εκκρεμότητες", "Alerts", "Alerts & Pending Items"),
     "search.png": ("Αναζήτηση", "Γενική Αναζήτηση", "Search", "Global Search"),
     "calendar.png": ("Ημερολόγιο", "Ενιαίο Ημερολόγιο", "Calendar", "Unified Calendar"),
@@ -209,7 +209,7 @@ def _apply_page_title_icons(root) -> int:
     """Show the matching 3D icon to the left of each page title.
 
     v11 explicitly removes fixed-height clipping from page-title labels.
-    Some Mastixa Manager pages constrain QLabel#pageTitle to the text height;
+    Some Fieltra pages constrain QLabel#pageTitle to the text height;
     in that case changing only the pixmap size has no visible effect because
     the child icon is clipped by the title label.  The listed categories use
     96x96 icons; existing categories keep the previous 64x64 size.
@@ -295,7 +295,7 @@ def _apply_icon_theme_impl(root) -> int:
         if icon is not None:
             if button.icon().cacheKey() != icon.cacheKey():
                 button.setIcon(icon)
-            # The current Mastixa Manager renders the upper navigation tabs as
+            # The current Fieltra renders the upper navigation tabs as
             # QAbstractButton-derived widgets. Give those icon-bearing category
             # controls the same larger visual weight as the main categories.
             # v11: remove fixed-height clipping before enlarging the icon.
@@ -345,7 +345,7 @@ def _apply_icon_theme_impl(root) -> int:
                     tabs.setTabIcon(i, icon)
                 changed += 1
 
-    # Direct QTabBar support is important because the current Mastixa Manager
+    # Direct QTabBar support is important because the current Fieltra
     # uses tab-like navigation that can be populated/wrapped dynamically.
     for bar in root.findChildren(QTabBar):
         if bar.parent() is not None and bar.parent().property("mastixaHiddenNavigation"):

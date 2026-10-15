@@ -153,7 +153,7 @@ def annual_html(snapshot: AnnualSnapshot) -> str:
     return (f'<html><head><style>body {{color:#26382f; font-family:"Segoe UI"; font-size:10pt;}} '
             'h1 {font-size:19pt;} h2 {font-size:13pt;} th {background:#e9eee9;} '
             'td,th {border:1px solid #cad5ce; text-align:left; vertical-align:top;}</style></head><body>'
-            f'<h1>Mastixa Manager - {title}</h1><p>{escape(tr("Έτος"))}: {snapshot.year}<br/>'
+            f'<h1>Fieltra - {title}</h1><p>{escape(tr("Έτος"))}: {snapshot.year}<br/>'
             f'{escape(tr("Προϊόν"))}: {escape(scope_label(snapshot))}</p><p>{escape(scope_note(snapshot))}</p>'
             f'<p>{escape(tr("Το stock τέλους έτους περιλαμβάνει το αδιάθετο υπόλοιπο προηγούμενων ετών."))}</p>'
             + table([tr("Μέγεθος"), tr("Τιμή")], metrics, (35, 65))

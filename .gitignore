@@ -34,6 +34,7 @@ data/
 # Private exports and transferable profile packages
 annual_report_*.csv
 *.mastixaprofile
+*.fieltraprofile
 exports/
 
 # Local patch/install work folders

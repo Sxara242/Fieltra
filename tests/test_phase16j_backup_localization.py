@@ -139,7 +139,7 @@ class BackupLocalizationTests(unittest.TestCase):
         connection.close()
         error = self.capture(lambda: self.manager.restore_backup(path))
         tables = "expenses, fields, income, producer, production"
-        self.check_dialog(error, f"Το αρχείο SQLite δεν φαίνεται να είναι backup του Mastixa Manager.\n\nΛείπουν πίνακες: {tables}", f"The SQLite file does not appear to be a Mastixa Manager backup.\n\nMissing tables: {tables}", restore=True)
+        self.check_dialog(error, f"Το αρχείο SQLite δεν φαίνεται να είναι backup του Fieltra.\n\nΛείπουν πίνακες: {tables}", f"The SQLite file does not appear to be a Fieltra backup.\n\nMissing tables: {tables}", restore=True)
 
     def test_lifecycle_error_dialogs_live_switch_and_keep_no_semantics(self):
         path = self.root / "missing Ναι.db"

@@ -1050,7 +1050,7 @@ class UploadCenterPage(YearFilteredPage):
         path, _ = QFileDialog.getSaveFileName(
             self,
             _text("Εξαγωγή επιλεγμένου snapshot"),
-            f"mastixa_snapshot_{year}_{snapshot_id}.json",
+            f"fieltra_snapshot_{year}_{snapshot_id}.json",
             "JSON (*.json)",
         )
 
@@ -1346,7 +1346,7 @@ class UploadCenterPage(YearFilteredPage):
         path, _ = QFileDialog.getSaveFileName(
             self,
             _text("Εξαγωγή πακέτου JSON"),
-            f"mastixa_declaration_{year}.json",
+            f"fieltra_declaration_{year}.json",
             "JSON (*.json)",
         )
 

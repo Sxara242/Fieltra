@@ -19,13 +19,12 @@ ROOT = Path(__file__).resolve().parents[1]
 class Batch7ReleaseTests(unittest.TestCase):
     def test_windows_branding_and_numeric_string_versions(self):
         text = (ROOT / "packaging/version_info.txt").read_text(encoding="utf-8")
-        for key, value in {"FileDescription": "Mastixa Manager", "ProductName": "Mastixa Manager",
-                           "InternalName": "MastixaManager", "OriginalFilename": "MastixaManager.exe",
+        for key, value in {"FileDescription": "Fieltra - Farm Management", "ProductName": "Fieltra",
+                           "InternalName": "Fieltra", "OriginalFilename": "Fieltra.exe",
                            "FileVersion": APP_VERSION, "ProductVersion": APP_VERSION}.items():
             self.assertIn(f"StringStruct('{key}', '{value}')", text)
-        self.assertEqual("1.0.0-rc.2", APP_VERSION)
-        major, minor, patch_number, serial = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)-rc\.(\d+)", APP_VERSION).groups()
-        numbers = tuple(map(int, (major, minor, patch_number, serial)))
+        self.assertEqual("1.0.0", APP_VERSION)
+        numbers = (*map(int, APP_VERSION.split(".")), 0)
         self.assertIn(f"filevers={numbers}", text)
         self.assertIn(f"prodvers={numbers}", text)
         iss = (ROOT / "installer/MastixaManager.iss").read_text(encoding="utf-8")

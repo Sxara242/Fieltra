@@ -4,12 +4,13 @@ import re
 from dataclasses import dataclass
 
 
-APP_NAME = "Mastixa Manager"
-APP_VERSION = "1.0.0-rc.2"
-RELEASE_CHANNEL = "rc"
+APP_NAME = "Fieltra"
+APP_VERSION = "1.0.0"
+RELEASE_CHANNEL = "stable"
+APP_DESCRIPTOR = "Farm Management"
 APP_LICENSE = "AGPL-3.0-only"
 GIT_TAG = f"v{APP_VERSION}"
-WINDOWS_INSTALLER_NAME = f"MastixaManager-{APP_VERSION}-Setup.exe"
+WINDOWS_INSTALLER_NAME = f"Fieltra-{APP_VERSION}-Setup.exe"
 # Android has its own release checkpoint; this Windows batch does not bump it.
 ANDROID_APK_NAME = "MastixaManager-0.40.0-alpha.2-Android.apk"
 
@@ -33,7 +34,7 @@ class ParsedVersion:
 def parse_version(value: str) -> ParsedVersion:
     match = _VERSION_RE.fullmatch(value.strip())
     if not match:
-        raise ValueError(f"Unsupported Mastixa Manager version: {value!r}")
+        raise ValueError(f"Unsupported Fieltra version: {value!r}")
 
     channel = (match.group("channel") or "stable").lower()
     serial = int(match.group("serial") or 0)

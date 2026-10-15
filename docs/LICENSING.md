@@ -1,9 +1,8 @@
 # Licensing scope
 
 Owner-controlled first-party code, tests, build scripts and documentation in
-this prepared snapshot are designated **AGPL-3.0-only**, including the Windows
-and Android implementations. The grant takes effect when this snapshot is
-published by the owner. Existing third-party copyright/license notices and
+Fieltra are licensed under **AGPL-3.0-only**, including the Windows
+and Android implementations. Fieltra is free, open-source software. Existing third-party copyright/license notices and
 separately licensed material are exceptions to this first-party scope.
 
 The full, unmodified GNU AGPL version 3 text is in [LICENSE](../LICENSE).
@@ -11,7 +10,7 @@ The project chooses version 3 only. The license's generic application appendix
 is not a project grant of an “or later” option. AGPL permits commercial use
 under its terms; this repository imposes no additional noncommercial condition.
 Older private commits and previously distributed snapshots retain their own
-licensing context. This preparation does not rewrite archival history.
+licensing context. This release does not rewrite archival history.
 
 The owner confirmed the existing first-party rights baseline on 2026-10-09;
 see [CONTRIBUTION_RIGHTS.md](CONTRIBUTION_RIGHTS.md). Separate commercial terms

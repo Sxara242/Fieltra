@@ -59,7 +59,7 @@ def export_report_pdf(path: str, snapshot: dict) -> None:
 
     generated = datetime.now().strftime("%d/%m/%Y %H:%M")
     year_label = escape(tr(snapshot["year_label"]))
-    report_title = escape(tr("Mastixa Manager - Αναφορά"))
+    report_title = escape(tr("Fieltra - Αναφορά"))
     report_subtitle = escape(tr("Αναφορές & Στατιστικά"))
     generated_label = escape(tr("Δημιουργήθηκε"))
     production_label = escape(tr("Παραγωγή"))
@@ -231,7 +231,7 @@ def export_report_xlsx(path: str, snapshot: dict) -> None:
 </styleSheet>"""
 
     summary_rows = [
-        _row_xml(1, [_inline_cell("A1", tr("Mastixa Manager - Αναφορά"), 1)], 26),
+        _row_xml(1, [_inline_cell("A1", tr("Fieltra - Αναφορά"), 1)], 26),
         _row_xml(2, [_inline_cell("A2", tr(snapshot["year_label"]), 2)]),
         _row_xml(4, [
             _inline_cell("A4", tr("Παραγωγή"), 3),
@@ -342,8 +342,8 @@ def export_report_xlsx(path: str, snapshot: dict) -> None:
  xmlns:dcterms="http://purl.org/dc/terms/"
  xmlns:dcmitype="http://purl.org/dc/dcmitype/"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <dc:title>Mastixa Manager Report</dc:title>
-  <dc:creator>Mastixa Manager</dc:creator>
+  <dc:title>Fieltra Report</dc:title>
+  <dc:creator>Fieltra</dc:creator>
   <dcterms:created xsi:type="dcterms:W3CDTF">{now_iso}</dcterms:created>
   <dcterms:modified xsi:type="dcterms:W3CDTF">{now_iso}</dcterms:modified>
 </cp:coreProperties>"""
@@ -351,7 +351,7 @@ def export_report_xlsx(path: str, snapshot: dict) -> None:
     app = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"
  xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes">
-  <Application>Mastixa Manager</Application>
+  <Application>Fieltra</Application>
 </Properties>"""
 
     with ZipFile(output, "w", ZIP_DEFLATED) as archive:

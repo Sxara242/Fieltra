@@ -1,6 +1,6 @@
-# Mastixa Manager public development
+# Fieltra public development
 
-- This repository, Sxara242/Mastixa-Manager-Source, is the primary active source
+- This repository, Sxara242/Fieltra, is the primary active source
   repository for rc.2 and later. Make future source/tests/docs/PR/CI changes here.
 - The private Mastixa-Manager repository and existing private local checkouts are
   protected archives. Never alter their work or history, copy/merge private Git
@@ -10,9 +10,14 @@
 - Use terminal/CLI/direct files only on the owner's PC. Do not invoke computer
   control, visual automation or virtual mouse/keyboard input. Required GUI steps
   must be performed manually by the owner.
-- Windows x64 is the current release target. Android remains in development.
-  rc.1 is immutable historical evidence. rc.2 is unbuilt/unqualified until its
-  actual candidate passes release gates and explicit owner acceptance.
+- Windows x64 v1.0 is the immediate release priority; v1.1 development follows it.
+  Android remains in development. rc.1 is immutable historical evidence. The
+  2026-10-15 RC2 build/hash and owner Sandbox install/Dashboard acceptance are
+  recorded in the retained handoff; do not reset them to pending or reopen the
+  seven CLOSED recovery tests. Fieltra 1.0.0 Stable is now owner-accepted for
+  Sandbox installation, startup and branding/version; its final artifact and
+  source correspondence and Release links are in docs/FIELTRA_V1_RELEASE.md.
+  Native launcher correspondence PASS; its provenance issue is CLOSED.
 - Keep profiles, databases, backups, logs, dumps, local configuration, credentials,
   keys and private artifacts out of public source. Use synthetic fixtures. Run
   tools/audit_public_source.py and secret scanning before publication; reviewed
@@ -23,9 +28,13 @@
   executed grant supporting AGPL and separate commercial licensing.
 - CI must use only ubuntu-latest/windows-latest. Normal push/PR runs do not
   generate installers. Optional manual artifacts have one-day retention.
-- Diagnose failures in isolated processes and run affected tests plus appropriate
-  complete validation. Do not conceal failures with skips, xfails or weaker
-  assertions. Validate diffs and report evidence-based release conclusions.
+- Follow the parent AGENTS.md owner workflow: one targeted change, authorized
+  execution, observe the result, then continue on success or diagnose only the
+  actual failure. Preserve essential security/integrity/legal checks; avoid
+  unnecessary preventive tooling, evidence, copies, duplicate builds and repeated
+  tests. Do not conceal failures with skips, xfails or weaker assertions. Do not
+  rebuild, run additional tests, change Git state, publish binaries or delete
+  files without owner authorization.
 
 ## Windows validation safety — live user state
 

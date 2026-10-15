@@ -190,9 +190,9 @@ class ComposedUiTests(unittest.TestCase):
         owner._selected_profile_id = lambda: "raw-id"
         owner._request_profile_pin = lambda *args: True
         owner.profiles = SimpleNamespace(get=lambda _: SimpleNamespace(name=RAW), export_profile=Mock(return_value=RAW))
-        with patch("app.settings.QFileDialog.getSaveFileName", return_value=("C:/qa/profile.mastixaprofile", "")):
+        with patch("app.settings.QFileDialog.getSaveFileName", return_value=("C:/qa/profile.fieltraprofile", "")):
             self.dialog(lambda: SettingsPage.export_profile(owner), RAW, "profile")
-        owner.profiles.export_profile.assert_called_once_with("raw-id", Path("C:/qa/profile.mastixaprofile"))
+        owner.profiles.export_profile.assert_called_once_with("raw-id", Path("C:/qa/profile.fieltraprofile"))
 
     def test_dashboard_backup_success(self):
         from app.dashboard import DashboardPage
@@ -405,9 +405,9 @@ class ComposedUiTests(unittest.TestCase):
             page.profiles.create.assert_called_once_with(RAW)
             page.profiles.create.side_effect = ProfileError(ERROR)
             self.dialog(lambda: SettingsPage.create_profile(page), ERROR, ERROR)
-        with patch("app.settings.QFileDialog.getOpenFileName", return_value=("C:/Παραγωγή Save/Ναι {2027}.mastixaprofile", "")):
+        with patch("app.settings.QFileDialog.getOpenFileName", return_value=("C:/Παραγωγή Save/Ναι {2027}.fieltraprofile", "")):
             self.dialog(lambda: SettingsPage.import_profile(page), RAW, "own database")
-        page.profiles.import_profile.assert_called_once_with(Path("C:/Παραγωγή Save/Ναι {2027}.mastixaprofile"))
+        page.profiles.import_profile.assert_called_once_with(Path("C:/Παραγωγή Save/Ναι {2027}.fieltraprofile"))
 
     def test_settings_archive_activate_cancel_preserve_state(self):
         from app.settings import SettingsPage
@@ -604,7 +604,7 @@ class ComposedUiTests(unittest.TestCase):
             finally:
                 if isinstance(box, QMessageBox): box.accept()
         QTimer.singleShot(0, visit)
-        with patch("app.settings.QFileDialog.getSaveFileName", return_value=(str(Path(self.temp)/"qa.mastixaprofile"), "")):
+        with patch("app.settings.QFileDialog.getSaveFileName", return_value=(str(Path(self.temp)/"qa.fieltraprofile"), "")):
             SettingsPage.export_profile(page)
         if errors: raise errors[0]
 

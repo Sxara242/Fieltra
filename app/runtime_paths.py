@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-import sys
 from typing import Mapping
 
 
-APP_DATA_FOLDER = "MastixaManager"
+APP_DATA_FOLDER = "Fieltra"
 DATA_HOME_ENV = "MASTIXA_DATA_HOME"
 
 
@@ -18,9 +17,8 @@ def resolve_base_dir(
 ) -> Path:
     """Return the writable root used for databases, profiles, backups and logs.
 
-    Source checkouts keep their existing repository-local ``data`` and
-    ``backups`` folders. Packaged Windows builds use LocalAppData, keeping user
-    records separate from program files and safe across upgrades/uninstalls.
+    Source and packaged builds use the clean Fieltra LocalAppData namespace.
+    Developer Mastixa data is never discovered or migrated automatically.
     ``MASTIXA_DATA_HOME`` is an explicit override used by diagnostics and
     packaged smoke tests.
     """
@@ -28,10 +26,6 @@ def resolve_base_dir(
     override = str(values.get(DATA_HOME_ENV, "")).strip()
     if override:
         return Path(override).expanduser().resolve()
-
-    is_frozen = bool(getattr(sys, "frozen", False)) if frozen is None else frozen
-    if not is_frozen:
-        return Path(module_file).resolve().parent.parent
 
     local_app_data = str(values.get("LOCALAPPDATA", "")).strip()
     if local_app_data:

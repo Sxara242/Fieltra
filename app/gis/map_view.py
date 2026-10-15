@@ -179,7 +179,7 @@ class ParcelMap(QGraphicsView):
             if key in self.tiles or key in self.pending or self.failed.get(key,0)>time.monotonic():continue
             z,x,y=key
             request=QNetworkRequest(QUrl(self.provider.tile_template.format(z=z,x=x,y=y)))
-            request.setRawHeader(b'User-Agent',b'MastixaManager/0.40 (+private archive (not published))')
+            request.setRawHeader(b'User-Agent',b'Fieltra/1.0.0 (+https://github.com/Sxara242/Mastixa-Manager-Source)')
             request.setTransferTimeout(10000)
             reply=self.network.get(request);self.pending[key]=reply;reply.setReadBufferSize(1024*1024+1)
             body=bytearray()

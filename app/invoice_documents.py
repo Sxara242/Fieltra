@@ -622,7 +622,7 @@ class InvoiceDocumentsPage(CrudPage):
     def export_selected(self) -> None:
         ids = self._selected_ids()
         if not ids: return
-        default = f"mastixa_invoices_{datetime.now():%Y%m%d_%H%M%S}.zip"; filename, _filter = QFileDialog.getSaveFileName(self, _text("Εξαγωγή επιλεγμένων τιμολογίων"), default, "ZIP (*.zip)")
+        default = f"fieltra_invoices_{datetime.now():%Y%m%d_%H%M%S}.zip"; filename, _filter = QFileDialog.getSaveFileName(self, _text("Εξαγωγή επιλεγμένων τιμολογίων"), default, "ZIP (*.zip)")
         if not filename: return
         target = Path(filename); target = target if target.suffix.lower() == ".zip" else target.with_suffix(".zip")
         try: self.build_export_zip(target, ids)

@@ -47,7 +47,7 @@ class DashboardPage(QWidget):
         self.db = db
         layout = QVBoxLayout(self)
 
-        title = QLabel("Mastixa Manager")
+        title = QLabel("Fieltra")
         title.setObjectName("pageTitle")
         subtitle = QLabel("Συνολική εικόνα εκμετάλλευσης")
         subtitle.setObjectName("pageSubtitle")
@@ -103,7 +103,7 @@ class DashboardPage(QWidget):
         backup_dir = BASE_DIR / "backups"
         backup_dir.mkdir(parents=True, exist_ok=True)
         stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        target = backup_dir / f"mastixa_manager_{stamp}.db"
+        target = backup_dir / f"fieltra_{stamp}.db"
         shutil.copy2(self.db.path, target)
         QMessageBox.information(self, "Backup", f"Το αντίγραφο δημιουργήθηκε:\n{target}")
 

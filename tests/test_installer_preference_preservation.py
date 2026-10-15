@@ -7,7 +7,7 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-KEY = r"Software\Mastixa\Mastixa Manager"
+KEY = r"Software\Fieltra\Fieltra"
 HARNESS = ROOT / "tools/installer_validate.py"
 
 
@@ -102,18 +102,18 @@ var
 begin
   if \(CurUninstallStep = usPostUninstall\) and DeleteUserDataOnUninstall then
   begin
-    if RegKeyExists\(HKCU, 'Software\\Mastixa\\Mastixa Manager'\) then
+    if RegKeyExists\(HKCU, 'Software\\Fieltra\\Fieltra'\) then
     begin
-      Log\('Full uninstall requested\. Removing Mastixa Manager preferences\.'\);
-      if not RegDeleteKeyIncludingSubkeys\(HKCU, 'Software\\Mastixa\\Mastixa Manager'\) then
-        Log\('Warning: Mastixa Manager preferences could not be removed\.'\);
+      Log\('Full uninstall requested\. Removing Fieltra preferences\.'\);
+      if not RegDeleteKeyIncludingSubkeys\(HKCU, 'Software\\Fieltra\\Fieltra'\) then
+        Log\('Warning: Fieltra preferences could not be removed\.'\);
     end;
-    UserDataDir := ExpandConstant\('\{localappdata\}\\MastixaManager'\);
+    UserDataDir := ExpandConstant\('\{localappdata\}\\Fieltra'\);
     if DirExists\(UserDataDir\) then
     begin
       Log\('Full uninstall requested\. Removing user data: ' \+ UserDataDir\);
       if not DelTree\(UserDataDir, True, True, True\) then
-        Log\('Warning: some Mastixa Manager user data could not be removed\.'\);
+        Log\('Warning: some Fieltra user data could not be removed\.'\);
     end;
   end;
 end;

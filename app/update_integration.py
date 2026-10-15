@@ -167,7 +167,7 @@ def _add_updates_tab(page: SettingsPage) -> None:
         if not isinstance(info, UpdateInfo):
             return
         page._mastixa_install_update_button.setEnabled(False)
-        page._composed_text(page._mastixa_update_status, "Λήψη και επαλήθευση Mastixa Manager {version}…", version=info.version)
+        page._composed_text(page._mastixa_update_status, "Λήψη και επαλήθευση Fieltra {version}…", version=info.version)
 
         def work() -> None:
             try:
@@ -186,7 +186,7 @@ def _add_updates_tab(page: SettingsPage) -> None:
             page, "question",
             "Έτοιμη ενημέρωση",
             "Η έκδοση {version} κατέβηκε και επαληθεύτηκε με SHA-256.\n\n"
-            "Να κλείσει τώρα το Mastixa Manager και να ξεκινήσει ο installer;",
+            "Να κλείσει τώρα το Fieltra και να ξεκινήσει ο installer;",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.Yes,
             version=info.version,

@@ -20,7 +20,7 @@ from .ui_helpers import compact_decimal, format_kg, table_widget
 
 
 class GlobalSearchPage(QWidget):
-    """Ενιαία αναζήτηση σε βασικά δεδομένα του Mastixa Manager."""
+    """Ενιαία αναζήτηση σε βασικά δεδομένα του Fieltra."""
 
 
     @staticmethod

@@ -8,7 +8,7 @@ from .language import tr
 
 
 class BarChartWidget(QWidget):
-    """Simple dependency-free bar chart for Mastixa Manager."""
+    """Simple dependency-free bar chart for Fieltra."""
 
     def __init__(
         self,

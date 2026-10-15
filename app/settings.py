@@ -92,7 +92,7 @@ class ProfileSelectionDialog(QDialog):
         language_row.addWidget(self.language_combo, 1)
         layout.addLayout(language_row)
 
-        title = QLabel("Ποιος θα χρησιμοποιήσει το Mastixa;")
+        title = QLabel("Ποιος θα χρησιμοποιήσει το Fieltra;")
         title.setObjectName("pageTitle")
         layout.addWidget(title)
         description = QLabel(
@@ -772,8 +772,8 @@ class SettingsPage(QWidget):
         selected, _filter = QFileDialog.getSaveFileName(
             self,
             _text("Εξαγωγή προφίλ"),
-            f"{profile.name}.mastixaprofile",
-            _text("Προφίλ Mastixa") + " (*.mastixaprofile)",
+            f"{profile.name}.fieltraprofile",
+            _text("Προφίλ Fieltra") + " (*.fieltraprofile)",
         )
         if not selected:
             return
@@ -789,7 +789,7 @@ class SettingsPage(QWidget):
             self,
             _text("Εισαγωγή προφίλ"),
             "",
-            _text("Προφίλ Mastixa") + " (*.mastixaprofile)",
+            _text("Προφίλ Fieltra") + " (*.fieltraprofile)",
         )
         if not selected:
             return
@@ -949,12 +949,18 @@ class SettingsPage(QWidget):
         layout.setContentsMargins(12, 16, 12, 16)
         layout.setSpacing(12)
 
+        from .version import APP_NAME, APP_VERSION, APP_DESCRIPTOR
+        heading = QLabel(f"{APP_NAME} — {APP_DESCRIPTOR}\n{APP_VERSION} Stable")
+        heading.setProperty("mastixaI18nSkipText", True)
+        layout.addWidget(heading)
+
         box = QGroupBox("Open Source")
         box_layout = QVBoxLayout(box)
 
         message = QLabel(
-            "Mastixa Manager — AGPL-3.0-only\n"
-            "Copyright: Mastixa Manager contributors.\n"
+            "Fieltra — AGPL-3.0-only\n"
+            "Copyright: Fieltra contributors.\n"
+            "Ιστορικές αναφορές copyright: στις συνοδευτικές νομικές σημειώσεις.\n"
             "Η εφαρμογή παρέχεται χωρίς εγγύηση. Επιτρέπεται αναδιανομή "
             "και τροποποίηση σύμφωνα με την AGPL-3.0-only.\n"
             "Χρησιμοποιεί PySide6 / Qt υπό LGPLv3 και άλλες άδειες ανά component. "
@@ -978,7 +984,7 @@ class SettingsPage(QWidget):
             button.clicked.connect(lambda _checked=False, target=path:
                                    QDesktopServices.openUrl(QUrl.fromLocalFile(str(target))))
             box_layout.addWidget(button)
-        source_button = QPushButton("Source: github.com/Sxara242/Mastixa-Manager-Source")
+        source_button = QPushButton("Fieltra — Source Code (GitHub)")
         source_button.clicked.connect(lambda: QDesktopServices.openUrl(
             QUrl("https://github.com/Sxara242/Mastixa-Manager-Source")))
         box_layout.addWidget(source_button)

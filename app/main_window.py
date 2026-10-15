@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from .localized_messages import _message
+from .version import APP_NAME, APP_VERSION
 
 
 from .icon_theme import install_icon_theme
@@ -573,7 +574,7 @@ class MainWindow(QMainWindow):
         self.backup_manager = self._build_backup_manager()
         active_profile = self.profile_manager.active_profile
         self.setWindowTitle(
-            f"Mastixa Manager v0.40.0-alpha.1 — {active_profile.name}"
+            f"{APP_NAME} v{APP_VERSION} — {active_profile.name}"
         )
         self.resize(1200, 780)
         self.setMinimumSize(QSize(950, 650))
@@ -1470,8 +1471,9 @@ def run_app() -> None:
     configure_logging(BASE_DIR)
     logger.info("Application startup")
     app = QApplication(sys.argv)
-    app.setApplicationName("Mastixa Manager")
-    app.setOrganizationName("Mastixa Manager")
+    app.setApplicationName(APP_NAME)
+    app.setApplicationVersion(APP_VERSION)
+    app.setOrganizationName("Fieltra")
     app.setWindowIcon(QIcon(str(APP_ICON)))
     light_palette = build_app_palette()
     light_stylesheet = STYLESHEET.replace(

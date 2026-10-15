@@ -20,7 +20,7 @@ exclude = runpy.run_path(str(ROOT / "packaging/qt_exclusions.py"))["without_virt
 
 class WindowsRcReleaseTests(unittest.TestCase):
     def test_rc_license_version_and_channel_configuration(self):
-        self.assertEqual(("1.0.0-rc.2", "rc", "AGPL-3.0-only"),
+        self.assertEqual(("1.0.0", "stable", "AGPL-3.0-only"),
                          (APP_VERSION, RELEASE_CHANNEL, APP_LICENSE))
         self.assertEqual([], gate["configuration_errors"]())
         self.assertIn('LicenseFile=..\\LICENSE', (ROOT / 'installer/MastixaManager.iss').read_text())
@@ -93,8 +93,8 @@ class WindowsRcReleaseTests(unittest.TestCase):
                 update_manager.parse_manifest(_manifest(version=version,channel=channel), expected_channel=expected)
 
     def test_operational_feed_accepts_project_github_release_artifact(self):
-        payload=_manifest(version='1.0.0-rc.3', windows={'filename':'MastixaManager-1.0.0-rc.3-Setup.exe',
-            'url':'https://github.com/Sxara242/Mastixa-Manager-Source/releases/download/v1.0.0-rc.3/MastixaManager-1.0.0-rc.3-Setup.exe',
+        payload=_manifest(version='1.0.0-rc.3', windows={'filename':'Fieltra-1.0.0-rc.3-Setup.exe',
+            'url':'https://github.com/Sxara242/Mastixa-Manager-Source/releases/download/v1.0.0-rc.3/Fieltra-1.0.0-rc.3-Setup.exe',
             'sha256':'a'*64})
         info=update_manager.fetch_update_info('https://example.invalid/staging.json', expected_channel='rc',
             opener=Mock(return_value=_Response(payload)))

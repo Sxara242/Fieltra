@@ -40,13 +40,13 @@ class _Response:
 def _manifest(**overrides) -> bytes:
     data = {
         "schema": 1,
-        "product": "Mastixa Manager",
+        "product": "Fieltra",
         "version": "1.0.0-rc.3",
         "channel": "rc",
         "release_url": "https://example.invalid/releases/v0.40.0-alpha.3",
         "notes": "UI hotfix",
         "windows": {
-            "filename": "MastixaManager-0.40.0-alpha.3-Setup.exe",
+            "filename": "Fieltra-0.40.0-alpha.3-Setup.exe",
             "url": None,
             "sha256": None,
         },
@@ -58,10 +58,10 @@ def _manifest(**overrides) -> bytes:
 
 class Alpha2UpdateTests(unittest.TestCase):
     def test_clean_release_naming_contract(self) -> None:
-        self.assertEqual("1.0.0-rc.2", APP_VERSION)
-        self.assertEqual("v1.0.0-rc.2", GIT_TAG)
+        self.assertEqual("1.0.0", APP_VERSION)
+        self.assertEqual("v1.0.0", GIT_TAG)
         self.assertEqual(
-            "MastixaManager-1.0.0-rc.2-Setup.exe",
+            "Fieltra-1.0.0-Setup.exe",
             WINDOWS_INSTALLER_NAME,
         )
         self.assertEqual(
@@ -85,7 +85,7 @@ class Alpha2UpdateTests(unittest.TestCase):
             parse_manifest(
                 _manifest(
                     windows={
-                        "filename": "MastixaManager-0.40.0-alpha.3-Setup.exe",
+                        "filename": "Fieltra-0.40.0-alpha.3-Setup.exe",
                         "url": "http://example.invalid/update.exe",
                         "sha256": "0" * 64,
                     }
@@ -96,7 +96,7 @@ class Alpha2UpdateTests(unittest.TestCase):
             parse_manifest(
                 _manifest(
                     windows={
-                        "filename": "MastixaManager-0.40.0-alpha.3-Setup.exe",
+                        "filename": "Fieltra-0.40.0-alpha.3-Setup.exe",
                         "url": "https://example.invalid/update.exe",
                         "sha256": None,
                     }
@@ -109,7 +109,7 @@ class Alpha2UpdateTests(unittest.TestCase):
         info = parse_manifest(
             _manifest(
                 windows={
-                    "filename": "MastixaManager-0.40.0-alpha.3-Setup.exe",
+                    "filename": "Fieltra-0.40.0-alpha.3-Setup.exe",
                     "url": "https://example.invalid/update.exe",
                     "sha256": sha,
                 }
@@ -127,7 +127,7 @@ class Alpha2UpdateTests(unittest.TestCase):
             )
             self.assertEqual(payload, installer.read_bytes())
             self.assertEqual(
-                "MastixaManager-0.40.0-alpha.3-Setup.exe",
+                "Fieltra-0.40.0-alpha.3-Setup.exe",
                 installer.name,
             )
 
@@ -135,7 +135,7 @@ class Alpha2UpdateTests(unittest.TestCase):
         info = parse_manifest(
             _manifest(
                 windows={
-                    "filename": "MastixaManager-0.40.0-alpha.3-Setup.exe",
+                    "filename": "Fieltra-0.40.0-alpha.3-Setup.exe",
                     "url": "https://example.invalid/update.exe",
                     "sha256": "0" * 64,
                 }

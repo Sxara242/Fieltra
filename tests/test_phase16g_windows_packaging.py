@@ -93,7 +93,7 @@ class Phase16GWindowsPackagingTests(unittest.TestCase):
         self.assertEqual(0, parse.returncode, parse.stdout + parse.stderr)
         rejected = subprocess.run([
             "powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script),
-            "-ExecutablePath", str(ROOT / "nonexistent-smoke-bundle" / "MastixaManager.exe"),
+            "-ExecutablePath", str(ROOT / "nonexistent-smoke-bundle" / "Fieltra.exe"),
         ], capture_output=True, text=True, timeout=20)
         self.assertNotEqual(0, rejected.returncode)
 
@@ -107,7 +107,7 @@ class Phase16GWindowsPackagingTests(unittest.TestCase):
             # shell. Let Windows PowerShell locate its own built-in modules.
             fixture_env = {key: value for key, value in os.environ.items()
                            if key.casefold() != "psmodulepath"}
-            exe = root / "MastixaManager.exe"
+            exe = root / "Fieltra.exe"
             source = root / "Fixture.cs"
             source.write_text('''
 using System;
@@ -155,7 +155,7 @@ public class Fixture {
                         capture_output=True, text=True, timeout=20)
                     self.assertEqual(expected == "PASS", result.returncode == 0,
                                      result.stdout + result.stderr)
-                    reports = list(run_root.glob("MastixaManager-smoke-*/result.json"))
+                    reports = list(run_root.glob("Fieltra-smoke-*/result.json"))
                     self.assertEqual(1, len(reports), result.stdout + result.stderr)
                     report = json.loads(reports[0].read_text(encoding="utf-8-sig"))
                     self.assertEqual(expected, report["status"])
@@ -204,9 +204,9 @@ public class Fixture {
     def test_installer_upgrade_contract_preserves_external_user_data(self) -> None:
         iss = self._read("installer/MastixaManager.iss")
 
-        self.assertIn("AppId={{B9B946A2-8711-4B35-9BCB-B40210E67357}", iss)
+        self.assertIn("AppId={{8A6CE872-CC79-4605-9084-893E304E38AD}", iss)
         self.assertIn("PrivilegesRequired=lowest", iss)
-        self.assertIn("DefaultDirName={%LOCALAPPDATA}\\Programs\\Mastixa Manager", iss)
+        self.assertIn("DefaultDirName={%LOCALAPPDATA}\\Programs\\Fieltra", iss)
         self.assertNotIn("MastixaManager\\data", iss)
         self.assertNotIn("MastixaManager\\backups", iss)
 
@@ -214,9 +214,9 @@ public class Fixture {
             frozen=True,
             environ={"LOCALAPPDATA": "C:/SyntheticProfiles/test/AppData/Local"},
         )
-        install_dir = Path("C:/SyntheticProfiles/test/AppData/Local/Programs/Mastixa Manager").resolve()
+        install_dir = Path("C:/SyntheticProfiles/test/AppData/Local/Programs/Fieltra").resolve()
         self.assertEqual(
-            Path("C:/SyntheticProfiles/test/AppData/Local/MastixaManager").resolve(),
+            Path("C:/SyntheticProfiles/test/AppData/Local/Fieltra").resolve(),
             data_dir,
         )
         self.assertNotEqual(install_dir, data_dir)
@@ -227,13 +227,13 @@ public class Fixture {
 
         self.assertNotIn("[Registry]", iss)
         self.assertNotIn("uninsdeletekey", iss)
-        self.assertIn("RegDeleteKeyIncludingSubkeys(HKCU, 'Software\\Mastixa\\Mastixa Manager')", iss)
+        self.assertIn("RegDeleteKeyIncludingSubkeys(HKCU, 'Software\\Fieltra\\Fieltra')", iss)
         self.assertNotIn("Microsoft\\Windows\\CurrentVersion\\UFH\\SHC", iss)
 
         self.assertIn("[UninstallDelete]", iss)
         self.assertIn('Type: filesandordirs; Name: "{app}"', iss)
         self.assertNotIn(
-            'Type: filesandordirs; Name: "{%LOCALAPPDATA}\\MastixaManager"',
+            'Type: filesandordirs; Name: "{%LOCALAPPDATA}\\Fieltra"',
             iss,
         )
 
@@ -295,7 +295,7 @@ public class Fixture {
         self.assertIn("-InstallerOutputDir $outputDir", ci_build)
         self.assertIn("-InstallerBuildAttempts 3", ci_build)
         self.assertNotIn("ci_windows_release.ps1", workflow)
-        self.assertNotIn('dist\\installer\\MastixaManager-', workflow)
+        self.assertNotIn('dist\\installer\\Fieltra-', workflow)
 
     def test_release_gate_uses_tracked_non_invasive_lock_diagnostics(self) -> None:
         ci_build = self._read("packaging/ci_windows_release.ps1")
@@ -328,7 +328,7 @@ public class Fixture {
         self.assertIn('[string]$PythonPath = ""', build)
         self.assertIn("-PythonPath <python.exe>", build)
         self.assertIn("MyAppVersion", build)
-        self.assertIn('"MastixaManager-$version-Setup.exe"', build)
+        self.assertIn('"Fieltra-$version-Setup.exe"', build)
         self.assertIn("Get-FileHash -Algorithm SHA256", build)
         self.assertEqual("PyInstaller==6.22.3\npyinstaller-hooks-contrib==2026.7", requirements)
 

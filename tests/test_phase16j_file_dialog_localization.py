@@ -36,8 +36,8 @@ CASES = [
     ("reports", "ReportsPage", "export_excel", "getSaveFileName", "Εξαγωγή αναφοράς σε Excel", "Export report to Excel", "mastixa_report_2027.xlsx", "Excel (*.xlsx)", "Excel (*.xlsx)"),
     ("sales_report", "SalesReportPage", "export_csv", "getSaveFileName", "Αποθήκευση Αναφοράς Πωλήσεων", "Save Sales Report", "sales_report.csv", "CSV (*.csv)", "CSV (*.csv)"),
     ("settings", "SettingsPage", "choose_profile_avatar", "getOpenFileName", "Εικόνα προφίλ", "Profile image", "", "Εικόνες (*.png *.jpg *.jpeg *.webp *.bmp)", "Images (*.png *.jpg *.jpeg *.webp *.bmp)"),
-    ("settings", "SettingsPage", "export_profile", "getSaveFileName", "Εξαγωγή προφίλ", "Export profile", RAW_NAME + ".mastixaprofile", "Προφίλ Mastixa (*.mastixaprofile)", "Mastixa profile (*.mastixaprofile)"),
-    ("settings", "SettingsPage", "import_profile", "getOpenFileName", "Εισαγωγή προφίλ", "Import profile", "", "Προφίλ Mastixa (*.mastixaprofile)", "Mastixa profile (*.mastixaprofile)"),
+    ("settings", "SettingsPage", "export_profile", "getSaveFileName", "Εξαγωγή προφίλ", "Export profile", RAW_NAME + ".fieltraprofile", "Προφίλ Mastixa (*.fieltraprofile)", "Mastixa profile (*.fieltraprofile)"),
+    ("settings", "SettingsPage", "import_profile", "getOpenFileName", "Εισαγωγή προφίλ", "Import profile", "", "Προφίλ Mastixa (*.fieltraprofile)", "Mastixa profile (*.fieltraprofile)"),
     ("settings", "SettingsPage", "choose_backup_folder", "getExistingDirectory", "Επιλογή φακέλου backups", "Choose backup folder", RAW_DIR, None, None),
     ("upload_center", "UploadCenterPage", "export_selected_snapshot", "getSaveFileName", "Εξαγωγή επιλεγμένου snapshot", "Export selected snapshot", "mastixa_snapshot_2027_64.json", "JSON (*.json)", "JSON (*.json)"),
     ("upload_center", "UploadCenterPage", "export_json", "getSaveFileName", "Εξαγωγή πακέτου JSON", "Export JSON package", "mastixa_declaration_2027.json", "JSON (*.json)", "JSON (*.json)"),
@@ -188,7 +188,7 @@ class FileDialogTests(unittest.TestCase):
     def test_selected_profile_avatar_and_directory_paths_exact(self):
         for code in ("el", "en"):
             self.controller.set_language(code, persist=False)
-            for index, operation, ext in ((14, "set_avatar", ".png"), (15, "export_profile", ".mastixaprofile"), (16, "import_profile", ".mastixaprofile")):
+            for index, operation, ext in ((14, "set_avatar", ".png"), (15, "export_profile", ".fieltraprofile"), (16, "import_profile", ".fieltraprofile")):
                 path = RAW_DIR + "\\" + RAW_NAME + ext
                 with patch.object(self.modules["settings"], "_message"):
                     self.invoke(CASES[index], path)

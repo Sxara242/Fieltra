@@ -7,20 +7,20 @@ from app.runtime_paths import resolve_base_dir
 
 
 class RuntimePathTests(unittest.TestCase):
-    def test_source_checkout_uses_repository_root(self) -> None:
+    def test_source_uses_clean_fieltra_namespace(self) -> None:
         module = Path("C:/work/MastixaManager/app/runtime_paths.py")
         self.assertEqual(
-            Path("C:/work/MastixaManager").resolve(),
+            Path("C:/SyntheticProfiles/test/AppData/Local/Fieltra").resolve(),
             resolve_base_dir(
                 frozen=False,
-                environ={},
+                environ={"LOCALAPPDATA": "C:/SyntheticProfiles/test/AppData/Local"},
                 module_file=module,
             ),
         )
 
     def test_packaged_build_uses_local_app_data(self) -> None:
         self.assertEqual(
-            Path("C:/SyntheticProfiles/test/AppData/Local/MastixaManager").resolve(),
+            Path("C:/SyntheticProfiles/test/AppData/Local/Fieltra").resolve(),
             resolve_base_dir(
                 frozen=True,
                 environ={"LOCALAPPDATA": "C:/SyntheticProfiles/test/AppData/Local"},

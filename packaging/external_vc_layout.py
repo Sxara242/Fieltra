@@ -59,17 +59,17 @@ def create_layout(payload, launcher, output, expected=None):
     original = safe_files(payload)
     if expected is not None and original != expected:
         raise ValueError('Frozen payload differs from the retained manifest')
-    if 'MastixaManager.exe' not in original:
+    if 'Fieltra.exe' not in original:
         raise ValueError('Frozen application executable is missing')
     verify_bundle(payload, ROOT)
     audit = audit_launcher(launcher)
     output.mkdir(parents=True)
     shutil.copytree(payload, output / 'engine')
-    shutil.copyfile(launcher, output / 'MastixaManager.exe')
+    shutil.copyfile(launcher, output / 'Fieltra.exe')
     copied = safe_files(output / 'engine')
     if copied != original or safe_files(payload) != original:
         raise ValueError('Original/copied frozen member identities changed')
-    if digest(output / 'MastixaManager.exe') != audit['sha256']:
+    if digest(output / 'Fieltra.exe') != audit['sha256']:
         raise ValueError('Launcher changed during staging')
     return {'mode': 'external-launch', 'frozen_members': len(original),
             'frozen_members_sha256': original, 'launcher': audit,

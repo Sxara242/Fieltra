@@ -5,7 +5,7 @@
   "minimum_version": "14.51.36247.0",
   "download_url": "https://aka.ms/vc14/vc_redist.x64.exe",
   "payload_directory": "engine",
-  "executable": "MastixaManager.exe",
+  "executable": "Fieltra.exe",
   "canonical_files": [
     "msvcp140.dll",
     "msvcp140_1.dll",

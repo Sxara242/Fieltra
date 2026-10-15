@@ -1,10 +1,10 @@
 {
   "schema": 1,
-  "product": "Mastixa Manager",
-  "version": "0.40.0",
+  "product": "Fieltra",
+  "version": "1.0.0",
   "channel": "stable",
   "release_url": "https://github.com/Sxara242/Mastixa-Manager-Source/releases",
-  "notes": "Offline schema fixture only. This is not a real stable release announcement.",
+  "notes": "Offline schema fixture only. Fieltra v1.0.0 Stable is not published by this file.",
   "windows": null,
   "android": null
 }

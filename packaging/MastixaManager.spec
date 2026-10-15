@@ -76,7 +76,7 @@ executable = EXE(
     analysis.scripts,
     [],
     exclude_binaries=True,
-    name="MastixaManager",
+    name="Fieltra",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -98,7 +98,7 @@ bundle = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name="MastixaManager",
+    name="Fieltra",
 )
 mesa["verify_bundle"](Path(bundle.name))
 crt["verify_bundle"](Path(bundle.name), repo_root)

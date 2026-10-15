@@ -1,44 +1,70 @@
-## Current Windows source publication candidate
+# Fieltra
 
-This tree includes a new external-VC installer builder, reviewed as new code.
-It does not establish historical source equivalence with the owner-accepted
-Setup SHA-256 `9457f1f4a8223de76caa49c1ba88a6dddd3e5176868dc25eb88a93eb9293875f`.
-See [publication scope and build prerequisites](docs/PUBLICATION_CANDIDATE.md).
-No installer was rebuilt from this tree. RELEASE NO-GO.
+**Farm Management** · **Version 1.0.0 Stable**
 
----
+Fieltra is free, open-source, offline-first farm management software for Windows.
+It helps farmers and farm managers organize fields, production, inventory,
+income and expenses while keeping operational data on their own computer.
+No cloud account is required. Optional online maps require your selection.
 
-# Mastixa Manager
+**[Download Fieltra v1.0.0 for Windows](https://github.com/Sxara242/Fieltra/releases/tag/v1.0.0)**
 
-Local farm management for Windows, with an Android application in development.
-Profiles, farm records, production, sales, expenses, inventory, equipment,
-year locking, reports, backups and GIS tools keep operational data on the device.
-Optional map access requires an explicit selection. No cloud account is required.
+## What you can do
 
-**Windows x64 is the current release target. Android remains in development.**
-This is an **active public AGPL development snapshot**.
-Current Windows source targets **1.0.0-rc.2**.
-An earlier private RC2 candidate has owner Sandbox/UX acceptance; broader release
-gates remain open. The external-runtime installer has now built and passed package
-inspection; native/security qualification remains pending. rc.1 is historical.
-No public binary release is approved. See [release status](docs/RELEASE_STATUS.md).
+- Organize farm profiles and fields, with GIS tools and optional map access.
+- Record production, sales, income and expenses.
+- Track inventory and equipment records.
+- Create reports and export PDF or spreadsheet files.
+- Keep local backups and transfer profile packages.
 
-First-party material is designated **AGPL-3.0-only**. The full official text is
-in [LICENSE](LICENSE); [licensing scope](docs/LICENSING.md) explains the version
-choice and third-party exceptions. Third-party licenses, notices, EPSG/PROJ
-terms and covered-library source/replacement obligations remain applicable.
-See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and [licenses/](licenses/).
+Your farm records are stored locally. You control your data and backups.
+Android is under development and is not part of this Windows v1.0.0 release.
 
-[Sxara242/Mastixa-Manager-Source](https://github.com/Sxara242/Mastixa-Manager-Source)
-is the primary active development repository for rc.2 and later versions.
-This snapshot introduces no private Git history. The historical private repository
-is protected archival/reference material. Future fixes, tests, documentation,
-pull requests and CI changes belong here. No release feed is activated.
-The rights holder retains the option to offer separate commercial terms later.
+## Install on Windows
 
-## Run and develop
+Requirements: **Windows 10 or Windows 11, x64**, and the Microsoft Visual C++
+Redistributable **x64 14.51.36247.0 or newer**. Obtain the runtime independently
+from [Microsoft](https://aka.ms/vc14/vc_redist.x64.exe); Fieltra does not bundle it.
+An internet connection is needed to download these files and for optional online
+maps; ordinary farm-record management works offline.
 
-Use Python 3.14 on Windows and install into a virtual environment:
+1. Download [Fieltra-1.0.0-Setup.exe](https://github.com/Sxara242/Fieltra/releases/download/v1.0.0/Fieltra-1.0.0-Setup.exe)
+   from the official Release and verify its checksum below.
+2. Install Microsoft's x64 runtime if needed, then run Fieltra Setup.
+3. Open **Fieltra** from the Start Menu or optional desktop shortcut. If the
+   runtime is missing or too old, the launcher offers Download, Recheck and Cancel.
+
+The installer is **54,347,611 bytes**, with SHA-256:
+
+```text
+b4f0efebb54dac65735761d5dbf0197e5529252be13a1f279d95c26178cfee56
+```
+
+Fieltra installs per user and stores data/settings in `%LOCALAPPDATA%\Fieltra`.
+Normal uninstall preserves your data; full removal requires an explicit purge
+choice. See [installation details](docs/INSTALLATION.md).
+
+## Free and open-source
+
+First-party code is licensed under **AGPL-3.0-only**. See [LICENSE](LICENSE),
+[licensing scope](docs/LICENSING.md) and [third-party notices](THIRD_PARTY_NOTICES.md).
+Historical Mastixa Manager copyright and all third-party attributions are retained.
+
+The [v1.0.0 source tag](https://github.com/Sxara242/Fieltra/tree/v1.0.0) identifies
+the corresponding application, native-launcher and installer source. The Release
+also supplies **both** required dependency/source companion archives:
+
+- [Dependency sources, selected build materials and notices](https://github.com/Sxara242/Fieltra/releases/download/v1.0.0/MastixaManager-1.0.0-rc.2-repack-source.zip).
+- [Complete QtPdf/PDFium source carrier](https://github.com/Sxara242/Fieltra/releases/download/v1.0.0/qtwebengine-everywhere-src-6.11.2.tar.xz).
+
+The companion's historical filename is retained to preserve its verified identity.
+Use the Fieltra source tag for application code; the older application ZIPs inside
+the companion describe historical builds. [Release/source materials](docs/FIELTRA_V1_RELEASE.md)
+provide all archive hashes, source correspondence and library replacement guidance.
+
+## Build from source
+
+For Python source development, use Python 3.14 in a virtual environment:
 
 ```powershell
 python -m venv .venv
@@ -46,44 +72,14 @@ python -m venv .venv
 .\.venv\Scripts\python.exe main.py
 ```
 
-Use a separate test profile during development. See [installation](docs/INSTALLATION.md)
-and [development/building](docs/BUILDING.md) for isolated tests, Android prerequisites
-and qualified Windows packaging.
+[BUILDING.md](docs/BUILDING.md) documents the pinned release inputs and native
+build controls. Release reconstruction uses the qualified CPython 3.14.8 suppliers
+and locked dependencies; it is distinct from a development environment.
+The internal `MASTIXA_DATA_HOME` override can select a synthetic development
+profile. Internal module and recipe names may retain historical identifiers.
 
-## Windows runtime prerequisite
+## Contribute
 
-**Microsoft Visual C++ Redistributable x64 is required to run Mastixa Manager,
-but is not included in its installer.** The next candidate uses external runtime
-installation: download and install **x64 version 14.51.36247.0 or newer** separately
-from [Microsoft's official download](https://aka.ms/vc14/vc_redist.x64.exe).
-An x86-only installation does not satisfy this requirement.
-
-Setup installs Mastixa normally without checking, downloading or executing that
-package. The small Windows-native launcher checks the runtime when you open the
-application. If it is missing, outdated or cannot be verified, a Greek dialog
-offers the official download link, **Έλεγχος ξανά** (Recheck) and **Ακύρωση**
-(Cancel). Install the Microsoft package separately, complete any requested Windows
-restart and recheck or reopen Mastixa. An adequate runtime skips the dialog.
-For offline use, obtain the official package on a connected device beforehand.
-Microsoft distributes that component under its own terms; Mastixa remains
-AGPL-3.0-only. See [installation](docs/INSTALLATION.md) for details.
-
-This describes the revised implementation, not a published or qualified binary.
-The accepted earlier bundled RC2 installer remains unchanged. Installer build,
-native qualification and release gates remain explicit in
-[release status](docs/RELEASE_STATUS.md).
-
-## Verification and contributions
-
-GitHub Actions use `windows-latest` for Windows tests and packaging contracts,
-and `ubuntu-latest` for source audit and Android build/lint. Android instrumentation
-is a separate manual emulator check. Regular CI creates no installers and uploads
-no artifacts. Explicit Android QA artifacts expire after one day. Actual release
-qualification and corresponding-source delivery remain separate gates.
-
-Bug reports and discussion are welcome. External patches are not accepted for
-merge until a written agreement supports AGPL and separate commercial licensing.
-A DCO sign-off alone does not grant those rights. See [CONTRIBUTING.md](CONTRIBUTING.md)
-and the [contribution-rights baseline](docs/CONTRIBUTION_RIGHTS.md).
-Use synthetic examples; do not include credentials, private logs, real databases,
-backups or GPS exports in issues or pull requests.
+Bug reports and discussion are welcome. Use synthetic examples and exclude
+personal records, credentials and private exports. External code contributions
+require an executed rights grant before merge; see [CONTRIBUTING.md](CONTRIBUTING.md).

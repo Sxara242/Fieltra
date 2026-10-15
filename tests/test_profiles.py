@@ -78,7 +78,7 @@ class ProfileManagerTests(unittest.TestCase):
             avatar.write_bytes(b"test-avatar")
             manager.set_avatar(profile.id, avatar)
             package = manager.export_profile(profile.id, root / "maria")
-            self.assertEqual(".mastixaprofile", package.suffix)
+            self.assertEqual(".fieltraprofile", package.suffix)
             self.assertTrue(package.exists())
 
             imported = manager.import_profile(package)
@@ -105,7 +105,7 @@ class ProfileManagerTests(unittest.TestCase):
             for manifest in (None, [], "text", {**valid, "version": None},
                              {**valid, "pin_rounds": None}):
                 with self.subTest(manifest=manifest):
-                    package = root / "bad.mastixaprofile"
+                    package = root / "bad.fieltraprofile"
                     with zipfile.ZipFile(package, "w") as archive:
                         archive.writestr("manifest.json", json.dumps(manifest))
                         archive.writestr("profile.db", b"must not be read")
@@ -129,7 +129,7 @@ class ProfileManagerTests(unittest.TestCase):
             root = Path(tmp)
             manager = ProfileManager(root / "profiles")
             profile = manager.create("Source")
-            destination = root / "backup.mastixaprofile"
+            destination = root / "backup.fieltraprofile"
             destination.write_bytes(b"previous complete export")
             before = set(root.iterdir())
             with patch.object(zipfile.ZipFile, "write", side_effect=OSError("destination full")):

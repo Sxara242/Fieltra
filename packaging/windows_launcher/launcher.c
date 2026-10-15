@@ -163,16 +163,16 @@ static enum VcResult ProbeRuntime(void)
 static const WCHAR *Explanation(enum VcResult result)
 {
     if (result == VC_CHECK_ERROR)
-        return L"Το Mastixa Manager έχει εγκατασταθεί, αλλά δεν ήταν δυνατός ο ασφαλής έλεγχος "
+        return L"Το Fieltra έχει εγκατασταθεί, αλλά δεν ήταν δυνατός ο ασφαλής έλεγχος "
                L"του Microsoft Visual C++ Redistributable x64 " MASTIXA_MIN_TEXT L" ή νεότερου.\r\n\r\n"
                L"Επιλέξτε «Έλεγχος ξανά». Αν το πρόβλημα παραμένει, ελέγξτε ή επιδιορθώστε "
                L"το επίσημο πακέτο Microsoft. Δεν αλλάζουν τα δεδομένα σας.";
     if (result == VC_WRONG_ARCH)
-        return L"Το Mastixa Manager έχει εγκατασταθεί, αλλά δεν επαληθεύτηκε συμβατό runtime x64.\r\n\r\n"
+        return L"Το Fieltra έχει εγκατασταθεί, αλλά δεν επαληθεύτηκε συμβατό runtime x64.\r\n\r\n"
                L"Απαιτείται Microsoft Visual C++ Redistributable x64 " MASTIXA_MIN_TEXT L" ή νεότερο "
                L"για Windows x64. Το πακέτο x86 δεν αρκεί.\r\n\r\n"
                L"Εγκαταστήστε το επίσημο πακέτο από Microsoft και επιλέξτε «Έλεγχος ξανά».";
-    return L"Το Mastixa Manager έχει εγκατασταθεί. Για να ανοίξει, απαιτείται Microsoft Visual C++ "
+    return L"Το Fieltra έχει εγκατασταθεί. Για να ανοίξει, απαιτείται Microsoft Visual C++ "
            L"Redistributable x64 " MASTIXA_MIN_TEXT L" ή νεότερο, το οποίο λείπει ή είναι παλιότερο.\r\n\r\n"
            L"Επιλέξτε «Λήψη από Microsoft» και εγκαταστήστε το πακέτο ξεχωριστά. Έπειτα επιλέξτε "
            L"«Έλεγχος ξανά». Αν ζητηθεί επανεκκίνηση Windows, κάντε την και ανοίξτε ξανά την εφαρμογή. "
@@ -195,7 +195,7 @@ static INT_PTR CALLBACK PrerequisiteDialog(HWND window, UINT message, WPARAM wpa
             if ((INT_PTR)ShellExecuteW(window, L"open", MASTIXA_DOWNLOAD_URL, NULL, NULL, SW_SHOWNORMAL) <= 32)
                 MessageBoxW(window, L"Δεν ήταν δυνατό το άνοιγμα της λήψης Microsoft. "
                             L"Ανοίξτε τον σύνδεσμο που εμφανίζεται στον φυλλομετρητή σας.",
-                            L"Mastixa Manager", MB_OK | MB_ICONWARNING);
+                            L"Fieltra", MB_OK | MB_ICONWARNING);
             return TRUE;
         }
         if (LOWORD(wparam) == IDC_RECHECK) {
@@ -220,7 +220,7 @@ static int EnginePaths(void)
     return Copy(engine_directory, 32768, module_path) &&
            Append(engine_directory, 32768, MASTIXA_PAYLOAD_DIRECTORY) &&
            Copy(engine_path, 32768, engine_directory) &&
-           Append(engine_path, 32768, L"\\MastixaManager.exe");
+           Append(engine_path, 32768, L"\\Fieltra.exe");
 }
 
 static DWORD LaunchEngine(BOOL *started)
@@ -270,13 +270,13 @@ static DWORD RunLauncher(void)
                         PrerequisiteDialog, 0) != IDOK) return ERROR_CANCELLED;
     result = LaunchEngine(&started);
     if (!started) {
-        MessageBoxW(NULL, L"Δεν ήταν δυνατή η εκκίνηση του Mastixa Manager. "
+        MessageBoxW(NULL, L"Δεν ήταν δυνατή η εκκίνηση του Fieltra. "
                     L"Εκτελέστε ξανά την εγκατάσταση για επιδιόρθωση των αρχείων εφαρμογής. "
-                    L"Τα δεδομένα σας διατηρούνται.", L"Mastixa Manager", MB_OK | MB_ICONERROR);
+                    L"Τα δεδομένα σας διατηρούνται.", L"Fieltra", MB_OK | MB_ICONERROR);
     } else if (result == 0xc0000135 || result == 0xc000007b || result == 0xc0000142) {
         MessageBoxW(NULL, L"Η εφαρμογή δεν ξεκίνησε λόγω προβλήματος σε βιβλιοθήκη Windows. "
-                    L"Ελέγξτε το επίσημο Visual C++ x64 και επιδιορθώστε την εγκατάσταση Mastixa Manager. "
-                    L"Τα δεδομένα σας διατηρούνται.", L"Mastixa Manager", MB_OK | MB_ICONERROR);
+                    L"Ελέγξτε το επίσημο Visual C++ x64 και επιδιορθώστε την εγκατάσταση Fieltra. "
+                    L"Τα δεδομένα σας διατηρούνται.", L"Fieltra", MB_OK | MB_ICONERROR);
     }
     return result;
 }
@@ -287,7 +287,7 @@ __declspec(safebuffers) void WINAPI MastixaLauncherEntry(void)
        every /GS-protected function. A random-source failure stops safely. */
     if (!MastixaInitializeCookie()) {
         MessageBoxW(NULL, L"Δεν ήταν δυνατή η ασφαλής εκκίνηση. Δοκιμάστε ξανά ή "
-                    L"επιδιορθώστε την εγκατάσταση Mastixa Manager.", L"Mastixa Manager", MB_OK | MB_ICONERROR);
+                    L"επιδιορθώστε την εγκατάσταση Fieltra.", L"Fieltra", MB_OK | MB_ICONERROR);
         ExitProcess(ERROR_GEN_FAILURE);
     }
     ExitProcess(RunLauncher());

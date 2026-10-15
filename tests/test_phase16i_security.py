@@ -26,7 +26,7 @@ class ProfileArchiveSecurityTests(unittest.TestCase):
             self.entries = [(i.filename, z.read(i)) for i in z.infolist()]
 
     def package(self, extra):
-        path = self.root / "untrusted.mastixaprofile"
+        path = self.root / "untrusted.fieltraprofile"
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", UserWarning)
             with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as z:
@@ -81,7 +81,7 @@ class ProfileArchiveSecurityTests(unittest.TestCase):
         for manifest, database in ((b"[" * 2000 + b"0" + b"]" * 2000, b"unused"),
                 (json.dumps({"format":"mastixa-profile","version":1,"name":"Test"}).encode(), b"not sqlite")):
             with self.subTest(nested=manifest.startswith(b"[")):
-                path = self.root / "invalid.mastixaprofile"
+                path = self.root / "invalid.fieltraprofile"
                 with zipfile.ZipFile(path,"w") as z:
                     z.writestr("manifest.json",manifest)
                     z.writestr("profile.db",database)
@@ -91,7 +91,7 @@ class ProfileArchiveSecurityTests(unittest.TestCase):
         self.rejected(self.package([("avatar.png", b"image"), ("avatar.jpg", b"image")]))
 
     def test_unsupported_compression_rejected_without_extraction(self):
-        path = self.root / "bzip.mastixaprofile"
+        path = self.root / "bzip.fieltraprofile"
         with zipfile.ZipFile(path,"w",compression=zipfile.ZIP_BZIP2) as z:
             for name,data in self.entries:
                 z.writestr(name,data)

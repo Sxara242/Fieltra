@@ -11,6 +11,7 @@ from PySide6.QtWidgets import QAbstractItemView, QComboBox, QFormLayout, QHBoxLa
 
 from .icon_theme import _icon_for_text
 from .localized_messages import _text
+from .navigation_view import NavigationTree
 
 
 @dataclass(frozen=True)
@@ -79,19 +80,14 @@ class DesktopNavigation:
         reports_index = len(window.pages)
         window.pages.append(("Αναφορές", ReportsHub(self.open)))
         window.navigation_categories[6][1].append(("Αναφορές", reports_index))
-        self.tree = QTreeView(window.sidebar)
+        self.tree = NavigationTree(window.sidebar)
         self.tree.setObjectName("farmNavigation")
         self.tree.setHeaderHidden(True)
         self.tree.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tree.setIconSize(QSize(28, 28))
         self.tree.setIndentation(14)
-        self.tree.setUniformRowHeights(True)
         self.tree.setMouseTracking(True)
         self.tree.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.tree.setStyleSheet("QTreeView#farmNavigation { border:0; }"
-                                "QTreeView#farmNavigation::item { padding:9px 3px; }"
-                                "QTreeView#farmNavigation::item:hover:!selected { background:#E1EAE5; color:#21483A; }"
-                                "QTreeView#farmNavigation::item:selected { background:#3F765B; color:white; }")
         self.model = QStandardItemModel(self.tree)
         self.tree.setModel(self.model)
         window.category_list.hide()

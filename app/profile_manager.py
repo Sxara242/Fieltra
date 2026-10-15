@@ -315,8 +315,8 @@ class ProfileManager:
     def export_profile(self, profile_id: str, destination: Path) -> Path:
         profile = self.get(profile_id)
         destination = Path(destination)
-        if destination.suffix.casefold() != ".mastixaprofile":
-            destination = destination.with_suffix(".mastixaprofile")
+        if destination.suffix.casefold() != ".fieltraprofile":
+            destination = destination.with_suffix(".fieltraprofile")
         destination.parent.mkdir(parents=True, exist_ok=True)
         data = self._load()
         record = self._record(data, profile_id)
@@ -740,6 +740,6 @@ class ProfileManager:
                 "SELECT COUNT(*) FROM sqlite_master WHERE type='table'"
             ).fetchone()[0]
             if table_count < 1:
-                raise ProfileError("Το πακέτο δεν περιέχει βάση Mastixa.")
+                raise ProfileError("Το πακέτο δεν περιέχει βάση Fieltra.")
         finally:
             connection.close()

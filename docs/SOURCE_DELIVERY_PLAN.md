@@ -1,3 +1,32 @@
+# Fieltra v1.0.0 — corresponding source and library replacement
+
+Fieltra is free, open-source software under AGPL-3.0-only. Application, native
+launcher and installer source correspond to the accepted Stable installer;
+all source correspondence items PASS, including the timestamp-only launcher comparison.
+
+Use the [tagged Fieltra source](https://github.com/Sxara242/Fieltra/tree/v1.0.0)
+and both Release source companion archives. [FIELTRA_V1_RELEASE.md](FIELTRA_V1_RELEASE.md)
+provides exact hashes, download links and the demonstrated source binding.
+[source-artifacts.json](source-artifacts.json) retains dependency/source identities.
+Historical application ZIPs in the companion do not replace Fieltra source.
+
+For the external-launcher layout, covered libraries reside under `engine/_internal/`.
+Close Fieltra and back up a writable application copy, replace compatible x64
+libraries preserving ABI/exports/dependencies, and use synthetic data for experiments.
+Build-input hash checks do not remove runtime modification or debugging rights.
+Explicit repair/updates can overwrite replacements; keep your modified sources/copies.
+See [replacement instructions](WINDOWS_LIBRARY_REPLACEMENT.md) and
+[dependency build controls](WINDOWS_DEPENDENCY_REBUILD.md).
+
+The historical records below retain their original dated scope. Their pending
+or blocked statuses do not override the current Fieltra release correspondence.
+
+
+---
+
+Historical records and retained technical instructions follow. Earlier status statements
+do not override the Fieltra v1.0.0 preparation status above.
+
 > Current 2026-10-11 repack delivery uses a main source ZIP plus a mandatory
 > separate full Qt6.11.2 source asset, with SHA-256
 > `6101c1aa00ff933d1b65ee5d167f76e8d71b9ac5b378b0111277723ebda7c163`.

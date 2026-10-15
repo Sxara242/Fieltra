@@ -1,20 +1,20 @@
 [CmdletBinding()]
 param(
-    [string]$ExecutablePath = (Join-Path (Split-Path -Parent $PSScriptRoot) "dist\MastixaManager\MastixaManager.exe"),
+    [string]$ExecutablePath = (Join-Path (Split-Path -Parent $PSScriptRoot) "dist\Fieltra\Fieltra.exe"),
     [ValidateRange(5, 300)][int]$TimeoutSeconds = 90
 )
 
 $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $exe = (Resolve-Path -LiteralPath $ExecutablePath -ErrorAction Stop).Path
-if ((Split-Path -Leaf $exe) -cne "MastixaManager.exe" -or -not (Test-Path -LiteralPath $exe -PathType Leaf)) {
-    throw "Expected the packaged MastixaManager.exe."
+if ((Split-Path -Leaf $exe) -cne "Fieltra.exe" -or -not (Test-Path -LiteralPath $exe -PathType Leaf)) {
+    throw "Expected the packaged Fieltra.exe."
 }
 $bundle = Split-Path -Parent $exe
 $resourceBundle = $bundle
 # Installer entry is the independent launcher; its frozen resources live in engine.
 # Keep FileName pointed at the launcher so this checks the actual launch path.
-if (Test-Path -LiteralPath (Join-Path $bundle "engine\MastixaManager.exe")) {
+if (Test-Path -LiteralPath (Join-Path $bundle "engine\Fieltra.exe")) {
     $resourceBundle = Join-Path $bundle "engine"
 }
 

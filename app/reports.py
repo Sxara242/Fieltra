@@ -312,7 +312,7 @@ class ReportsPage(YearFilteredPage):
         path, _ = QFileDialog.getSaveFileName(
             self,
             _text("Εξαγωγή αναφοράς σε PDF"),
-            f"mastixa_report_{suffix}.pdf",
+            f"fieltra_report_{suffix}.pdf",
             "PDF (*.pdf)",
         )
         if not path:
@@ -340,7 +340,7 @@ class ReportsPage(YearFilteredPage):
         path, _ = QFileDialog.getSaveFileName(
             self,
             _text("Εξαγωγή αναφοράς σε Excel"),
-            f"mastixa_report_{suffix}.xlsx",
+            f"fieltra_report_{suffix}.xlsx",
             "Excel (*.xlsx)",
         )
         if not path:

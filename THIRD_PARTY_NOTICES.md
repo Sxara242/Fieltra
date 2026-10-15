@@ -1,3 +1,22 @@
+# Fieltra — Farm Management: third-party notices
+
+Fieltra v1.0.0 Stable continues the Mastixa Manager application under
+**AGPL-3.0-only**, with the full license in `LICENSE`. Historical Mastixa Manager
+copyright and contributor notices remain in force. Third-party copyrights,
+licenses, required attributions and component terms below remain unchanged.
+The Fieltra installer uses an independent external VC++ prerequisite; it conveys
+neither VC Redist nor loose Microsoft CRT DLLs. See `docs/FIELTRA_V1_RELEASE.md`
+for the matching source companion and actual publication status.
+
+Historical first-party copyright attribution, preserved verbatim:
+
+> Copyright: Mastixa Manager contributors.
+
+---
+
+Historical records and retained technical instructions follow. Earlier status statements
+do not override the Fieltra v1.0.0 preparation status above.
+
 > Next candidate — owner decision 2026-10-12: external runtime detection at launch.
 > Microsoft Visual C++ Redistributable x64 >=14.51.36247.0 is required, but is not
 > included in the revised installer. Obtain it separately from

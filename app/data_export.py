@@ -74,7 +74,7 @@ class _VerificationMessage(str):
 
 class DataExportPage(QWidget):
     """
-    Portable, read-only export of Mastixa Manager data.
+    Portable, read-only export of Fieltra data.
 
     The generated ZIP is for inspection, archiving and interoperability.
     It is NOT a replacement for the SQLite backup/restore workflow.
@@ -537,7 +537,7 @@ class DataExportPage(QWidget):
             "product_filter_id": selected_product_id,
             "notes": [
                 "Portable export for inspection/interoperability.",
-                "Use Mastixa Manager Backup/Restore for full application restore.",
+                "Use Fieltra Backup/Restore for full application restore.",
                 "API keys are intentionally excluded from portable exports.",
             ],
             "tables": exported_tables,
@@ -556,7 +556,7 @@ class DataExportPage(QWidget):
             return
 
         default_name = (
-            "mastixa_data_export_"
+            "fieltra_data_export_"
             + datetime.now().strftime("%Y%m%d_%H%M%S")
             + ".zip"
         )
@@ -685,7 +685,7 @@ class DataExportPage(QWidget):
                 )
 
                 readme = (
-                    "Mastixa Manager - Portable Data Export\n"
+                    "Fieltra - Portable Data Export\n"
                     "======================================\n\n"
                     "Το ZIP περιέχει CSV αρχεία των επιλεγμένων δεδομένων.\n"
                     "Τα snapshots του Κέντρου Αποστολής υπάρχουν και ως ξεχωριστά JSON.\n\n"

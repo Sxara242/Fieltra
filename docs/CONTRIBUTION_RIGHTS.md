@@ -6,7 +6,7 @@ confirmed to represent the same owner, publicly identified as `Sxara242`.
 The identity mapping and exact statement are retained in private audit evidence;
 personal email addresses are excluded from this snapshot.
 
-The owner states that they own existing first-party Mastixa Manager material,
+The owner states that they own existing first-party Fieltra material,
 authorize AGPL-3.0-only publication and retain the ability to offer separate
 commercial terms. To their knowledge, no employer-owned or external human
 contributions require additional relicensing permission. AI-assisted first-party

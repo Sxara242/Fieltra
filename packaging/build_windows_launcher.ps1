@@ -21,7 +21,7 @@ while ($ancestor) {
 $policy = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'windows-prerequisite.json') -Raw | ConvertFrom-Json
 if ($policy.mode -ne 'external-launch' -or $policy.architecture -ne 'x64' -or
     $policy.download_url -ne 'https://aka.ms/vc14/vc_redist.x64.exe' -or
-    $policy.payload_directory -ne 'engine' -or $policy.executable -ne 'MastixaManager.exe') {
+    $policy.payload_directory -ne 'engine' -or $policy.executable -ne 'Fieltra.exe') {
     throw 'Only the reviewed external-launch policy is active'
 }
 $crtPolicy = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'windows-crt-policy.json') -Raw | ConvertFrom-Json
@@ -80,7 +80,7 @@ try {
 $umLib = Join-Path $WindowsSdkDir "Lib\$WindowsSdkVersion\um\x64"
 $linkFlags = @('/NOLOGO','/NODEFAULTLIB','/MACHINE:X64','/DYNAMICBASE','/HIGHENTROPYVA','/NXCOMPAT','/DEPENDENTLOADFLAG:0x800',"/LIBPATH:$umLib")
 $objects = @((Join-Path $output 'launcher.obj'),(Join-Path $output 'guard.obj'),(Join-Path $output 'launcher.res'))
-& $link @linkFlags /SUBSYSTEM:WINDOWS,6.02 /ENTRY:MastixaLauncherEntry "/OUT:$(Join-Path $output 'MastixaManager.exe')" "/MAP:$(Join-Path $output 'launcher.map')" @objects kernel32.lib user32.lib shell32.lib advapi32.lib version.lib bcrypt.lib *> (Join-Path $output 'launcher-link.log')
+& $link @linkFlags /SUBSYSTEM:WINDOWS,6.02 /ENTRY:MastixaLauncherEntry "/OUT:$(Join-Path $output 'Fieltra.exe')" "/MAP:$(Join-Path $output 'launcher.map')" @objects kernel32.lib user32.lib shell32.lib advapi32.lib version.lib bcrypt.lib *> (Join-Path $output 'launcher-link.log')
 if ($LASTEXITCODE -ne 0) { throw 'Launcher link failed; never add CRT libraries to fix the build' }
 if ($BuildSyntheticTests) {
     & $cl @flags "/Fo$(Join-Path $output 'native-tests.obj')" (Join-Path $repoRoot 'tests\native\test_windows_launcher.c') *> (Join-Path $output 'native-tests-compile.log')
@@ -96,8 +96,8 @@ $receipt = [ordered]@{
     mode=$policy.mode;minimum=$policy.minimum_version;msvc_tools=$VCToolsDir;sdk=$WindowsSdkVersion
     cl_sha256=(Get-FileHash -LiteralPath $cl -Algorithm SHA256).Hash.ToLowerInvariant()
     link_sha256=(Get-FileHash -LiteralPath $link -Algorithm SHA256).Hash.ToLowerInvariant()
-    launcher_sha256=(Get-FileHash -LiteralPath (Join-Path $output 'MastixaManager.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
-    launcher_size=(Get-Item -LiteralPath (Join-Path $output 'MastixaManager.exe')).Length
+    launcher_sha256=(Get-FileHash -LiteralPath (Join-Path $output 'Fieltra.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
+    launcher_size=(Get-Item -LiteralPath (Join-Path $output 'Fieltra.exe')).Length
     crt_libraries_linked=$false;runtime_downloaded=$false;launcher_executed=$false
 }
 $receipt | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $output 'build-receipt.json') -Encoding utf8

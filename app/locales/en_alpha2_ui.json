@@ -22,12 +22,12 @@
     "Αποτυχία ελέγχου ενημερώσεων:": "Update check failed:",
     "Έχεις την πιο πρόσφατη διαθέσιμη έκδοση": "You have the latest available version",
     "Νέα έκδοση διαθέσιμη:": "New version available:",
-    "Λήψη και επαλήθευση Mastixa Manager": "Downloading and verifying Mastixa Manager",
+    "Λήψη και επαλήθευση Fieltra": "Downloading and verifying Fieltra",
     "Αποτυχία λήψης ενημέρωσης:": "Update download failed:",
     "Έτοιμη ενημέρωση": "Update ready",
     "Η έκδοση": "Version",
     "κατέβηκε και επαληθεύτηκε με SHA-256.": "was downloaded and verified with SHA-256.",
-    "Να κλείσει τώρα το Mastixa Manager και να ξεκινήσει ο installer;": "Close Mastixa Manager now and start the installer?",
+    "Να κλείσει τώρα το Fieltra και να ξεκινήσει ο installer;": "Close Fieltra now and start the installer?",
     "είναι έτοιμη για εγκατάσταση.": "is ready to install.",
     "Η λειτουργία αισθητήρων και API δεν είναι ακόμη διαθέσιμη. Θα ενεργοποιηθεί όταν ολοκληρωθεί η πραγματική σύνδεση συσκευών και υπηρεσιών.": "The sensors and API feature is not available yet. It will be enabled when the real device and service integrations are complete."
   }

@@ -77,7 +77,7 @@ class BackupManager:
     def list_auto_backups(self) -> list[Path]:
         return self._matching_backups(self.AUTO_PREFIX)
 
-    def create_backup(self, prefix: str = "mastixa_manager") -> Path:
+    def create_backup(self, prefix: str = "fieltra") -> Path:
         """Create a timestamped manual/safety backup."""
         self._ensure_source_exists()
 
@@ -296,7 +296,7 @@ class BackupManager:
                 missing_text = ", ".join(sorted(missing))
                 raise BackupError.from_template(
                     "Το αρχείο SQLite δεν φαίνεται να είναι backup του "
-                    "Mastixa Manager.\n\n"
+                    "Fieltra.\n\n"
                     "Λείπουν πίνακες: {tables}", tables=missing_text
                 )
         except BackupError:

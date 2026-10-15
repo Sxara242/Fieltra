@@ -14,7 +14,7 @@ import time
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PREFERENCE_KEY = r"Software\Mastixa\Mastixa Manager"
+PREFERENCE_KEY = r"Software\Fieltra\Fieltra"
 UNINSTALL_KEY = r"Software\Microsoft\Windows\CurrentVersion\Uninstall\{B9B946A2-8711-4B35-9BCB-B40210E67357}_is1"
 BLOCKED_INSTALLER_SHA256 = "ace3c4dbf470e19edbeef0eab62a7121af6890b809b461fe3d5cd778ecf6821e"
 BLOCKED_INSTALLER_SHA256S = (
@@ -131,11 +131,11 @@ def main(argv=None):
     if reg_snapshot(UNINSTALL_KEY, winreg) is not None:
         raise RuntimeError("Existing installer registration: do not replace")
     before = reg_snapshot(PREFERENCE_KEY, winreg)
-    production = Path(os.environ["LOCALAPPDATA"]) / "Programs/Mastixa Manager"
+    production = Path(os.environ["LOCALAPPDATA"]) / "Programs/Fieltra"
     production_before = tree(production)
     shortcuts = [
-        Path(os.environ["APPDATA"]) / "Microsoft/Windows/Start Menu/Programs/Mastixa Manager.lnk",
-        Path(os.environ["USERPROFILE"]) / "Desktop/Mastixa Manager.lnk",
+        Path(os.environ["APPDATA"]) / "Microsoft/Windows/Start Menu/Programs/Fieltra.lnk",
+        Path(os.environ["USERPROFILE"]) / "Desktop/Fieltra.lnk",
     ]
     shortcut_before = shortcut_snapshot(shortcuts)
     out.mkdir(parents=True, exist_ok=False)
@@ -227,7 +227,7 @@ def main(argv=None):
             raise RuntimeError("Compatible replacement cannot be reapplied")
         library.write_bytes(original_library)
         smoke_env = dict(env, QT_QPA_PLATFORM="offscreen", MASTIXA_SMOKE_OUTPUT=str(out / "installed-smoke.json"))
-        run("installed-launch", [str(target / "MastixaManager.exe"), "--smoke-test"], 65, smoke_env)
+        run("installed-launch", [str(target / "Fieltra.exe"), "--smoke-test"], 65, smoke_env)
         uninstall("uninstall-1")
         if not marker.exists():
             raise RuntimeError("Ordinary uninstall removed synthetic user data")

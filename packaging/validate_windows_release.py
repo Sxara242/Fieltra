@@ -103,7 +103,7 @@ def bundle_errors(bundle, root=ROOT):
             errors.append(f"Forbidden excluded Windows component/resource: {relative}")
         if any(part.casefold() in {"data", "backups", "profile_trash", "logs"} for part in path.relative_to(bundle).parts):
             errors.append(f"Private/local directory in bundle: {relative}")
-        if path.suffix.casefold() in {".db", ".sqlite", ".sqlite3", ".mastixaprofile", ".pfx", ".pem", ".key"}:
+        if path.suffix.casefold() in {".db", ".sqlite", ".sqlite3", ".mastixaprofile", ".fieltraprofile", ".pfx", ".pem", ".key"}:
             if not ((path.name.casefold() == "proj.db" and "pyproj" in lower.split("/"))
                     or lower == "_internal/certifi/cacert.pem"):
                 errors.append(f"Private/unapproved resource in bundle: {relative}")

@@ -536,5 +536,114 @@
     "application_payload": "559 controlled-3 files unchanged",
     "installer_source": "Separate installer-repack-source.zip overlay; original frozen source stays exact",
     "public_source_published": false
+  },
+  "fieltra_v1": {
+    "product": "Fieltra",
+    "version": "1.0.0",
+    "channel": "stable",
+    "public_parent_commit": "e5b56568f8396f3b0547d8f151e7904314ff3225",
+    "source_commit_status": "The v1.0.0 tag identifies the final source commit; exact SHA is recorded in Release notes",
+    "installer_filename": "Fieltra-1.0.0-Setup.exe",
+    "installer_size": 54347611,
+    "installer_sha256": "b4f0efebb54dac65735761d5dbf0197e5529252be13a1f279d95c26178cfee56",
+    "owner_acceptance": {
+      "sandbox_installation": "PASS",
+      "startup": "PASS",
+      "branding_and_version": "PASS",
+      "export_to_host": "VERIFIED"
+    },
+    "source_companion_instructions": "docs/FIELTRA_V1_RELEASE.md",
+    "source_correspondence": {
+      "status": "PASS: Python/application resources, installer identity and native launcher source correspondence",
+      "method": "Read-only extraction of accepted installer; CPython 3.14.8 code-object comparison, normalizing co_filename only; no application execution or rebuild",
+      "first_party_python_modules": 116,
+      "matched_python_modules": 116,
+      "optimization_0_modules": 114,
+      "optimization_1_modules": [
+        "app.crop_program",
+        "app.plant_tracking"
+      ],
+      "app_git_tree": "dc043c2a1501931238f32ec9f6fb344eb321d47a",
+      "main_py_sha256": "80476f71376b1403754cfa3ee540975bf7d91fcb379517a05cd16c2ea8988969",
+      "packaged_resources_and_documents_matched_to_build_source_bytes": 76,
+      "git_text_endings": "Patch representation may normalize CRLF to LF; prepared Python code matches and packaged data content matches after newline normalization",
+      "installer_build_id": "8987dad40ab05f9c6fcbef93d96165a3e018d884961ef974a5c310909f40de24",
+      "installer_predecessor_ids": [
+        "5a0b955c6681dc85cd8c242078b9f0ddfcae5584faf14502e73221922a6957d4"
+      ],
+      "installer_identity_method": "Reconstructed SHA-256 of canonical installer_identity.py inputs equals ID embedded in CompiledCode.bin: 560 payload members, six installer source inputs and retained compiler inputs",
+      "installer_source_inputs_sha256": {
+        "installer/MastixaManager.iss": "4f01b1133f953817170f5ec8cf31368fe5017d28e3726ab7398f383137a3d4da",
+        "installer/maintenance_identity.iss": "42402b2e73c64af37824c3280d87be1316ac561167220a964803287af10ea483",
+        "installer/Greek.isl": "66e9da402f2d1484a23df0984a038b54d0c16007855a29174262e35423b782b8",
+        "packaging/mastixa_manager.ico": "d8679f78dcfb207709f3ab599ca0032ddaa845aa8c8cecd5ef30c222c1e3429d",
+        "LICENSE": "d8a6cc31abc16b6748c7a21f21611f5a1ec33f67d22ca23d7da1c19b95496bee",
+        "packaging/installer_legacy_builds.json": "5a85e2699ea8d1dc371719e82becf64afd5b82e8b03b73027bc55ffcc0361142"
+      },
+      "native_launcher_sha256": "b6d70e934a5fbd1a9bd692182acfff6ebfde46f58d7afa0948a9d8ac342290a4",
+      "native_launcher_source_status": "PASS: single guest compilation differs only in COFF and debug-directory timestamps; all remaining file bytes match",
+      "original_receipt": "RELEASE_BUILD.json preserved unchanged; null source_commit is not replaced with an unproven final commit",
+      "post_build_changes": "Publication documentation and source index only; compiled application and installer/launcher source inputs remain unchanged",
+      "native_source_inputs_sha256": {
+        "packaging/build_windows_launcher.ps1": "6134b3c84a203251863a15a325f9e09c14cc5cd874a894df76c9b6ddb01b4086",
+        "packaging/windows-prerequisite.json": "0f0b1fe343fe5fab9e69acadb140d36a05cb847532ef6d82a07f8088a6f071d8",
+        "packaging/windows_launcher/arguments.h": "227bd743acc60278a6be872c7d36a9c8747746c143b804b768494e6d404211ce",
+        "packaging/windows_launcher/guard.c": "899f89dac3ff10369c954d0ab7782ae9d81f17b0e03ce5ed4d4a31d93ac63e85",
+        "packaging/windows_launcher/job_child.h": "4adf1b8998306f233d409d5ce2432c3044cdd5cea58271e318e523afca8b92fe",
+        "packaging/windows_launcher/launcher.c": "236b709b3849ec35bc11600475de6b6734366522a880b68d319a0b148f690a6a",
+        "packaging/windows_launcher/launcher.manifest": "d583f37885583d7c70e2c5b2da14de9768ca907d558c60b7e303db3ea7139b7c",
+        "packaging/windows_launcher/launcher.rc": "1ad35833d920c83fa3d72bbad48055699f8f57f8a6c156f7b833d1e403b5b710",
+        "packaging/windows_launcher/resource.h": "cf4cc7f46865099d8737b1cc80eab4a7631d03af975416bbfe4a207a84c83600",
+        "packaging/windows_launcher/runtime_policy.h": "833cda8c9f66a971794778467115bad3e9f6d672f22477a470b8c4fcdb30a697"
+      },
+      "post_build_embedded_document_changes": {
+        "docs/DISTRIBUTION_SOURCE.md": {
+          "embedded_sha256": "c42ea737fcb817f79b46e56a03bf94f9adc337c87a5ea4edd3041e694e2c449e",
+          "change": "Post-build publication metadata and current acceptance/source-access status; runtime code and installer unchanged"
+        },
+        "docs/source-artifacts.json": {
+          "embedded_sha256": "e373f846c3a6c44e1ec94a3737bd3490515a448a1f294b69700e059e2ce2e121",
+          "change": "Post-build publication metadata and current acceptance/source-access status; runtime code and installer unchanged"
+        },
+        "docs/SOURCE_DELIVERY_PLAN.md": {
+          "embedded_sha256": "98a128277288836c197186dd5ec602b2404e12778421b667feb2203d046b3a7f",
+          "change": "Post-build publication metadata and current acceptance/source-access status; runtime code and installer unchanged"
+        }
+      },
+      "native_launcher_comparison": {
+        "recompiled_sha256": "04b86cfe20dad3043f09734f46fa0dadb5b4f5cc89e2a9d0dda8042d682cd72b",
+        "masked_timestamp_offsets": [
+          "0xE0",
+          "0x24CC"
+        ],
+        "timestamp_normalized_sha256": "2579c0f3454caf5a103a0f8b11e1425827d8c1be2acce5e3da52ec88a4b3aef8",
+        "remaining_bytes": "IDENTICAL",
+        "executable_code": "IDENTICAL",
+        "resource_payloads": "5 of 5 IDENTICAL",
+        "provenance_blocker": "CLOSED"
+      }
+    },
+    "companion_assets": [
+      {
+        "filename": "MastixaManager-1.0.0-rc.2-repack-source.zip",
+        "size": 336765013,
+        "sha256": "e6aed5b7eab77185b34f2ea0033dab422106519721969b157d9dcbf72bb91700",
+        "role": "Unchanged dependency sources, selected producer materials, patches and legal/replacement materials. Historical application archives are not Fieltra source.",
+        "publication_status": "Included in the complete v1.0.0 Release; publish only with all required assets present",
+        "download_url": "https://github.com/Sxara242/Fieltra/releases/download/v1.0.0/MastixaManager-1.0.0-rc.2-repack-source.zip"
+      },
+      {
+        "filename": "qtwebengine-everywhere-src-6.11.2.tar.xz",
+        "size": 580351104,
+        "sha256": "6101c1aa00ff933d1b65ee5d167f76e8d71b9ac5b378b0111277723ebda7c163",
+        "role": "Complete QtPdf/PDFium source carrier including nested sources and build controls.",
+        "publication_status": "Included in the complete v1.0.0 Release; publish only with all required assets present",
+        "download_url": "https://github.com/Sxara242/Fieltra/releases/download/v1.0.0/qtwebengine-everywhere-src-6.11.2.tar.xz"
+      }
+    ],
+    "public_recipient_access": "Application source at v1.0.0; both companion downloads are Release assets. Public availability is confirmed after complete Release publication.",
+    "application_source_ref": "refs/tags/v1.0.0",
+    "application_source_url": "https://github.com/Sxara242/Fieltra/tree/v1.0.0",
+    "publication_authorization": "Owner explicitly authorized final source, repository rename, two source carriers, v1.0.0 tag and one complete Stable Release on 2026-10-15."
   }
 }

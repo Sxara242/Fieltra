@@ -44,14 +44,14 @@ class InstallerShortcutSourceTests(unittest.TestCase):
         start_menu = next(entry for entry in icon_entries(self.iss)
                           if entry["Name"].startswith("{autoprograms}"))
         # False WizardNoIcons still permits the same shortcut with the same target.
-        self.assertEqual({"Name": r"{autoprograms}\Mastixa Manager",
+        self.assertEqual({"Name": r"{autoprograms}\Fieltra",
                           "Filename": r"{app}\{#MyAppExeName}",
                           "Check": "not WizardNoIcons"}, start_menu)
 
     def test_desktop_explicit_task_contract_is_unchanged_and_no_extra_icons_exist(self):
         entries = icon_entries(self.iss)
         self.assertEqual(2, len(entries))
-        self.assertEqual({"Name": r"{autodesktop}\Mastixa Manager",
+        self.assertEqual({"Name": r"{autodesktop}\Fieltra",
                           "Filename": r"{app}\{#MyAppExeName}", "Tasks": "desktopicon"}, entries[1])
         self.assertIn('Name: "desktopicon";', self.iss)
         task = self.iss.split("[Tasks]", 1)[1].split("[Files]", 1)[0]

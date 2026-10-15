@@ -34,8 +34,8 @@ def snapshot(records):
 
 
 def filename(parcels,mode,extension):
-    title=parcels[0].name+'_KAEK_'+parcels[0].kaek if len(parcels)==1 else 'Mastixa_'+str(len(parcels))+'_fields'
-    title=re.sub(r'[<>:"/\\|?*\x00-\x1f]','_',title).strip(' .')[:100] or 'Mastixa'
+    title=parcels[0].name+'_KAEK_'+parcels[0].kaek if len(parcels)==1 else 'Fieltra_'+str(len(parcels))+'_fields'
+    title=re.sub(r'[<>:"/\\|?*\x00-\x1f]','_',title).strip(' .')[:100] or 'Fieltra'
     if title.split('.')[0].upper() in {'CON','PRN','AUX','NUL',*[f'COM{i}' for i in range(1,10)],*[f'LPT{i}' for i in range(1,10)]}:title='_'+title
     if extension not in ('csv','xlsx','pdf','geojson','kml'):raise ValueError('Unsupported export format')
     return f'{title}_coordinates_{"WGS84" if mode=="wgs84" else "source"}.{extension}'
