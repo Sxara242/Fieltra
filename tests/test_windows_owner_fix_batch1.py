@@ -362,23 +362,28 @@ class OwnerFixTests(unittest.TestCase):
         self.assertEqual('12,25', line.text())
         self.assertTrue(line.hasAcceptableInput())
 
-    def test_quick_year_navigation_validation_and_cancel(self):
+    def test_year_selection_validation_and_cancel(self):
         bar = self.page('year_context_ui', 'YearContextBar')
+        def select(year):
+            bar.year_selector.setEditText(str(year))
+            bar._apply_year()
         with patch('app.year_context_ui._message', return_value=QMessageBox.StandardButton.Yes):
-            bar.next_year_button.click()
+            select(2026)
             self.assertEqual(2026, context.active_working_year(self.db))
-            bar.previous_year_button.click()
+            select(2025)
             self.assertEqual(2025, context.active_working_year(self.db))
         with patch('app.year_context_ui._message', return_value=QMessageBox.StandardButton.No):
-            bar.previous_year_button.click()
+            select(2024)
             self.assertEqual(2025, context.active_working_year(self.db))
+            self.assertEqual('2025', bar.year_selector.currentText())
         self.assertEqual(0, self.db.query_one('SELECT COUNT(*) FROM year_locks')[0])
-        for year, button in ((context.MIN_YEAR, bar.previous_year_button), (context.MAX_YEAR, bar.next_year_button)):
+        for year in (context.MIN_YEAR, context.MAX_YEAR):
             context.set_active_working_year(self.db, year, audit=False)
             bar.refresh()
-            self.assertFalse(button.isEnabled())
-            button.click()
-            self.assertEqual(year, context.active_working_year(self.db))
+            self.assertEqual(str(year), bar.year_selector.currentText())
+            with patch('app.year_context_ui._message') as dialog:
+                select(year)
+                dialog.assert_not_called()
 
     def test_two_correction_exit_actions_and_cancel(self):
         context.set_active_working_year(self.db, 2026, audit=False)

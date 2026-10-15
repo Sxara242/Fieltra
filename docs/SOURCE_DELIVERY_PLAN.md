@@ -1,3 +1,11 @@
+> Current 2026-10-11 repack delivery uses a main source ZIP plus a mandatory
+> separate full Qt6.11.2 source asset, with SHA-256
+> `6101c1aa00ff933d1b65ee5d167f76e8d71b9ac5b378b0111277723ebda7c163`.
+> [WINDOWS_RC2_REPACKAGING.md](WINDOWS_RC2_REPACKAGING.md) and
+> [windows-rc2-repack-delivery.json](windows-rc2-repack-delivery.json) define the
+> current layout. Original source materials remain unchanged; Qt source is not
+> trimmed. Main ZIP alone is incomplete. Public URLs remain unpublished.
+
 > Retained historical engineering record, sanitized for public review.
 > Current status: [RELEASE_STATUS.md](RELEASE_STATUS.md). This record does not
 > establish approval of the current source or a new binary release. Local-only

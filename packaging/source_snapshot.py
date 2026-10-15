@@ -19,8 +19,9 @@ ROOT_FILES = frozenset({
 })
 TREES = frozenset({'app', 'packaging', 'installer', 'licenses', 'tests', 'tools', 'shared', '.github'})
 SUFFIXES = frozenset({'.py', '.json', '.sql', '.txt', '.md', '.rst', '.html',
-                     '.png', '.ico', '.svg', '.qss', '.spec', '.ps1', '.iss',
-                     '.bat', '.ui', '.ts', '.qm', '.csv', '.toml', '.yaml', '.yml'})
+                     '.png', '.ico', '.svg', '.qss', '.spec', '.ps1', '.iss', '.isl',
+                     '.bat', '.ui', '.ts', '.qm', '.csv', '.toml', '.yaml', '.yml',
+                     '.c', '.h', '.rc', '.manifest'})
 PRIVATE_PARTS = frozenset({'data', 'backups', 'logs', 'profile_trash',
                            '__pycache__', '.git', '.env', 'secrets'})
 PRIVATE_SUFFIXES = frozenset({'.db', '.sqlite', '.sqlite3', '.mastixaprofile',

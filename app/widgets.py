@@ -40,10 +40,12 @@ class WorkingYearDateEdit(QDateEdit):
     """Date input whose new-record default follows the active/correction year."""
 
     def __init__(self, parent=None, *, db=None, selection=None) -> None:
-        from .year_context import working_context_date
+        from .year_context import working_context_date, MIN_YEAR, MAX_YEAR
 
         super().__init__(working_context_date(db), parent)
         self.working_db = db
+        self.setDateRange(QDate(MIN_YEAR, 1, 1), QDate(MAX_YEAR, 12, 31))
+        self.setDate(working_context_date(db))
         self.setProperty("mastixaWorkingYearDate", True)
         self.setProperty("mastixaWorkingYearSelection", selection)
 

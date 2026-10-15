@@ -1,3 +1,22 @@
+> Next candidate — owner decision 2026-10-12: external runtime detection at launch.
+> Microsoft Visual C++ Redistributable x64 >=14.51.36247.0 is required, but is not
+> included in the revised installer. Obtain it separately from
+> [Microsoft](https://aka.ms/vc14/vc_redist.x64.exe) under Microsoft's own terms.
+> Mastixa's AGPL and all supplier license/source/replacement obligations persist.
+> Completed package inspection and native qualification are pending; NO-GO.
+> See [external prerequisite report](docs/WINDOWS_EXTERNAL_VC_PREREQUISITE.md).
+> Retained frozen notices are unchanged; new source/artifact binding is still required.
+
+> Historical bundled installer surface — 2026-10-12: accepted RC2 candidates embed the
+> unchanged Microsoft Visual C++ v14 Redistributable x64 14.51.36247.0, separate
+> from the frozen application's zero app-local Microsoft CRT policy. Microsoft
+> retains its component rights and notices; it is not licensed under Mastixa AGPL.
+> [Runtime terms](https://visualstudio.microsoft.com/license-terms/vs2026-ga-visualcpp-v14-redist-runtime/) and [conditional Community redistribution grant](https://visualstudio.microsoft.com/license-terms/vs2026-ga-community/)
+> apply to Microsoft code. Preserve AGPL and covered-library replacement rights.
+> Distribution remains BLOCKED pending protective recipient/distributor agreement;
+> see [current compliance report](docs/WINDOWS_RC2_MICROSOFT_COMPLIANCE.md).
+> This source notice does not change or retroactively qualify retained binaries.
+
 # Current Windows EPSG data provenance — 2026-10-08
 
 The EPSG Dataset is owned by IOGP. Its complete Terms of Use and AS-IS/liability

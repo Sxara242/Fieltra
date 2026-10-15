@@ -62,7 +62,8 @@ def install_year_context_ui() -> None:
             shell_layout.setContentsMargins(0, 0, 0, 0)
             shell_layout.setSpacing(0)
 
-            self.year_context_bar = YearContextBar(self.db, shell)
+            self.year_context_bar = YearContextBar(
+                self.db, shell, initial_installation_year=self.profile_manager.initial_installation_year)
             shell_layout.addWidget(self.year_context_bar)
             if body is not None:
                 shell_layout.addWidget(body, 1)

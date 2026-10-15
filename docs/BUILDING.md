@@ -1,3 +1,14 @@
+## Current public-source installer route
+
+For the newly reviewed external-VC builder, use the prerequisites, hash-map
+manifest format and guest-only sequence in [PUBLICATION_CANDIDATE.md](PUBLICATION_CANDIDATE.md).
+This is new build code, not recovery of the historical 3,008-byte script.
+Use `build_release.ps1 -SkipInstaller` followed by the explicit external candidate
+builder; no build, installer execution or distribution is authorized by this guide.
+Older instructions below retain their original scope.
+
+---
+
 # Development, CI and packaging
 
 Windows source development uses Python 3.14/PySide6. Android uses JDK 21,
@@ -79,3 +90,53 @@ Retained details: [distribution source](DISTRIBUTION_SOURCE.md),
 [CRT](WINDOWS_CRT_NORMALIZATION.md), [EPSG remedy](WINDOWS_EPSG_REMEDIATION.md).
 Historical local archive paths are evidence references, not public downloads.
 Use [RELEASE_STATUS.md](RELEASE_STATUS.md) for the current decision.
+
+## External VC++ launch mode — 2026-10-12
+
+The only active prerequisite mode is `external-launch`, configured in
+`packaging/windows-prerequisite.json`. Its x64 minimum remains 14.51.36247.0.
+The application bundle continues to exclude all Microsoft CRT copies under the
+existing locked B2 policy. Setup includes neither the redistributable package
+nor download/execution/consent logic; detection happens at launch.
+
+Full `build_release.ps1` builds the native launcher before compiling Setup and
+passes `MyLauncherPath` plus the frozen `MyAppSourceDir`. `-SkipInstaller` still
+returns the bare frozen payload for its existing qualification checks; it is not
+the user-facing installed launch layout. Inno places the launcher at the root
+and the unchanged frozen payload under `engine/`.
+
+`build_windows_launcher.ps1 -OutputDir <fresh-path>` requires installed entitled
+MSVC x64 tools and Windows SDK; it does not install them. Discovery uses vswhere
+or explicit tool/SDK parameters. C11, `/W4 /WX /GS /Zl` and `/NODEFAULTLIB` keep
+first-party guard support and reject any CRT-library dependency. The native
+front end links only Windows SDK import libraries, with ASLR/NX, random stack
+cookie, asInvoker/DPI manifest and System32-only dependent-load policy.
+`launcher_audit.py` inspects actual PE imports/delay imports and hardening.
+
+To package an already-qualified frozen application without rebuilding it,
+use `build_external_vc_candidate.ps1` with explicit payload, its exact member-hash
+manifest, native launcher, qualified compiler/Python and fresh output paths.
+`external_vc_layout.py` verifies B2 locks and preserves every payload byte.
+One compile attempt is made per invocation; failed diagnostics are retained.
+Installer read-back/extraction, member comparison and native qualification are
+separate mandatory steps. Never execute a candidate on the owner's live PC.
+
+With `-BuildSyntheticTests`, the native builder also emits private headless
+policy/argument/owned-fixture-child tests and a console-only runtime probe.
+The latter uses the production detector, reads only HKLM runtime metadata and
+System32 files, prints a status and exits; it never launches the GUI/payload or
+writes registry/data. Neither diagnostic executable is installed with Mastixa.
+
+`vc_redist_prerequisite.iss` and its lock remain engineering references. The
+historical `repackage_rc2.ps1` now refuses use against the revised installer.
+Future separately approved bundling can reuse that reference and the mode/hook
+boundary while keeping the native launcher and frozen payload; it needs
+Microsoft clarification, reviewed delivery terms, new build and qualification.
+The current JSON/ISPP guards reject bundled mode and expose no user option.
+
+Native C/header/resource/manifest files are included by the source snapshot
+allowlist. Deliver those source/build inputs, generated-policy derivation and the
+exact original frozen source plus installer/launcher overlay and required full
+supplier/Qt/PDFium materials. A new code-only ZIP is not complete corresponding
+source or legal clearance. No archive consolidation or workspace cleanup is part
+of this change.

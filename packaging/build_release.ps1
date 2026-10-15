@@ -142,6 +142,13 @@ try {
     }
 
     $installerScript = Join-Path $repoRoot "installer\MastixaManager.iss"
+    # Frozen Python/Qt cannot reliably show a prerequisite warning without CRT.
+    # Build a CRT-independent front end; keep the frozen payload unchanged.
+    $launcherOutput = Join-Path $releaseWork "windows-launcher"
+    & (Join-Path $PSScriptRoot "build_windows_launcher.ps1") -OutputDir $launcherOutput
+    $launcher = Join-Path $launcherOutput "MastixaManager.exe"
+    & $python -B (Join-Path $PSScriptRoot "launcher_audit.py") $launcher
+    if ($LASTEXITCODE -ne 0) { throw "Independent launcher dependency/hardening validation failed." }
     $installerText = Get-Content -LiteralPath $installerScript -Raw
     $versionMatch = [regex]::Match(
         $installerText,
@@ -194,7 +201,7 @@ try {
             }
         }
 
-        & $compiler $outputArg $filenameArg "/DMyAppSourceDir=$bundle" $installerScript
+        & $compiler $outputArg $filenameArg "/DMyAppSourceDir=$bundle" "/DMyLauncherPath=$launcher" "/DMyPrerequisiteMode=external-launch" $installerScript
         $compilerExitCode = $LASTEXITCODE
         if ($compilerExitCode -eq 0) {
             $successfulAttemptSetup = $attemptSetup

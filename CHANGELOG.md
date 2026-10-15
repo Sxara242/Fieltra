@@ -13,6 +13,19 @@
 
 # Changelog
 
+## Windows rc.2 — external VC++ launch prerequisite, 2026-10-12 (not published)
+
+- Next candidate installs without bundling, downloading or executing Microsoft
+  Visual C++ Redistributable. x64 >=14.51.36247.0 remains required to run.
+- Small CRT-independent native launcher checks the prerequisite before Python/Qt
+  and offers a Greek Microsoft-download/Recheck/Cancel dialog when needed.
+- Start Menu, Desktop and post-install opening share the root launcher; accepted
+  frozen application bytes, AppId, profiles/preferences and uninstall policy stay
+  intact. Runtime installation is a separate user action under Microsoft's terms.
+- Installer compilation/file read-back and disposable Windows acceptance remain
+  open; source validation is not public release approval. Old bundled artifacts
+  and their unresolved Microsoft agreement issue remain historical evidence.
+
 ## Windows v1.0.0-rc.1 — preparation, 2026-10-07 (not published)
 
 - AGPL-3.0-only application licensing, local legal links and contributor intake

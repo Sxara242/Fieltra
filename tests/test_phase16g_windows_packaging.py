@@ -222,18 +222,12 @@ public class Fixture {
         self.assertNotEqual(install_dir, data_dir)
         self.assertNotIn(install_dir, data_dir.parents)
 
-    def test_uninstaller_removes_only_app_owned_install_and_registry_residue(self) -> None:
+    def test_uninstaller_preserves_preferences_and_removes_install_residue(self) -> None:
         iss = self._read("installer/MastixaManager.iss")
 
-        self.assertIn("[Registry]", iss)
-        self.assertIn(
-            'Root: HKCU; Subkey: "Software\\Mastixa\\Mastixa Manager"; Flags: uninsdeletekey',
-            iss,
-        )
-        self.assertIn(
-            'Root: HKCU; Subkey: "Software\\Mastixa"; Flags: uninsdeletekeyifempty',
-            iss,
-        )
+        self.assertNotIn("[Registry]", iss)
+        self.assertNotIn("uninsdeletekey", iss)
+        self.assertIn("RegDeleteKeyIncludingSubkeys(HKCU, 'Software\\Mastixa\\Mastixa Manager')", iss)
         self.assertNotIn("Microsoft\\Windows\\CurrentVersion\\UFH\\SHC", iss)
 
         self.assertIn("[UninstallDelete]", iss)

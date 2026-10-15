@@ -186,7 +186,7 @@ class YearContextCoreTests(unittest.TestCase):
     def test_locked_navigation_and_success_only_for_real_change(self):
         self.lock(2026)
         bar = self.page("year_context_ui", "YearContextBar")
-        bar.year_spin.setValue(2026)
+        bar.year_selector.setEditText('2026')
         bar._apply_year()
         self.assertEqual(2026, context.active_working_year(self.db))
         self.assertIsNone(context.correction_state(self.db))
@@ -201,7 +201,7 @@ class YearContextCoreTests(unittest.TestCase):
         self.messages.reset_mock()
         bar._apply_year()
         self.messages.assert_not_called()
-        bar.year_spin.setValue(2028)
+        bar.year_selector.setEditText('2028')
         with patch("app.year_context_ui.set_active_working_year", side_effect=RuntimeError("failure")):
             with self.assertRaises(RuntimeError):
                 bar._apply_year()

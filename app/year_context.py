@@ -11,8 +11,8 @@ from .database import Database
 
 
 ACTIVE_WORKING_YEAR_KEY: Final[str] = "active_working_year"
-MIN_YEAR: Final[int] = 1900
-MAX_YEAR: Final[int] = 9998
+MIN_YEAR: Final[int] = 1000
+MAX_YEAR: Final[int] = 9999
 
 
 @dataclass(frozen=True)

@@ -24,14 +24,14 @@ class Alpha2InstallerMaintenanceTests(unittest.TestCase):
     def test_same_version_offers_repair_mode(self) -> None:
         self.assertIn("CompareText(InstalledVersion, CurrentVersion) = 0", self.iss)
         self.assertIn("MaintenanceMode := 'repair'", self.iss)
-        self.assertIn("Fix / repair installation (recommended)", self.iss)
+        self.assertIn("Επιδιόρθωση εγκατάστασης (συνιστάται)", self.iss)
 
     def test_different_version_offers_update_mode(self) -> None:
         self.assertIn("MaintenanceMode := 'update'", self.iss)
-        self.assertIn("Update program to ' + CurrentVersion + ' (recommended)", self.iss)
+        self.assertIn("Ενημέρωση στην έκδοση ' + CurrentVersion + ' (συνιστάται)", self.iss)
 
     def test_maintenance_modes_preserve_external_user_data(self) -> None:
-        self.assertIn("Your local database, profiles, documents, logs and backups will be kept.", self.iss)
+        self.assertIn("Η τοπική βάση, τα προφίλ, τα έγγραφα, τα αρχεία καταγραφής και τα αντίγραφα ασφαλείας διατηρούνται.", self.iss)
         self.assertNotIn(
             'Type: filesandordirs; Name: "{%LOCALAPPDATA}\\MastixaManager"',
             self.iss,

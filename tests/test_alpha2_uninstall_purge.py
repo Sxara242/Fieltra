@@ -19,6 +19,8 @@ def test_uninstaller_keeps_user_data_by_default_and_supports_explicit_full_purge
     assert "CmdLineParamExists('/PURGEDATA')" in iss
     assert "ExpandConstant('{localappdata}\\MastixaManager')" in iss
     assert "DelTree(UserDataDir, True, True, True)" in iss
+    assert "RegDeleteKeyIncludingSubkeys(HKCU, 'Software\\Mastixa\\Mastixa Manager')" in iss
+    assert "τοπικά δεδομένα, οι προτιμήσεις, τα προφίλ" in iss
 
     # Silent uninstall preserves data unless /PURGEDATA was explicitly supplied.
     assert "CmdLineParamExists('/SILENT')" in iss

@@ -166,3 +166,8 @@ Authoritative references: [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.html),
 [Qt LGPL obligations](https://www.qt.io/development/open-source-lgpl-obligations),
 [Qt 6.11 licensing / SBOM](https://doc.qt.io/qt-6.11/licensing.html),
 [PyInstaller licensing](https://pyinstaller.org/en/v6.22.2/license.html).
+
+
+## QtPdf libjpeg-turbo license cross-reference
+
+The upstream `licenses/QtPdf-6.11.2/third_party/libjpeg_turbo/LICENSE.md` refers to `README.ijg`. Its exact, unmodified text is already included at [README.ijg](../licenses/GIS-native/libjpeg-turbo-3.1.4.1/README.ijg), SHA-256 `75815e3bf6484201a3c3d17a1bbf10f2e8e3237f84df10a2357ea896db2a81d6`. The same bytes were recovered from the retained QtWebEngine 6.11.2 source archive at `qtwebengine-everywhere-src-6.11.2/src/3rdparty/chromium/third_party/libjpeg_turbo/README.ijg`; the adjacent upstream LICENSE.md also matches the retained QtPdf notice exactly. This cross-reference identifies shared license text and does not equate the different component versions. No vendor license text is changed.

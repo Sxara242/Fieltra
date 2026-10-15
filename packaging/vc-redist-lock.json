@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "version": "14.51.36247.0",
+  "architecture": "x64 runtime (Microsoft x86 bootstrapper)",
+  "size": 18731856,
+  "sha256": "843068991daaa1f73ad9f6239bce4d0f6a07a51f18c37ea2a867e9beca71295c",
+  "signer": "Microsoft Corporation",
+  "acquisition": "Visual Studio Community 2026 VC/Redist/MSVC/14.51.36231/vc_redist.x64.exe",
+  "official_information": "https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist",
+  "runtime_license": "https://aka.ms/VCRedistLicense",
+  "distribution_grant": "https://visualstudio.microsoft.com/license-terms/vs2026-ga-community/",
+  "distributable_list": "https://learn.microsoft.com/en-us/visualstudio/releases/2026/redistribution",
+  "eligibility": "Conditional grant under retained owner-attested valid Community license; unmodified release installer only. Downstream protective assent, indemnity and other grant restrictions remain distribution obligations.",
+  "app_payload_policy": "Central canonical CRT; no Microsoft CRT DLL added to frozen payload"
+}

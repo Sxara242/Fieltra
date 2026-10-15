@@ -19,10 +19,52 @@ from program files. Set `MASTIXA_DATA_HOME` to a new disposable directory before
 development launches. Keep databases, backups and profile exports outside the
 source tree. Back up real data before installation, upgrade or uninstall.
 
-The qualified Windows installer route requires an independently installed
-official Microsoft x64 Visual C++ Redistributable **>=14.51.36247.0**.
-Mastixa bundles neither Microsoft CRT DLLs nor the redistributable installer;
-the prerequisite fails closed. Source CI does not establish binary readiness.
+## Windows application prerequisite — next candidate
+
+**Microsoft Visual C++ Redistributable x64 is required to run Mastixa Manager,
+but is not included in its installer.** Obtain **x64 version 14.51.36247.0 or
+newer** from [Microsoft](https://aka.ms/vc14/vc_redist.x64.exe) and install it
+separately under Microsoft's own terms. x86 alone is insufficient. Microsoft
+maintains the [supported version/architecture guidance](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist).
+
+Mastixa Setup finishes regardless of VC++ presence. It does not contain, download,
+run or request consent to install the Microsoft package. On application launch,
+a small native Windows front end checks the x64 runtime registry entries and the
+architecture/version of five canonical System32 runtime files before loading
+Python/Qt. Missing/outdated runtime produces a friendly Greek warning with
+**Λήψη από Microsoft**, **Έλεγχος ξανά** and **Ακύρωση**. Detection/access failures
+are reported safely rather than bypassing the check. The link opens only after
+your explicit click; Mastixa never runs the downloaded package for you.
+
+Run the official Microsoft installer yourself, accept Microsoft's terms and any
+required administrator prompt, then choose **Έλεγχος ξανά** or reopen Mastixa.
+If Microsoft requests a restart, restart Windows first. Cancel leaves the Mastixa
+installation and data intact. An adequate runtime proceeds without this warning.
+
+For offline installation, save the official x64 package on a connected device
+and transfer it separately. Mastixa installs offline, but cannot run until its
+runtime is installed. No rehosting/proxy download or substitute CRT DLL is used.
+Mastixa's AGPL rights and third-party/source replacement obligations are unchanged.
+
+Start Menu, Desktop and post-install launch use the same root executable. The
+unchanged frozen application lives in the installation's `engine/` directory.
+Keep that entire directory; use the root launcher for normal opening.
+Existing AppId, data path, preference identity and normal-uninstall preservation
+stay the same. An upgrade may retain old program `_internal/` files; no new
+destructive migration/cleanup rule was added. Native upgrade/rollback and actual
+installed footprint require disposable Windows qualification.
+
+The current target is native Windows x64. ARM64/ARM64X compatibility is not
+qualified; the unchanged installer `x64compatible` declaration is not an ARM
+acceptance result. The detector requires AMD64 canonical runtime images.
+
+Earlier accepted RC2 artifacts used a bundled runtime and keep their original
+hashes/documentation. A new external-runtime Setup has built and passed actual
+package inspection; native installation/security qualification remains pending.
+See [candidate qualification](WINDOWS_EXTERNAL_VC_QUALIFICATION.md).
+No public release or final owner acceptance is implied.
+See [implementation/validation](WINDOWS_EXTERNAL_VC_PREREQUISITE.md) and
+[release status](RELEASE_STATUS.md). Source CI alone does not establish readiness.
 
 For Android install JDK 21 and Android SDK platform 36, set `JAVA_HOME` and
 `ANDROID_HOME`, and run from `android/`:

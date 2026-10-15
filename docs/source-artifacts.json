@@ -518,5 +518,23 @@
     "bindings": "../WindowsUpstreamReceiptEvidence/binding-build-materials.json",
     "retention_manifest": "docs/windows-release-retention-manifest.json",
     "note": "Producer/generator materials are source/build support, not additional shipping runtime SBOM components"
+  },
+  "rc2_repack_delivery": {
+    "date": "2026-10-11",
+    "layout_manifest": "windows-rc2-repack-delivery.json",
+    "qt_source_asset": {
+      "filename": "qtwebengine-everywhere-src-6.11.2.tar.xz",
+      "materialized_path": "dependencies/qtwebengine-everywhere-src-6.11.2.tar.xz",
+      "size": 580351104,
+      "sha256": "6101c1aa00ff933d1b65ee5d167f76e8d71b9ac5b378b0111277723ebda7c163",
+      "component": "QtPdf/PDFium",
+      "version": "6.11.2",
+      "required": true,
+      "published_url": null,
+      "role": "Untrimmed QtPdf/PDFium preferred source, nested sources, CMake/GN and licenses"
+    },
+    "application_payload": "559 controlled-3 files unchanged",
+    "installer_source": "Separate installer-repack-source.zip overlay; original frozen source stays exact",
+    "public_source_published": false
   }
 }

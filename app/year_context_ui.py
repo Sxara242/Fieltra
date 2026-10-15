@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 from functools import wraps
+import re
 
-from PySide6.QtCore import QEvent, QObject, Qt
+from PySide6.QtCore import QDate, QEvent, QObject, QRegularExpression, Qt
+from PySide6.QtGui import QRegularExpressionValidator
 from PySide6.QtWidgets import (
     QAbstractButton,
     QApplication,
+    QComboBox,
     QDateEdit,
     QFrame,
     QGroupBox,
@@ -13,6 +16,7 @@ from PySide6.QtWidgets import (
     QHeaderView,
     QLabel,
     QLineEdit,
+    QListView,
     QMessageBox,
     QPushButton,
     QSpinBox,
@@ -183,9 +187,11 @@ def change_active_year(parent, db, year: int, notify, *, confirmed=False) -> boo
 
 
 class YearContextBar(QFrame):
-    def __init__(self, db, parent: QWidget | None = None) -> None:
+    def __init__(self, db, parent: QWidget | None = None, *, initial_installation_year=None) -> None:
         super().__init__(parent)
         self.db = db
+        self.initial_installation_year = initial_installation_year
+        self._offered_year_range = None
         self.setObjectName("yearContextBar")
         self.setMinimumHeight(48)
 
@@ -197,22 +203,25 @@ class YearContextBar(QFrame):
         self.context_label.setStyleSheet("font-weight: 700;")
         row.addWidget(self.context_label)
 
-        self.year_spin = QSpinBox()
-        self.year_spin.setRange(MIN_YEAR, MAX_YEAR)
-        self.year_spin.setMinimumWidth(92)
-        row.addWidget(self.year_spin)
-
-        self.apply_button = QPushButton("Μετάβαση")
-        self.apply_button.setProperty("mastixaYearContextControl", True)
-        self.apply_button.clicked.connect(self._apply_year)
-        row.addWidget(self.apply_button)
-
-        self.previous_year_button = QPushButton("−1")
-        self.next_year_button = QPushButton("+1")
-        for button, delta in ((self.previous_year_button, -1), (self.next_year_button, 1)):
-            button.setProperty("mastixaYearContextControl", True)
-            button.clicked.connect(lambda _checked=False, delta=delta: self._step_year(delta))
-            row.addWidget(button)
+        self.year_selector = QComboBox()
+        self.year_selector.setEditable(True)
+        # Four digits plus editing/caret space; the global combo arrow padding
+        # makes content-only sizing scroll the first digit out of the editor.
+        self.year_selector.setMinimumContentsLength(6)
+        self.year_selector.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToContents)
+        self.year_selector.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
+        self.year_selector.setMaxVisibleItems(6)
+        self.year_selector.setView(QListView(self.year_selector))
+        self.year_selector.view().setUniformItemSizes(True)
+        self.year_selector.setCompleter(None)
+        self.year_selector.lineEdit().setValidator(QRegularExpressionValidator(
+            QRegularExpression('[1-9][0-9]{3}'), self.year_selector))
+        self.year_selector.setProperty("mastixaYearContextControl", True)
+        self.context_label.setBuddy(self.year_selector)
+        # Only a user activation requests a change; refreshes are silent.
+        self.year_selector.activated.connect(self._apply_year)
+        self.year_selector.lineEdit().returnPressed.connect(self._apply_year)
+        row.addWidget(self.year_selector)
 
         self.warning_label = QLabel()
         self.warning_label.setWordWrap(True)
@@ -261,19 +270,22 @@ class YearContextBar(QFrame):
         else:
             sync_application_year_context(self.db)
 
-    def _apply_year(self) -> None:
+    def _apply_year(self, _index=None) -> None:
         if correction_state(self.db) is not None:
+            self.refresh()
             return
-        target = int(self.year_spin.value())
-        change_active_year(self, self.db, target, self._notify_window)
-        self.refresh()
-
-    def _step_year(self, delta) -> None:
-        target = active_working_year(self.db) + delta
-        if correction_state(self.db) is not None or not MIN_YEAR <= target <= MAX_YEAR:
+        raw = self.year_selector.currentText().strip()
+        if re.fullmatch('[1-9][0-9]{3}', raw) is None:
+            _message(self, 'warning', 'Ενεργό έτος εργασίας',
+                     'Πληκτρολόγησε έγκυρο τετραψήφιο έτος (1000–9999).')
+            self.refresh()
             return
-        self.year_spin.setValue(target)
-        self._apply_year()
+        target = int(raw)
+        try:
+            change_active_year(self, self.db, target, self._notify_window)
+        finally:
+            # Refusal or a failed database write restores the persisted year.
+            self.refresh()
 
     def _finish_correction(self, *, return_active=False) -> None:
         state = correction_state(self.db)
@@ -301,19 +313,34 @@ class YearContextBar(QFrame):
         active = active_working_year(self.db)
         state = correction_state(self.db)
 
-        self.year_spin.blockSignals(True)
-        self.year_spin.setValue(active)
-        self.year_spin.blockSignals(False)
-        self.previous_year_button.setVisible(state is None)
-        self.next_year_button.setVisible(state is None)
-        self.previous_year_button.setEnabled(active > MIN_YEAR)
-        self.next_year_button.setEnabled(active < MAX_YEAR)
+        blocked = self.year_selector.blockSignals(True)
+        current = QDate.currentDate().year()
+        first = self.initial_installation_year
+        offered = (max(MIN_YEAR, first - 2), min(MAX_YEAR, current + 1)) if type(first) is int else None
+        if offered != self._offered_year_range:
+            self.year_selector.clear()
+            # Unknown legacy dates are never replaced by today's installation year.
+            # Implausibly broad ranges use manual entry instead of a huge popup.
+            if offered and 0 < offered[1] - offered[0] + 1 < 100:
+                for year in range(offered[0], offered[1] + 1):
+                    self.year_selector.addItem(str(year), year)
+            self._offered_year_range = offered
+        self.year_selector.setCurrentIndex(self.year_selector.findData(active))
+        self.year_selector.setEditText(str(active))
+        self.year_selector.view().setMaximumHeight(
+            max(self.fontMetrics().height() + 6, self.year_selector.view().sizeHintForRow(0)) * 6
+            + 2 * self.year_selector.view().frameWidth())
+        self.year_selector.blockSignals(blocked)
+        self.year_selector.setAccessibleName(_text("Ενεργό έτος εργασίας:"))
+        self.year_selector.setToolTip(_text('Πληκτρολόγησε έτος και πάτησε Enter.'))
+        if first is None:
+            self.year_selector.setToolTip(_text(
+                'Η αρχική χρονολογία εγκατάστασης δεν είναι γνωστή. Πληκτρολόγησε έτος και πάτησε Enter.'))
         self.return_active_button.setVisible(state is not None)
 
         if state is None:
             self.context_label.setText(_text("Ενεργό έτος εργασίας:"))
-            self.year_spin.setVisible(True)
-            self.apply_button.setVisible(True)
+            self.year_selector.setVisible(True)
             self.warning_label.clear()
             self.warning_label.setVisible(False)
             self.return_button.setVisible(False)
@@ -324,8 +351,7 @@ class YearContextBar(QFrame):
             return
 
         self.context_label.setText(_text("Επεξεργασία έτους: {year} — προσωρινό mode", year=state.year))
-        self.year_spin.setVisible(False)
-        self.apply_button.setVisible(False)
+        self.year_selector.setVisible(False)
         self.warning_label.setText(
             _text("ΠΡΟΣΟΧΗ: Επεξεργάζεσαι το κλειδωμένο έτος {year} — "
                   "Τρέχον έτος: {active_year}", year=state.year, active_year=state.active_year)

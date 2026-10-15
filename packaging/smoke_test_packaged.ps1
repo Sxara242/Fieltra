@@ -11,17 +11,23 @@ if ((Split-Path -Leaf $exe) -cne "MastixaManager.exe" -or -not (Test-Path -Liter
     throw "Expected the packaged MastixaManager.exe."
 }
 $bundle = Split-Path -Parent $exe
+$resourceBundle = $bundle
+# Installer entry is the independent launcher; its frozen resources live in engine.
+# Keep FileName pointed at the launcher so this checks the actual launch path.
+if (Test-Path -LiteralPath (Join-Path $bundle "engine\MastixaManager.exe")) {
+    $resourceBundle = Join-Path $bundle "engine"
+}
 
 # Never run against an installed application's legacy preferences/private data.
 # Missing assets/locales can otherwise silently fall back to blank icons/Greek.
-if (Test-Path -LiteralPath (Join-Path $bundle "_internal\data")) {
+if (Test-Path -LiteralPath (Join-Path $resourceBundle "_internal\data")) {
     throw "Refusing a bundle containing legacy/private _internal/data."
 }
 foreach ($resource in @("assets", "locales")) {
     $sourceRoot = Join-Path $repoRoot "app\$resource"
     foreach ($source in Get-ChildItem -LiteralPath $sourceRoot -Recurse -File) {
         $relative = $source.FullName.Substring($sourceRoot.Length + 1)
-        $packaged = Join-Path $bundle "_internal\app\$resource\$relative"
+        $packaged = Join-Path $resourceBundle "_internal\app\$resource\$relative"
         if (-not (Test-Path -LiteralPath $packaged -PathType Leaf)) {
             throw "Missing packaged resource: app/$resource/$relative"
         }
@@ -114,6 +120,8 @@ finally {
     # retained process instance; never enumerate or kill by application name.
     if ($started -and -not $process.HasExited) {
         try {
+            # The native launcher owns a kill-on-close job for its exact child;
+            # terminating this process instance also stops that engine.
             $process.Kill()
             if (-not $process.WaitForExit(5000)) { throw "Created process did not terminate." }
         }

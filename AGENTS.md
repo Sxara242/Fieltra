@@ -26,3 +26,21 @@
 - Diagnose failures in isolated processes and run affected tests plus appropriate
   complete validation. Do not conceal failures with skips, xfails or weaker
   assertions. Validate diffs and report evidence-based release conclusions.
+
+## Windows validation safety — live user state
+
+- Validation, packaging, installer, migration and recovery tests must not rename,
+  move, delete, overwrite or otherwise mutate the owner's real Mastixa preferences
+  or registry state merely to isolate a test.
+- Do not use RegRenameKey, NtRenameKey, `reg rename`, ctypes registry rename calls
+  or equivalent live-profile rename workarounds.
+- Prefer synthetic data homes (`MASTIXA_DATA_HOME`), temporary test registry
+  namespaces, isolated directories or read-only before/after snapshots.
+- Normal uninstall must preserve preferences and user data. Destructive cleanup
+  requires the explicit project purge mechanism (`/PURGEDATA` or explicit Yes to
+  full removal), with dedicated tests; it must never be a test-isolation shortcut.
+- If safe isolation requires mutating real user state, STOP and report the blocker.
+  Do not invent a mutation-based workaround.
+- Never intentionally reproduce a known BSOD-triggering validation path.
+- Known-defective installer artifacts with identified hashes must not be reused
+  for qualification; preserve them only as evidence.

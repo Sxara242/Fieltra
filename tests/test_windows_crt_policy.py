@@ -49,16 +49,22 @@ class WindowsCrtPolicyTests(unittest.TestCase):
             with self.assertRaisesRegex(ERROR, 'Missing/changed normalized'):
                 POLICY['verify_bundle'](out, ROOT)
 
-    def test_policy_and_installer_are_a_no_copy_prerequisite(self):
+    def test_payload_stays_canonical_and_retained_bundled_reference_is_inactive(self):
         policy = POLICY['load_policy'](ROOT)
         self.assertEqual('independently-installed-official-x64-redist', policy['route'])
         self.assertEqual('14.51.36247.0', policy['minimum_version'])
         text = (ROOT / 'installer/vc_redist_prerequisite.iss').read_text()
-        self.assertNotIn('ShellExec(', text)
-        self.assertNotIn('Exec(', text)
+        lock = json.loads((ROOT / 'packaging/vc-redist-lock.json').read_text())
+        self.assertEqual(policy['official_installer_sha256'], lock['sha256'])
+        self.assertIn(lock['sha256'], text)
+        self.assertIn('if VcRedistPrerequisiteReady then', text)
+        self.assertIn("ShellExec('runas'", text)
+        self.assertIn('/install /quiet /norestart', text)
         setup = (ROOT / 'installer/MastixaManager.iss').read_text()
-        self.assertIn('Result := VcRedistPrerequisiteReady;', setup)
-        self.assertNotIn('Source: "vc_redist', setup)
+        self.assertNotIn('Result := EnsureVcRedist(NeedsRestart);', setup)
+        self.assertNotIn('DestName: "vc_redist.x64.exe"; Flags: dontcopy', setup)
+        self.assertNotIn('#include "vc_redist_prerequisite.iss"', setup)
+        self.assertIn('MyPrerequisiteMode "external-launch"', setup)
 
 
 if __name__ == '__main__':

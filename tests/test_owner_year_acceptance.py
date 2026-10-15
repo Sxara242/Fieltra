@@ -396,14 +396,14 @@ class OwnerYearSwitchTests(unittest.TestCase):
         page.description.setText('Unsaved owner draft')
         before = case.snapshot()
         bar = case.window.year_context_bar
-        bar.year_spin.setValue(2028)
+        bar.year_selector.setEditText('2028')
         with patch('app.year_context_ui._message', return_value=QMessageBox.StandardButton.No) as dialog:
             bar._apply_year()
         self.assertEqual(2027, context.active_working_year(case.db))
         self.assertEqual(before, case.snapshot())
         self.assertEqual('Unsaved owner draft', page.description.text())
         self.assertEqual(4, case.window._current_page_index())
-        self.assertEqual(2027, bar.year_spin.value())
+        self.assertEqual('2027', bar.year_selector.currentText())
         self.assertEqual(2027, dialog.call_args.kwargs['current_year'])
         self.assertEqual(2028, dialog.call_args.kwargs['destination_year'])
         self.assertEqual(QMessageBox.StandardButton.No, dialog.call_args.args[5])
@@ -413,7 +413,7 @@ class OwnerYearSwitchTests(unittest.TestCase):
         case.nav.open('production')
         page = case.window.pages[3][1].resolved_page()
         bar = case.window.year_context_bar
-        bar.year_spin.setValue(2028)
+        bar.year_selector.setEditText('2028')
         with patch('app.year_context_ui._message', return_value=QMessageBox.StandardButton.Yes) as dialog:
             bar._apply_year()
         self.assertEqual(2028, context.active_working_year(case.db))

@@ -513,12 +513,57 @@ class ProfileManager:
         profile = self.get(profile_id) if profile_id else self.active_profile
         return profile.backup_dir
 
+    @property
+    def initial_installation_year(self) -> int | None:
+        """Stable installation metadata, shared by profiles and retained on reinstall.
+
+        Unknown legacy dates stay unknown; transaction dates and file timestamps
+        are not evidence of when the application was first installed.
+        """
+        value = self._load().get('initial_installation_year')
+        return value if type(value) is int and 1000 <= value <= 9999 else None
+
+    def _installer_year_metadata(self) -> tuple[int | None, str] | None:
+        marker = self.data_dir / 'installation-year.json'
+        if not marker.exists():
+            return None
+        try:
+            data = json.loads(marker.read_text(encoding='utf-8-sig'))
+            year = data['year']
+            if data['schema'] == 1 and type(year) is int and 1000 <= year <= 9999:
+                return year, 'installer-first-install'
+        except (OSError, ValueError, KeyError, TypeError):
+            pass
+        return None, 'unknown-invalid-install-marker'
+
+    @staticmethod
+    def _legacy_installation_year(data: dict) -> int | None:
+        default = next((record for record in data['profiles']
+                        if record['id'] == ProfileManager.DEFAULT_ID), None)
+        if default is None:
+            return None
+        try:
+            year = datetime.fromisoformat(default.get('created_at', '')).year
+            return year if 1000 <= year <= 9999 else None
+        except (ValueError, TypeError):
+            return None
+
     def _ensure_registry(self) -> None:
         if self.registry_path.exists():
             data = self._load()
             changed = data.get("version") != self.VERSION or "ask_on_startup" not in data
             data["version"] = self.VERSION
             data.setdefault("ask_on_startup", True)
+            if 'initial_installation_year' not in data:
+                marker = self._installer_year_metadata()
+                if marker is not None:
+                    data['initial_installation_year'], data['initial_installation_year_source'] = marker
+                else:
+                    data['initial_installation_year'] = self._legacy_installation_year(data)
+                    data['initial_installation_year_source'] = (
+                        'default-profile-created-at' if data['initial_installation_year'] is not None
+                        else 'unknown-legacy')
+                changed = True
             for index, record in enumerate(data["profiles"]):
                 if "color" not in record:
                     record["color"] = self.DEFAULT_COLORS[index % len(self.DEFAULT_COLORS)]
@@ -529,6 +574,7 @@ class ProfileManager:
             if changed:
                 self._save(data)
             return
+        existing_database = (self.data_dir / 'mastixa_manager.db').exists() or any(self.profiles_dir.rglob('*.db'))
         data = {
             "version": self.VERSION,
             "active_profile_id": self.DEFAULT_ID,
@@ -537,6 +583,12 @@ class ProfileManager:
                 self.DEFAULT_ID, "Κύριο προφίλ", Path("mastixa_manager.db"), 0
             )],
         }
+        marker = self._installer_year_metadata()
+        if marker is not None:
+            data['initial_installation_year'], data['initial_installation_year_source'] = marker
+        else:
+            data['initial_installation_year'] = None if existing_database else datetime.now().year
+            data['initial_installation_year_source'] = 'unknown-legacy' if existing_database else 'first-application-start'
         self._save(data)
 
     def _load(self) -> dict:

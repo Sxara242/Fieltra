@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "mode": "external-launch",
+  "architecture": "x64",
+  "minimum_version": "14.51.36247.0",
+  "download_url": "https://aka.ms/vc14/vc_redist.x64.exe",
+  "payload_directory": "engine",
+  "executable": "MastixaManager.exe",
+  "canonical_files": [
+    "msvcp140.dll",
+    "msvcp140_1.dll",
+    "msvcp140_2.dll",
+    "vcruntime140.dll",
+    "vcruntime140_1.dll"
+  ]
+}
