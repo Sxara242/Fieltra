@@ -317,30 +317,3 @@ asset includes acquisition/source modification dates and the source SHA-256;
 `tools/update_geonames_gazetteer.py` maintains it. Point proximity is a suggestion,
 not proof of parcel containment or an official cadastral name. This third-party
 data retains CC BY 4.0 independently of first-party AGPL-3.0-only source.
-
-# PMTiles / Protomaps offline maps (v1.0.1 development)
-
-`app/vendor/pmtiles` contains the Python reference reader, tile codec and writer
-from PMTiles 3.8.1, upstream commit
-`aec8fa1341222fdddb3318e9ffa8e18e19b312f7`, Copyright 2021 Protomaps LLC,
-BSD-3-Clause. Full notice: `licenses/PMTiles-3.8.1-BSD-3-Clause.txt`, indexed as
-REQUIRED AND SHIPS in the existing legal manifest. Local writer changes use
-SHA-256 for deduplication and permit staging on the destination volume.
-The format itself is public domain/CC0; sample/dataset rights are separate.
-Source: https://github.com/protomaps/PMTiles/tree/aec8fa1341222fdddb3318e9ffa8e18e19b312f7/python/pmtiles .
-
-The optional regional data is a Protomaps ODbL Produced Work based on
-OpenStreetMap and Natural Earth. Attribution: **© OpenStreetMap contributors ·
-Protomaps · Natural Earth**. Preserve source attribution, dataset date and
-licence in each regional archive; links are displayed with the offline layer.
-https://docs.protomaps.com/basemaps/downloads
-https://source.coop/protomaps/openstreetmap
-https://www.openstreetmap.org/copyright
-https://www.naturalearthdata.com/about/terms-of-use/
-https://opendatacommons.org/licenses/odbl/1-0/
-
-The new decoder/Qt overview style is first-party AGPL-3.0-only code. No
-MapLibre/QtWebEngine/Esri SDK, font files or new native binary is introduced.
-The vendored component is approximately 17 KiB of source/notices before
-packaging; final installer delta is NOT MEASURED (no build authorized).
-No OpenAerialMap or Esri imagery, SDK or credentials are redistributed.

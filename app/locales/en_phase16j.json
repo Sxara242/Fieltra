@@ -4,15 +4,7 @@
     "native_name": "English"
   },
   "translations": {
-    "Λήψη Χίου": "Download Chios",
-    "Άνοιγμα PMTiles": "Open PMTiles",
-    "Λήψη Χίου · Protomaps offline": "Download Chios · Protomaps offline",
-    "Άνοιγμα τοπικού PMTiles": "Open local PMTiles",
-    "Protomaps: χάρτης επισκόπησης z0–12. Έως 64 MiB αρχείο / 128 MiB μεταφορά, 136 MiB ελεύθερα. OSM/CDSE/ArcGIS: χωρίς offline λήψη.": "Protomaps: overview map z0–12. Up to 64 MiB file / 128 MiB transfer, 136 MiB free space. OSM/CDSE/ArcGIS: no offline download.",
     "Μη διαθέσιμο / Unavailable": "Unavailable",
-    "Ακύρωση λήψης / Cancel download": "Cancel download",
-    "PMTiles offline · {tiles} πλακίδια · κενά/σφάλματα: {failed} · έως z{zoom}": "PMTiles offline · {tiles} tiles · gaps/errors: {failed} · up to z{zoom}",
-    "Το τοπικό αρχείο δεν ανοίγει. Επίλεξε έγκυρο PMTiles / Cannot open local map": "Cannot open the local file. Select a valid PMTiles map.",
     "Το συνολικό άμεσο κόστος που προκύπτει από όλες τις κατηγορίες κόστους που έχουν συνδεθεί με το αγροτεμάχιο.": "The total direct cost from all cost categories linked to this field.",
     "Η καταχώρηση δεν συνδέεται με συγκεκριμένο αγροτεμάχιο και παραμένει γενικό κόστος ή έσοδο της εκμετάλλευσης.": "This entry is not linked to a specific field and remains a general farm cost or income.",
     "Η πραγματική παραγωγή σε κιλά. Η εφαρμογή κρατά έως 3 δεκαδικά, αλλά δεν εμφανίζει άχρηστα μηδενικά.": "The actual production quantity in kilograms. The application stores up to 3 decimal places and omits unnecessary trailing zeros.",
@@ -172,7 +164,6 @@
     "Η πρόταση απορρίφθηκε.": "Suggestion rejected.",
     "Επιβεβαιωμένο τοπωνύμιο: Δεν έχει οριστεί": "Confirmed locality: Not specified",
     "Πηγές / Άδειες": "Sources / Licences",
-    "Τροποποιήσεις: φιλτράρισμα ελληνικών τοπωνυμίων και τοπική κατάταξη προτάσεων. Οι επιβεβαιωμένες ονομασίες είναι αλλαγές του χρήστη.": "Modifications: filtered Greek place names and locally ranked suggestions. Confirmed names are user changes.",
-    "Λήψη Χίου 25.75,38.00–26.65,38.65 · z0–12;\nΤο τελικό μέγεθος θα εμφανιστεί μετά τη λήψη. Όρια: 64 MiB αρχείο, 128 MiB μεταφορά.\nΑπαιτούνται 136 MiB ελεύθερα. © OpenStreetMap contributors · ODbL Produced Work.\nDownload this Chios overview? Final size is not known in advance.": "Download Chios 25.75,38.00–26.65,38.65 · z0–12?\nThe final size will appear after downloading. Limits: 64 MiB file, 128 MiB transfer.\n136 MiB free space required. © OpenStreetMap contributors · ODbL Produced Work.\nDownload this Chios overview? Final size is not known in advance."
+    "Τροποποιήσεις: φιλτράρισμα ελληνικών τοπωνυμίων και τοπική κατάταξη προτάσεων. Οι επιβεβαιωμένες ονομασίες είναι αλλαγές του χρήστη.": "Modifications: filtered Greek place names and locally ranked suggestions. Confirmed names are user changes."
   }
 }

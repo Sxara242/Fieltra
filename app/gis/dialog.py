@@ -21,8 +21,7 @@ class ParcelMapDialog(QDialog):
     def __init__(self,db,field_id,parent=None):
         super().__init__(parent)
         self.db=db;self.field_id=field_id;self.store=GeometryStore(db);self.record=None
-        self.cdse=None;self.pmtiles=None;self.map_download=None
-        self.map_directory=db.path.parent/'offline-maps'
+        self.cdse=None
         self.setWindowTitle('Χάρτης αγροτεμαχίου');self.resize(1100,740)
         layout=QVBoxLayout(self)
         toolbar=QHBoxLayout();layout.addLayout(toolbar)
@@ -94,13 +93,8 @@ class ParcelMapDialog(QDialog):
                                ('Ανάκτηση ΚΑΕΚ',self.cadastre)]:
             button=QPushButton(title);button.clicked.connect(callback);action_layout.addWidget(button)
             if callback==self.cadastre:button.setObjectName('cadastreLookupButton')
-        self.offline_button=QPushButton('Λήψη Χίου')
-        self.offline_button.clicked.connect(self.download_chios)
-        settings.addWidget(self.offline_button)
-        open_map=QPushButton('Άνοιγμα PMTiles');open_map.clicked.connect(self.open_pmtiles);settings.addWidget(open_map)
-        offline_note=QLabel('Protomaps: χάρτης επισκόπησης z0–12. Έως 64 MiB αρχείο / 128 MiB μεταφορά, 136 MiB ελεύθερα. OSM/CDSE/ArcGIS: χωρίς offline λήψη.')
-        settings.addWidget(offline_note);settings.addStretch()
-        for label in (self.info,self.cadastral_info,self.attribution,self.imagery_info,self.imagery_status,offline_note,legend):
+        settings.addStretch()
+        for label in (self.info,self.cadastral_info,self.attribution,self.imagery_info,self.imagery_status,legend):
             label.setWordWrap(True);label.setMinimumWidth(0)
             label.setSizePolicy(QSizePolicy.Policy.Ignored,QSizePolicy.Policy.Preferred)
         self.finished.connect(lambda _:self.map.shutdown())
@@ -113,10 +107,6 @@ class ParcelMapDialog(QDialog):
             self._language.language_changed.connect(self._reload_cadastral)
             self._language.language_changed.connect(self._translate_basemap)
         self.restore_basemap('neutral')
-        try:
-            saved=json.loads((self.map_directory/'last-map.json').read_text(encoding='utf-8'))
-            self.use_pmtiles(Path(saved['path']),persist=False)
-        except (OSError,ValueError,KeyError,TypeError):pass
         self.reload();QTimer.singleShot(0,self.map.fit_parcel)
 
     def _panel(self,title):
@@ -205,7 +195,6 @@ class ParcelMapDialog(QDialog):
     def select_basemap(self,index):
         provider=restored_basemap(self.basemap.itemData(index))
         if provider.identity=='sentinel' and self.cdse:provider=self.cdse
-        if provider.identity=='pmtiles' and self.pmtiles:provider=self.pmtiles
         if provider.unavailable_reason:
             self.basemap.blockSignals(True)
             self.basemap.setCurrentIndex(0)
@@ -214,81 +203,8 @@ class ParcelMapDialog(QDialog):
             self.imagery_info.setText(provider.unavailable_reason)
             self.map.report_status('Μη διαθέσιμο / Unavailable')
             return
-        try:self.map.set_provider(provider)
-        except (OSError,ValueError,EOFError,IndexError,UnicodeError):
-            self.map.report_status('Το τοπικό αρχείο δεν ανοίγει. Επίλεξε έγκυρο PMTiles / Cannot open local map')
-            return
+        self.map.set_provider(provider)
         self._translate_basemap()
-
-    def use_pmtiles(self,path,persist=True):
-        from .offline_maps import LocalArchive,ATTRIBUTION,DATA_LICENCE
-        from .providers import BasemapProvider
-        archive=LocalArchive(path)
-        try:
-            h=archive.header;metadata=archive.metadata
-            if not all(name in {v.get('id') for v in metadata.get('vector_layers',[]) if isinstance(v,dict)}
-                       for name in ('earth','water','roads')):
-                raise ValueError('Expected Protomaps earth/water/roads layers')
-            description=(f'{Path(path).name} · {Path(path).stat().st_size:,} bytes · z{h["min_zoom"]}–{h["max_zoom"]}\n'
-                f'{DATA_LICENCE} · '+str(metadata.get('planetiler:osm:osmosisreplicationtime',''))+
-                '\nΧάρτης επισκόπησης / Overview map. Η μεγέθυνση δεν προσθέτει λεπτομέρεια / Overzoom adds no detail.')
-        finally:archive.close()
-        self.pmtiles=BasemapProvider('pmtiles','Protomaps · Offline',ATTRIBUTION,
-            offline_allowed=True,local_path=str(Path(path).resolve()),max_zoom=h['max_zoom'],tile_size=512,
-            description=description)
-        if persist:
-            self.map_directory.mkdir(parents=True,exist_ok=True)
-            (self.map_directory/'last-map.json').write_text(json.dumps({'path':self.pmtiles.local_path}),encoding='utf-8')
-        self.restore_basemap('pmtiles')
-
-    def open_pmtiles(self):
-        filename,_=QFileDialog.getOpenFileName(self,_text('Άνοιγμα τοπικού PMTiles'),str(self.map_directory),'PMTiles (*.pmtiles)')
-        if not filename:return
-        try:self.use_pmtiles(Path(filename))
-        except (OSError,ValueError,EOFError,IndexError,UnicodeError) as error:
-            _message(self,'warning','PMTiles',str(error))
-
-    def download_chios(self):
-        if self.map_download and self.map_download.isRunning():
-            self.map_download.requestInterruption();self.offline_button.setEnabled(False);return
-        path=self.map_directory/'Chios-z12.pmtiles'
-        if path.exists():
-            try:self.use_pmtiles(path)
-            except (OSError,ValueError,EOFError,IndexError,UnicodeError) as error:_message(self,'warning','PMTiles',str(error))
-            return
-        if QMessageBox.question(self,'Protomaps',
-            'Λήψη Χίου 25.75,38.00–26.65,38.65 · z0–12;\n'
-            'Το τελικό μέγεθος θα εμφανιστεί μετά τη λήψη. Όρια: 64 MiB αρχείο, 128 MiB μεταφορά.\n'
-            'Απαιτούνται 136 MiB ελεύθερα. © OpenStreetMap contributors · ODbL Produced Work.\n'
-            'Download this Chios overview? Final size is not known in advance.',
-            QMessageBox.StandardButton.Yes|QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No)!=QMessageBox.StandardButton.Yes:return
-        from .map_download import MapDownload
-        worker=MapDownload(path,QApplication.instance());self.map_download=worker
-        self.offline_button.setText('Ακύρωση λήψης / Cancel download')
-        worker.progress.connect(self._map_progress)
-        worker.completed.connect(self._map_downloaded)
-        worker.failed.connect(self.imagery_status.setText)
-        worker.finished.connect(self._download_finished)
-        self.finished.connect(worker.requestInterruption)
-        def stop():
-            worker.requestInterruption();worker.wait(25000)
-        QApplication.instance().aboutToQuit.connect(stop)
-        worker.start()
-
-    def _map_progress(self,n,total,size):
-        if self.isVisible():self.imagery_status.setText(f'PMTiles: {n}/{total} · {size:,} bytes')
-
-    def _map_downloaded(self,result):
-        if not self.isVisible():return
-        path=self.map_download.destination
-        try:
-            self.use_pmtiles(path)
-            self.imagery_status.setText(f'PMTiles: {result["bytes"]:,} bytes · {result["tiles"]} tiles · offline')
-        except (OSError,ValueError,EOFError,IndexError,UnicodeError) as error:self.imagery_status.setText(str(error))
-
-    def _download_finished(self):
-        self.offline_button.setEnabled(True);self.offline_button.setText('Λήψη Χίου')
 
     def restore_basemap(self,value):
         index=self.basemap.findData(restored_basemap(value).identity)
@@ -302,11 +218,6 @@ class ParcelMapDialog(QDialog):
         attribution=provider.attribution
         if provider.identity=='osm':
             attribution='<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a>'
-        elif provider.identity=='pmtiles':
-            attribution=('<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a> · '
-                '<a href="https://protomaps.com">Protomaps</a> · '
-                '<a href="https://www.naturalearthdata.com/about/terms-of-use/">Natural Earth</a> · '
-                '<a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL</a>')
         self.attribution.setText(attribution or _text('Χωρίς υπόβαθρο · τοπική γεωμετρία'))
         description=(_text('Sentinel-2: φυσική ανάλυση RGB 10 m · διάστημα {period}. Μωσαϊκό· δεν επιστρέφεται ακριβής ημερομηνία λήψης. Η μεγέθυνση δεν προσθέτει λεπτομέρεια.',period=provider.time_range)
             if provider.identity=='sentinel' else _text(provider.description))

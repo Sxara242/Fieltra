@@ -13,8 +13,6 @@ from app.database import Database
 from app.gis.dialog import ParcelMapDialog
 from app.gis.geometry import manual_coordinates
 from app.gis.store import GeometryStore
-from app.gis.vector_tiles import render
-from app.gis.offline_maps import LocalArchive,unpack
 from tests.language_fixture import scoped_language
 from tests.test_map_acceptance_ui import scaled_font
 
@@ -25,8 +23,6 @@ class MapProviderUiTests(unittest.TestCase):
         if os.name!='nt' or os.environ.get('USERNAME','').lower()!='wdagutilityaccount':
             raise RuntimeError('Execute this native acceptance module only inside Windows Sandbox')
         cls.app=QApplication.instance() or QApplication([])
-        cls.dataset=Path(os.environ['FIELTRA_TEST_PMTILES'])
-        if not cls.dataset.is_file():raise RuntimeError('Retained Chios PMTiles input is required')
 
     def setUp(self):
         self.root=Path(self.enterContext(tempfile.TemporaryDirectory()))
@@ -47,41 +43,31 @@ class MapProviderUiTests(unittest.TestCase):
     def snapshot(self):
         with self.db.connect() as connection:return list(connection.iterdump())
 
-    def test_real_chios_raster_is_nonuniform_without_network(self):
-        import math
-        a=LocalArchive(self.dataset)
-        try:
-            z=12;x=int((26.0550712259+180)/360*2**z)
-            y=int((1-math.asinh(math.tan(math.radians(38.2238264672)))/math.pi)/2*2**z)
-            image=render(unpack(a.get(z,x,y),a.header['tile_compression']),512)
-            self.assertFalse(image.isNull());self.assertEqual(512,image.width())
-            colours={image.pixelColor(x,y).rgba() for x in range(0,512,4) for y in range(0,512,4)}
-            self.assertGreater(len(colours),3,'Expected real roads/land/water, not blank geometry-only background')
-        finally:a.close()
 
-    def test_offline_pan_zoom_overlay_fit_and_reopen_preserve_data(self):
+    def test_no_basemap_pan_zoom_overlay_fit_and_reopen_preserve_data(self):
         before=self.snapshot();dialog=self.dialog();view=dialog.map
         view.set_cadastral_geometry(self.geometry)
         cultivated=view.boundaries[0];cadastral=view.cadastral_item;vertices=list(view.cadastral_markers)
         transform=view.transform();center=view.mapToScene(view.viewport().rect().center())
-        dialog.use_pmtiles(self.dataset);view.load_visible_tiles()
-        self.assertTrue(view.tiles);self.assertEqual(transform,view.transform())
+        view.load_visible_tiles()
+        self.assertFalse(view.tiles);self.assertEqual(transform,view.transform())
         self.assertLessEqual((view.mapToScene(view.viewport().rect().center())-center).manhattanLength()*transform.m11(),2.1)
-        for provider in ('neutral','pmtiles'):
+        for provider in ('neutral','pmtiles','oam'):
             dialog.restore_basemap(provider);view.load_visible_tiles()
+            self.assertEqual('neutral',view.provider.identity)
             self.assertIs(cultivated,view.boundaries[0]);self.assertIs(cadastral,view.cadastral_item)
             self.assertEqual(vertices,view.cadastral_markers)
         view.scale(.7,.7);view.centerOn(view.cadastral_bounds.center());view.load_visible_tiles()
         view.show_cadastral(False);view.show_cadastral_vertices(True)
         self.assertFalse(cadastral.isVisible());self.assertTrue(all(v.isVisible() for v in vertices))
         self.assertTrue(view.fit_parcel());dialog.close()
-        reopened=self.dialog();self.assertEqual('pmtiles',reopened.map.provider.identity)
-        reopened.map.load_visible_tiles();self.assertTrue(reopened.map.tiles)
+        reopened=self.dialog();self.assertEqual('neutral',reopened.map.provider.identity)
+        reopened.map.load_visible_tiles();self.assertFalse(reopened.map.tiles)
         self.assertEqual(before,self.snapshot())
 
     def test_unavailable_services_never_issue_tiles_and_keep_geometry(self):
         before=self.snapshot();dialog=self.dialog();boundary=dialog.map.boundaries[0]
-        for identity,expected in (('oam','0'),('arcgis','ArcGIS')):
+        for identity,expected in (('arcgis','ArcGIS'),):
             dialog.restore_basemap(identity);self.app.processEvents()
             self.assertEqual('neutral',dialog.map.provider.identity)
             self.assertIn(expected,dialog.imagery_info.text());self.assertIs(boundary,dialog.map.boundaries[0])

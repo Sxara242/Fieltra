@@ -35,11 +35,11 @@ class SatelliteContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):cdse_provider('invalid','TRUE_COLOR',str(start),str(end))
 
     def test_only_approved_backgrounds_and_safe_legacy_selection(self):
-        self.assertEqual(['neutral','osm','sentinel','pmtiles','oam','arcgis'],[p.identity for p in BASEMAPS])
-        self.assertEqual(['pmtiles'],[p.identity for p in BASEMAPS if p.offline_allowed])
-        for value in ('google','versatiles',2,4,99,'unknown'):
+        self.assertEqual(['neutral','osm','sentinel','arcgis'],[p.identity for p in BASEMAPS])
+        self.assertFalse(any(p.offline_allowed for p in BASEMAPS))
+        for value in ('google','versatiles','pmtiles','protomaps','oam','openaerialmap',2,3,4,99,'unknown'):
             self.assertIs(BASEMAPS[0],restored_basemap(value))
-        self.assertEqual('sentinel',restored_basemap(3).identity)
+        self.assertEqual('sentinel',restored_basemap('sentinel').identity)
         self.assertEqual('osm',restored_basemap('osm').identity)
 
 

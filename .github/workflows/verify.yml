@@ -3,6 +3,12 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      scope:
+        description: Full verification or focused map-provider checks
+        type: choice
+        options: [full, maps]
+        default: full
 permissions:
   contents: read
 concurrency:
@@ -47,6 +53,7 @@ jobs:
       - name: Install source-test dependencies
         run: python -m pip install -r requirements-dev.txt -c requirements-windows-rc.txt
       - name: Windows tests
+        if: ${{ inputs.scope != 'maps' }}
         env:
           MASTIXA_DATA_HOME: ${{ runner.temp }}\mastixa-tests-${{ github.run_id }}-${{ github.run_attempt }}
         run: >-
@@ -56,6 +63,17 @@ jobs:
           --module-timeout tests.test_phase16j_composed_ui_localization=180
           --module-timeout tests.test_sale_sources=360
           --module-timeout tests.test_stabilization=360
+      - name: Focused map-provider and retained-license checks
+        if: ${{ inputs.scope == 'maps' }}
+        env:
+          MASTIXA_DATA_HOME: ${{ runner.temp }}\mastixa-maps-${{ github.run_id }}-${{ github.run_attempt }}
+        run: >-
+          python tools/run_windows_tests.py --jobs 2 --timeout 120
+          tests.test_satellite_maps tests.test_map_network
+          tests.test_map_acceptance_ui tests.test_phase16j_map_ui
+          tests.test_phase16j_ui_catalog tests.test_gis_ui
+          tests.test_cadastral_presentation tests.test_kaek_lookup_ui
+          tests.test_windows_legal_gate tests.test_windows_legal_selection
       - name: Development packaging and legal contracts (release remains blocked)
         if: ${{ !cancelled() }}
         run: >-
@@ -64,6 +82,7 @@ jobs:
           tests.test_windows_rc_release.WindowsRcReleaseTests.test_preflight_refuses_incomplete_native_legal_and_source_delivery
           -v
   android:
+    if: ${{ inputs.scope != 'maps' }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:

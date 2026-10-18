@@ -22,17 +22,12 @@ Android is under development and is not part of this Windows v1.0.0 release.
 
 ### v1.0.1-alpha.1 map development (unreleased)
 
-The native parcel map now has a Protomaps PMTiles overview renderer, explicit
-bounded Chios download and local-file reopening. It keeps cadastral/cultivated
-geometry separate. The measured Chios z0–12 extract is 1,461,425 bytes; more
-zoom enlarges the overview rather than adding survey detail. No map is bundled
-with the installer, and no OSM raster bulk downloading is used. Qt rendering
-and the new controls still require the grouped Sandbox acceptance below.
-
-OpenAerialMap returned no imagery in the tested Chios area on 2026-10-17.
-ArcGIS online/offline remain disabled pending distribution/licensing and owner
-credential gates. Existing OSM and optional CDSE remain available. See
-[provider research and terms](docs/LICENSING.md#integrated-map-provider-sprint--2026-10-17)
+The native parcel map retains No basemap, OpenStreetMap and optional CDSE,
+with independent cultivated/cadastral geometry and vertex controls. Protomaps /
+PMTiles and OpenAerialMap, including local-map download/open actions, have been
+removed by owner decision. Existing user-owned map files are left untouched.
+ArcGIS remains disabled pending its existing licensing/account gates. See
+[provider terms](docs/LICENSING.md#integrated-map-provider-sprint--2026-10-17)
 and [current execution/acceptance status](docs/CODEX_HANDOFF.md).
 
 ## Install on Windows

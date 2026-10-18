@@ -1,5 +1,6 @@
 """Focused native Sandbox checks for the owner-approved map redesign. No public HTTP."""
 from pathlib import Path
+import json
 import tempfile
 from types import SimpleNamespace
 import unittest
@@ -180,21 +181,39 @@ class MapAcceptanceTests(unittest.TestCase):
     def test_removed_provider_references_fall_back_without_touching_geometry(self):
         before=self.snapshot();dialog=self.dialog();view=dialog.map;item=view.cadastral_item
         self.assertEqual([p.identity for p in BASEMAPS],[dialog.basemap.itemData(i) for i in range(dialog.basemap.count())])
-        for value in ('google','versatiles',2,4,99):
+        for value in ('google','versatiles','pmtiles','protomaps','oam','openaerialmap',2,3,4,99):
             dialog.restore_basemap(value)
             self.assertEqual('neutral',view.provider.identity)
             self.assertFalse(view.provider.tile_template);self.assertIs(item,view.cadastral_item)
-        view.set_provider(BasemapProvider('versatiles','Removed',tile_template='https://example.invalid/{z}'))
-        self.assertIs(BASEMAPS[0],view.provider);self.assertEqual(before,self.snapshot())
+        for identity in ('versatiles','pmtiles','protomaps','oam','openaerialmap'):
+            view.set_provider(BasemapProvider(identity,'Removed',tile_template='https://example.invalid/{z}'))
+            view.load_visible_tiles()
+            self.assertIs(BASEMAPS[0],view.provider)
+            self.assertFalse(view.pending);self.assertIs(item,view.cadastral_item)
+        self.assertEqual(before,self.snapshot())
 
-    def test_ui_has_one_fit_no_points_tracks_and_explicit_protomaps_download(self):
+    def test_old_local_map_selection_is_ignored_without_modifying_user_files_or_parcels(self):
+        folder=self.db.path.parent/'offline-maps';folder.mkdir()
+        user_map=folder/'owner-map.pmtiles';user_map.write_bytes(b'owner map bytes: do not open or delete')
+        pointer=folder/'last-map.json';pointer.write_text(json.dumps({'path':str(user_map)}),encoding='utf-8')
+        contents={path:path.read_bytes() for path in (user_map,pointer)}
+        before=self.snapshot();dialog=self.dialog()
+        self.assertEqual('neutral',dialog.basemap.currentData())
+        self.assertIs(BASEMAPS[0],dialog.map.provider)
+        dialog.close();reopened=self.dialog()
+        self.assertIs(BASEMAPS[0],reopened.map.provider)
+        self.assertEqual(contents,{path:path.read_bytes() for path in contents})
+        self.assertEqual(before,self.snapshot())
+
+    def test_ui_has_one_fit_and_no_removed_provider_actions(self):
         dialog=self.dialog()
         captions=[button.text() for button in dialog.findChildren(QPushButton)]
         self.assertEqual(1,captions.count('Επαναφορά στο αγροτεμάχιο'))
-        for text in ('Σημεία','Διαδρομές','Στο αγροτεμάχιο','Σταθερή προβολή σύγκρισης'):
+        for text in ('Σημεία','Διαδρομές','Στο αγροτεμάχιο','Σταθερή προβολή σύγκρισης',
+                     'Λήψη Χίου','Άνοιγμα PMTiles','Download Chios','Open PMTiles'):
             self.assertNotIn(text,captions)
-        self.assertTrue(dialog.offline_button.isEnabled())
-        self.assertIn('Χίου',dialog.offline_button.text())
+        for method in ('use_pmtiles','open_pmtiles','download_chios','offline_button'):
+            self.assertFalse(hasattr(dialog,method))
         self.assertTrue(callable(dialog.points));self.assertTrue(callable(dialog.tracks));self.assertTrue(callable(dialog.offline))
         with patch('app.gis.dialog._message') as message:
             dialog.offline()

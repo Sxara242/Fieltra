@@ -38,7 +38,6 @@ class BasemapProvider:
     wms_instance: str = field(default="", repr=False)
     wms_layer: str = ""
     time_range: str = ""
-    local_path: str = ""
 
     def tile_url(self, z, x, y):
         if not self.wms_instance:
@@ -79,11 +78,6 @@ BASEMAPS = (
     BasemapProvider("osm", "OpenStreetMap · Online", "© OpenStreetMap contributors",
                     "https://tile.openstreetmap.org/{z}/{x}/{y}.png"),
     BasemapProvider("sentinel", "Copernicus / Sentinel", unavailable_reason="Δεν έχει ρυθμιστεί υπηρεσία εικόνων / Imagery service not configured"),
-    BasemapProvider('pmtiles','Protomaps · Offline',offline_allowed=True,
-        unavailable_reason='Άνοιξε ή κατέβασε τοπικό αρχείο PMTiles / Open or download a local PMTiles map'),
-    BasemapProvider('oam','OpenAerialMap',unavailable_reason=
-        'OpenAerialMap: 0 εικόνες στη Χίο στον έλεγχο 2026-10-17 (38.2238264672, 26.0550712259). / No Chios coverage found on 2026-10-17.',
-        persistent_cache=False),
     BasemapProvider('arcgis','ArcGIS World Imagery',unavailable_reason=
         'ArcGIS: εκκρεμεί έγκριση όρων AGPL/διανομής και λογαριασμός ιδιοκτήτη. Online και offline ανενεργά. / Distribution terms and owner account pending; online/offline disabled.',
         persistent_cache=False),
@@ -94,10 +88,11 @@ def restored_basemap(value):
     """Resolve saved identities/legacy slots; removed or unknown values are local-only.
 
     The map currently keeps selection in memory, not in a field/database setting.
-    Explicit legacy resolution avoids reinterpreting old slot2 as the new CDSE slot.
+    Old non-OSM numeric slots are ambiguous after provider removal: use no
+    basemap, never reinterpret an obsolete slot as another online provider.
     """
     if type(value) is int:
-        value = {0: 'neutral', 1: 'osm', 3: 'sentinel'}.get(value)
+        value = {0: 'neutral', 1: 'osm'}.get(value)
     return next((provider for provider in BASEMAPS if provider.identity == value), BASEMAPS[0])
 
 

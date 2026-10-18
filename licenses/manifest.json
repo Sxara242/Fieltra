@@ -2,17 +2,6 @@
   "status": "CLASSIFIED PARTIAL; selection explicit, B1-B4 remain BLOCKED; Mesa/LLVM historical only",
   "texts": [
     {
-      "path": "licenses/PMTiles-3.8.1-BSD-3-Clause.txt",
-      "sha256": "0371c38f338835f7fc13ed71176f3d92144e22c8b736a31cced57adbbeb647b3",
-      "origin": "https://github.com/protomaps/PMTiles/blob/aec8fa1341222fdddb3318e9ffa8e18e19b312f7/LICENSE",
-      "component": "PMTiles Python reference implementation",
-      "version": "3.8.1",
-      "license": "BSD-3-Clause",
-      "classification": "REQUIRED AND SHIPS",
-      "shipping": true,
-      "classification_reason": "Vendored Python source used by offline basemaps; writer content deduplication uses SHA-256. No native library or renderer dependency."
-    },
-    {
       "path": "LICENSE",
       "sha256": "d8a6cc31abc16b6748c7a21f21611f5a1ec33f67d22ca23d7da1c19b95496bee",
       "origin": "https://raw.githubusercontent.com/spdx/license-list-data/main/text/AGPL-3.0-only.txt",

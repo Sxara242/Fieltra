@@ -45,7 +45,6 @@ class ParcelMap(QGraphicsView):
         self.attempts={};self.provider_wait={};self.started_at=0;self.last_request=0
         self.requested_count=0;self.loaded_count=0;self.failed_count=0
         self.cdse_requests=0
-        self.offline_archive=None
         self._status_template='';self._status_values={}
         self.network=QNetworkAccessManager(self)
         cache=QNetworkDiskCache(self.network)
@@ -225,15 +224,8 @@ class ParcelMap(QGraphicsView):
 
     def set_provider(self, provider):
         # Defensive fallback for an obsolete in-memory/configured provider object.
-        if provider is None or provider.identity in {'google','versatiles'}:provider=BASEMAPS[0]
-        archive=None
-        if provider.local_path:
-            from .offline_maps import LocalArchive
-            archive=LocalArchive(provider.local_path)
+        if provider is None or provider.identity in {'google','versatiles','pmtiles','protomaps','oam','openaerialmap'}:provider=BASEMAPS[0]
         self.generation+=1
-        if self.offline_archive is not None:
-            self.offline_archive.close();self.offline_archive=None
-        self.offline_archive=archive
         self.provider=provider
         replies=list(self.pending.values());self.pending.clear()
         for reply in replies:reply.abort()
@@ -241,11 +233,10 @@ class ParcelMap(QGraphicsView):
         self.tiles.clear();self.failed.clear();self.schedule_tiles()
         self.attempts.clear();self.started_at=time.monotonic();self.last_request=0
         self.requested_count=0;self.loaded_count=0;self.failed_count=0
-        self.report_status('PMTiles · offline' if provider.local_path else
-            'Φόρτωση υποβάθρου…' if provider.tile_template else 'Τοπική γεωμετρία · χωρίς δικτυακό υπόβαθρο')
+        self.report_status('Φόρτωση υποβάθρου…' if provider.tile_template else 'Τοπική γεωμετρία · χωρίς δικτυακό υπόβαθρο')
 
     def load_visible_tiles(self):
-        if not self.provider or not (self.provider.tile_template or self.offline_archive) or not self.isVisible():return
+        if not self.provider or not self.provider.tile_template or not self.isVisible():return
         scale=self.transform().m11()
         now=time.monotonic()
         if self.provider_wait.get(self.provider.identity,0)>now:
@@ -262,18 +253,6 @@ class ParcelMap(QGraphicsView):
         for key in list(self.tiles):
             if key not in visible:self.scene().removeItem(self.tiles.pop(key))
         for key in visible:
-            if self.offline_archive:
-                if key in self.tiles or key in self.failed:continue
-                try:
-                    from .offline_maps import unpack
-                    from .vector_tiles import render
-                    data=self.offline_archive.get(*key)
-                    if data is None:self.failed[key]=math.inf;continue
-                    pixmap=QPixmap.fromImage(render(unpack(data,self.offline_archive.header['tile_compression']),self.provider.tile_size))
-                    self._place_tile(key,pixmap,self.provider.tile_size);self.loaded_count+=1
-                except (ValueError,OSError,EOFError,IndexError,UnicodeError):
-                    self.failed[key]=math.inf;self.failed_count+=1
-                continue
             if len(self.pending)>=2:break
             if self.provider.identity=='sentinel':
                 if self.cdse_requests>=200:
@@ -301,9 +280,6 @@ class ParcelMap(QGraphicsView):
             reply.readyRead.connect(consume)
             reply.finished.connect(lambda key=key,reply=reply,provider=self.provider,generation=self.generation,body=body:self.tile_finished(key,reply,provider,generation,body))
         deadlines=[deadline for deadline in self.failed.values() if math.isfinite(deadline)]
-        if self.offline_archive:
-            self.report_status('PMTiles offline · {tiles} πλακίδια · κενά/σφάλματα: {failed} · έως z{zoom}',
-                tiles=len(self.tiles),failed=len(self.failed),zoom=self.provider.max_zoom)
         if deadlines:self.timer.start(max(180,int(max(0,min(deadlines)-time.monotonic())*1000)))
 
     def _place_tile(self,key,pixmap,tile_size):
@@ -359,5 +335,3 @@ class ParcelMap(QGraphicsView):
         self.timer.stop()
         replies=list(self.pending.values());self.pending.clear()
         for reply in replies:reply.abort()
-        if self.offline_archive is not None:
-            self.offline_archive.close();self.offline_archive=None

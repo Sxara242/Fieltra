@@ -5,76 +5,9 @@
 This section describes unreleased v1.0.1-alpha.1 development. It does not alter
 the accepted v1.0.0 installer or reopen completed owner acceptance.
 
-### Protomaps / PMTiles
-
-PMTiles v3 is an archive, not a renderer. The existing QGraphicsView raster
-pipeline cannot draw MVT bytes directly. Fieltra now decodes MVT geometry and
-paints a limited native Qt overview style (land/water/landuse/buildings/roads,
-boundaries, settlement labels) into its existing tile items. It is not a full
-MapLibre style engine: no sprites, remote glyphs, terrain, road labels or
-high-detail agricultural imagery. It uses existing PySide6 plus Python stdlib.
-
-The [PMTiles reference implementation](https://github.com/protomaps/PMTiles/tree/aec8fa1341222fdddb3318e9ffa8e18e19b312f7/python/pmtiles)
-is BSD-3-Clause, compatible with inclusion in an AGPL work while retaining its
-notice. The format is public domain/CC0. The third-party code and full licence
-ship as source; the legal manifest includes the notice for future binaries.
-The first-party decoder follows the
-[MVT 2.1 specification](https://github.com/mapbox/vector-tile-spec/tree/master/2.1).
-
-[Protomaps distributes its basemap as an ODbL Produced Work](https://docs.protomaps.com/basemaps/downloads).
-The app extracts only region-intersecting tiles using HTTP ranges from the
-[officially linked Source Cooperative mirror](https://source.coop/protomaps/openstreetmap),
-`https://data.source.coop/protomaps/openstreetmap/v4.pmtiles`.
-This is a data archive, not the public OSM raster tile service. There is no
-global download or bulk request to tile.openstreetmap.org. Original source
-metadata and the OSM replication timestamp survive extraction; attribution
-and licence remain separate from the application's AGPL licence.
-
-The UI explicitly confirms Chios bounds 25.75,38.00–26.65,38.65 and z0–12.
-It enforces a 64 MiB output budget, 128 MiB transfer budget, 4 MiB individual
-range limit, ETag snapshot, 206/Content-Range validation and 136 MiB free-space
-precondition. Finalization temporarily holds tile data plus the output file
-on the same volume. No fallback full-planet response is accepted.
-Completed files are never overwritten; cancellation removes only this job's
-random partial file. A normal successful download needs no registration.
-
-The measured cutout is **1,461,425 bytes (1.394 MiB), 172 tiles**, with
-**2,118,028 bytes transferred**. Source archive: **134,812,420,554 bytes**;
-this was NOT downloaded in full. Dataset OSM replication time:
-**2026-03-31T04:00:00Z**, not the sprint date. SHA-256 of the retained cutout:
-`9eb97f86defc8d6ce5af2e54026390c2c7d207930aae16f7e51fb38da11ed4d1`.
-Tiles cross the requested bounding box at tile edges, especially at low zoom.
-Overview detail ends at z12; overzoom adds no new geographic detail.
-
-Map data and the last selected local path persist under the profile's
-`offline-maps/` directory, separately from parcel geometry/database values.
-Opening an existing file references its current location; it does not silently
-copy large datasets. Missing/invalid files leave local geometry available.
-The installer includes no regional map data. Attribution links credit
-OpenStreetMap contributors, Protomaps and Natural Earth; preserve ODbL
-attribution when sharing a regional file. Runtime rendering remains awaiting
-guest acceptance even though real archive acquisition/decoding have passed.
-
-### OpenAerialMap: real coverage result, not a supported imagery claim
-
-The [official catalog API](https://docs.openaerialmap.org/api/api/) exposes
-`/meta` and `/tms`. HTTPS GETs on 2026-10-17 returned HTTP 200 JSON for:
-
-- [Exact-point neighbourhood](https://api.openaerialmap.org/meta?bbox=26.0549,38.2237,26.0552,38.2240&limit=100),
-  containing 38.2238264672,26.0550712259: `meta.found=0`, `results=[]`.
-- [Wider Chios region](https://api.openaerialmap.org/meta?bbox=25.7,38.0,26.7,38.7&limit=100):
-  `meta.found=0`, `results=[]`.
-
-Both responses identified OpenAerialMap and `meta.license="CC-BY 4.0"`.
-This is a catalog metadata licence, not evidence about an absent image's
-licence. There is no image resolution, author, acquisition date or dataset
-licence to report at this location. No imagery layer or offline storage was
-enabled. The app displays a dated Chios-unavailable explanation; it does not
-assert that OAM has no imagery worldwide or that coverage can never change.
-There is no owner registration action that can create missing coverage.
-Any future dataset must independently provide footprint coverage, usable tile
-endpoint, author/date/resolution and verified dataset-specific terms before
-online use or offline storage can be enabled.
+Protomaps/PMTiles and OpenAerialMap were removed by owner decision. Their
+code, vendored component and provider-specific notices are no longer shipped.
+User-owned map files are left untouched. Retained component notices follow.
 
 ### ArcGIS World Imagery: online and offline disabled
 
