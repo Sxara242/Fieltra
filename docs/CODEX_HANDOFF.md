@@ -70,7 +70,17 @@ English entry. Updated stale tests to inspect the existing technical Sources
 dialog, the established Field label, exact current unavailable status and Android
 schema 15 (retaining coverage for versions 1–14). The 34-test invoice/profile
 module was progressing at the 120-second cutoff; it now has a bounded 360-second
-allowance. The full source suite remains enabled. Hosted follow-up results pending.
+allowance. The full source suite remains enabled.
+
+Follow-up source `24c7d5d4541726b524cddae8440d0f152128fbb7`:
+https://github.com/Sxara242/Fieltra/actions/runs/39120669306
+- Source/privacy and Android PASS; Windows 153/154 modules PASS, 1,200 tests
+  completed. Development packaging/legal contracts PASS. Both read-only data
+  regressions and all 34 invoice/profile tests PASS.
+- The sole failure was the Chios English catalog entry mistakenly placed outside
+  the translations object. Moved it inside; the exact source literal and English
+  value now resolve in the catalog. The localization assertion is unchanged.
+- Final hosted results pending the translation-only correction.
 
 Remote main and v1.0.0 tag were rechecked after publication and both remain at
 `6dd72e1e07a51173b15b5b72ac709e1c7141da5c`. No installer/release/tag was created.

@@ -172,7 +172,7 @@
     "Η πρόταση απορρίφθηκε.": "Suggestion rejected.",
     "Επιβεβαιωμένο τοπωνύμιο: Δεν έχει οριστεί": "Confirmed locality: Not specified",
     "Πηγές / Άδειες": "Sources / Licences",
-    "Τροποποιήσεις: φιλτράρισμα ελληνικών τοπωνυμίων και τοπική κατάταξη προτάσεων. Οι επιβεβαιωμένες ονομασίες είναι αλλαγές του χρήστη.": "Modifications: filtered Greek place names and locally ranked suggestions. Confirmed names are user changes."
-  },
+    "Τροποποιήσεις: φιλτράρισμα ελληνικών τοπωνυμίων και τοπική κατάταξη προτάσεων. Οι επιβεβαιωμένες ονομασίες είναι αλλαγές του χρήστη.": "Modifications: filtered Greek place names and locally ranked suggestions. Confirmed names are user changes.",
     "Λήψη Χίου 25.75,38.00–26.65,38.65 · z0–12;\nΤο τελικό μέγεθος θα εμφανιστεί μετά τη λήψη. Όρια: 64 MiB αρχείο, 128 MiB μεταφορά.\nΑπαιτούνται 136 MiB ελεύθερα. © OpenStreetMap contributors · ODbL Produced Work.\nDownload this Chios overview? Final size is not known in advance.": "Download Chios 25.75,38.00–26.65,38.65 · z0–12?\nThe final size will appear after downloading. Limits: 64 MiB file, 128 MiB transfer.\n136 MiB free space required. © OpenStreetMap contributors · ODbL Produced Work.\nDownload this Chios overview? Final size is not known in advance."
+  }
 }
