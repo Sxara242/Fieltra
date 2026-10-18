@@ -50,8 +50,30 @@ https://github.com/Sxara242/Fieltra/actions/runs/38777169557
   reject any additional legal/configuration error. CI runs these explicit
   development contracts; the actual release validator remains fail-closed.
 
-Development branch publication and hosted results: pending focused publication
-checks and push. Results will be recorded after the actual hosted run.
+Published development source commit: `99318c2845ed0512613ccd7049dd0a0c3834bedd`.
+Focused pre-push audit: 1,003 source files PASS; stricter staged-source scan:
+110 changed/new files, zero findings; Python syntax and staged whitespace PASS.
+No PMTiles/MBTiles/PBF datasets or Sandbox files are in the index.
+
+Actual hosted run (push event; no manual acceptance rerun):
+https://github.com/Sxara242/Fieltra/actions/runs/39118407510
+- source-audit (including Gitleaks): PASS.
+- Android unit tests/lint/debug and test-APK compilation: PASS.
+- Windows: FAIL, 144/154 modules passed, 1,164 tests completed; development
+  packaging/legal contracts PASS. No failure was suppressed.
+
+Follow-up fixes retain database snapshot assertions: KAEK migration backfills
+legacy identities once, with explicit enqueue creating later identities; reopening
+a database cannot backfill new field rows. Added migration/reopen regressions.
+Restored the translated area-unit tooltip and the Chios download confirmation's
+English entry. Updated stale tests to inspect the existing technical Sources
+dialog, the established Field label, exact current unavailable status and Android
+schema 15 (retaining coverage for versions 1–14). The 34-test invoice/profile
+module was progressing at the 120-second cutoff; it now has a bounded 360-second
+allowance. The full source suite remains enabled. Hosted follow-up results pending.
+
+Remote main and v1.0.0 tag were rechecked after publication and both remain at
+`6dd72e1e07a51173b15b5b72ac709e1c7141da5c`. No installer/release/tag was created.
 
 ## Publication boundary
 

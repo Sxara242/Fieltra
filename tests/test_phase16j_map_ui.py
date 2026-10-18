@@ -190,7 +190,7 @@ class MapLocalizationTests(unittest.TestCase):
                     self.language.set_language(code,persist=False)
                     self.dialog._translate_basemap()
                     status=self.dialog.imagery_status.text()
-                    self.assertIn('Unavailable:' if code=='en' else 'Μη διαθέσιμο:',status)
+                    self.assertEqual('Unavailable' if code=='en' else 'Μη διαθέσιμο / Unavailable',status)
             self.dialog.offline()
             self.assertIn('Bulk downloading has not been enabled under verified licensing terms.',inspected[-1])
             self.assertIn('Nothing was downloaded.',inspected[-1])

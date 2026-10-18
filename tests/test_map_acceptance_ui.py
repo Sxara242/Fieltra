@@ -284,7 +284,7 @@ class MapAcceptanceTests(unittest.TestCase):
                 self.assertGreater(dialog.map.width(),dialog.width()/2,f'font scale {factor}, language {code}')
                 self.assertEqual('Fit to parcel' if code=='en' else 'Επαναφορά στο αγροτεμάχιο',dialog.fit_button.text())
                 self.assertEqual(2,dialog.sidebar.count())
-                self.assertEqual(['Parcel','Map'] if code=='en' else ['Αγροτεμάχιο','Χάρτης'],
+                self.assertEqual(['Field','Map'] if code=='en' else ['Αγροτεμάχιο','Χάρτης'],
                                  [dialog.sidebar.tabText(i).replace('&','') for i in range(2)])
                 bar=dialog.sidebar.tabBar()
                 self.assertFalse(bar.usesScrollButtons())

@@ -71,6 +71,33 @@ class KaekLookupTests(unittest.TestCase):
     def result(self):
         return self.provider.fetch(self.request())
 
+    def test_reopen_does_not_backfill_new_fields_outside_explicit_lookup(self):
+        with self.db.connect() as con:
+            before = list(con.iterdump())
+        reopened = Database(self.db.path)
+        with reopened.connect() as con:
+            self.assertEqual(before, list(con.iterdump()))
+        self.store.enqueue(self.field, self.provider)
+        identity = self.db.query_one(
+            "SELECT field_uuid FROM kaek_field_identity WHERE field_id=?", (self.field,)
+        )[0]
+        Database(self.db.path)
+        self.assertEqual(identity, self.db.query_one(
+            "SELECT field_uuid FROM kaek_field_identity WHERE field_id=?", (self.field,)
+        )[0])
+
+    def test_first_migration_backfills_legacy_fields_once(self):
+        from app.gis.kaek_lookup import migrate
+        with self.db.connect() as con:
+            con.execute("DELETE FROM migration_flags WHERE name='kaek_lookup_v1'")
+            migrate(con)
+            identity = con.execute("SELECT field_uuid FROM kaek_field_identity WHERE field_id=?",
+                                   (self.field,)).fetchone()[0]
+            migrate(con)
+            self.assertEqual(identity, con.execute(
+                "SELECT field_uuid FROM kaek_field_identity WHERE field_id=?", (self.field,)
+            ).fetchone()[0])
+
     def test_request_result_serialization_and_source_coordinates_roundtrip(self):
         request = self.request()
         self.assertEqual(request, deserialize(serialize(request)))

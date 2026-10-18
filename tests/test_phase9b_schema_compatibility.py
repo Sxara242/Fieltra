@@ -53,7 +53,7 @@ def insert(db, table, **values):
 
 
 class Phase9BSchemaCompatibilityTests(unittest.TestCase):
-    def database(self, android=False, version=14, windows='current'):
+    def database(self, android=False, version=15, windows='current'):
         db = sqlite3.connect(':memory:'); db.row_factory = sqlite3.Row
         self.addCleanup(db.close); db.execute('PRAGMA foreign_keys=ON')
         db.execute(declaration(JAVA + 'FarmStore.java' if android else 'app/database.py', 'fields'))
@@ -72,6 +72,8 @@ class Phase9BSchemaCompatibilityTests(unittest.TestCase):
         if (android and version >= 13) or (not android and windows == 'current'):
             for table in (['gis_records'] if android else ['parcel_geometry', 'geo_points']):
                 db.execute(declaration(JAVA + 'GeoStore.java' if android else 'app/gis/store.py', table))
+        if android and version >= 15:
+            db.execute(declaration(JAVA + 'CadastralStore.java', 'cadastral_reference'))
         return db
 
     def probe_sources(self, db, android):
@@ -144,14 +146,16 @@ class Phase9BSchemaCompatibilityTests(unittest.TestCase):
                 # Separate profile connection may reuse the same integer IDs without sharing rows.
                 other = self.database(windows=variant); self.assertEqual(0, other.execute('SELECT count(*) FROM fields').fetchone()[0])
 
-    def test_android_v1_to_v14_source_schema_slices(self):
+    def test_android_v1_to_v15_source_schema_slices(self):
         source = (ROOT / JAVA / 'FarmStore.java').read_text()
-        self.assertIn('super(context, name, null, 14)', source)
-        for version in range(1, 15):
+        self.assertIn('super(context, name, null, 15)', source)
+        self.assertIn('if(oldVersion<15)CadastralStore.create(db)', source)
+        for version in range(1, 16):
             with self.subTest(schema=version):
                 db = self.database(android=True, version=version)
                 for table, _, _, _, _, introduced in SOURCES: self.assertEqual(version >= introduced, bool(columns(db, table)))
                 self.assertEqual(version >= 13, bool(columns(db, 'gis_records')))
+                self.assertEqual(version >= 15, bool(columns(db, 'cadastral_reference')))
                 self.probe_sources(db, True); self.probe_notes(db, True)
                 other = self.database(android=True, version=version); self.assertEqual(0, other.execute('SELECT count(*) FROM fields').fetchone()[0])
 

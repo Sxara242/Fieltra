@@ -55,6 +55,7 @@ class FieldsPage(CrudPage):
         self.location = QLineEdit()
         self.area = area_input()
         self.area.setSpecialValueText('Δεν έχει δηλωθεί')
+        self.area.setToolTip('Η έκταση του αγροτεμαχίου σε στρέμματα.')
         self.trees = NumericSpinBox()
         self.trees.setRange(0, 1_000_000)
         self.notes = QLineEdit()

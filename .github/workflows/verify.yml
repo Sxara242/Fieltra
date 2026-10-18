@@ -52,6 +52,7 @@ jobs:
         run: >-
           python tools/run_windows_tests.py --jobs 2 --timeout 120
           --module-timeout tests.test_activity_expense_sync=240
+          --module-timeout tests.test_invoice_profile_ownership=360
           --module-timeout tests.test_phase16j_composed_ui_localization=180
           --module-timeout tests.test_sale_sources=360
           --module-timeout tests.test_stabilization=360

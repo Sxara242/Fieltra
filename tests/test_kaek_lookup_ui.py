@@ -11,7 +11,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 from PySide6.QtCore import QCoreApplication, QEvent, QTimer
 from PySide6.QtNetwork import QNetworkInformation
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QDialog, QPlainTextEdit
 
 from app.database import Database
 from app.fields import FieldsPage
@@ -95,7 +95,13 @@ class KaekLookupUiTests(unittest.TestCase):
             self.assertEqual(1, len(dialog.map.boundaries))
             self.assertIsNotNone(dialog.map.cadastral_item)
             self.assertIn("2026-10-06", dialog.cadastral_info.text())
-            self.assertIn("EPSG:2100", dialog.cadastral_info.text())
+            def inspect_sources(modal):
+                editor=modal.findChild(QPlainTextEdit)
+                self.assertTrue(editor.isReadOnly())
+                self.assertIn("EPSG:2100", editor.toPlainText())
+                return QDialog.DialogCode.Rejected
+            with patch.object(QDialog, 'exec', new=inspect_sources):
+                dialog.show_sources()
             self.assertIn("Ανακτήθηκε", self.page.lookup_status.text())
             self.assertEqual("Ανακτήθηκε", self.page.table.item(0, 6).text())
             self.assertFalse(dialog.map.pending)
@@ -104,7 +110,12 @@ class KaekLookupUiTests(unittest.TestCase):
                 self.page._lookup_changed()
                 dialog._reload_cadastral()
                 self.assertIn("Retrieved", self.page.lookup_status.text())
-                self.assertIn("Local cultivated-field boundaries remain separate", dialog.cadastral_info.text())
+                def inspect_english_sources(modal):
+                    self.assertIn("Local cultivated-field boundaries remain separate",
+                                  modal.findChild(QPlainTextEdit).toPlainText())
+                    return QDialog.DialogCode.Rejected
+                with patch.object(QDialog, 'exec', new=inspect_english_sources):
+                    dialog.show_sources()
             dialog.map.show_cadastral(False)
             self.assertFalse(dialog.map.cadastral_item.isVisible())
             self.assertTrue(dialog.map.boundaries[0].isVisible())

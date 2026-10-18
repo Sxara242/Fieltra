@@ -3,7 +3,8 @@ os.environ.setdefault('QT_QPA_PLATFORM','offscreen')
 from pathlib import Path
 import tempfile
 import unittest
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QDialog, QPlainTextEdit
+from unittest.mock import patch
 from PySide6.QtCore import Qt
 from app.database import Database
 from app.gis.geometry import manual_coordinates
@@ -30,7 +31,13 @@ class MapUiTests(unittest.TestCase):
                 dialog.map.set_track([[26,38,5,1000],[26.0005,38.0005,5,2000],[27,38,5,5000]],[0,2])
                 self.assertEqual(1,len(dialog.map.track_items))
                 self.assertEqual(3,dialog.map.track_items[0].path().elementCount())
-                self.assertIn('EPSG:4326',dialog.info.text())
+                def inspect_sources(modal):
+                    editor=modal.findChild(QPlainTextEdit)
+                    self.assertTrue(editor.isReadOnly())
+                    self.assertIn('EPSG:4326',editor.toPlainText())
+                    return QDialog.DialogCode.Rejected
+                with patch.object(QDialog,'exec',new=inspect_sources):
+                    dialog.show_sources()
                 self.assertEqual(Qt.TextFormat.PlainText,dialog.info.textFormat())
                 self.assertFalse(dialog.map.pending)
                 dialog.map.show_vertices(False)

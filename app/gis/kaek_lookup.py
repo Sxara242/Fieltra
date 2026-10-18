@@ -104,6 +104,9 @@ def apply_device_result(*args, **kwargs):
 
 
 def migrate(con):
+    first_install = con.execute(
+        "SELECT 1 FROM migration_flags WHERE name='kaek_lookup_v1'"
+    ).fetchone() is None
     con.executescript("""
         CREATE TABLE IF NOT EXISTS kaek_field_identity(
             field_id INTEGER PRIMARY KEY REFERENCES fields(id) ON DELETE CASCADE,
@@ -134,11 +137,14 @@ def migrate(con):
             DELETE FROM kaek_lookup_jobs WHERE field_uuid IN
                 (SELECT field_uuid FROM kaek_field_identity WHERE field_id=NEW.id);
         END;
-        INSERT OR IGNORE INTO migration_flags(name) VALUES('kaek_lookup_v1');
     """)
     con.execute("INSERT OR IGNORE INTO app_settings(key,value) VALUES('kaek_dataset_uuid',?)", (str(uuid.uuid4()),))
-    for row in con.execute("SELECT id FROM fields WHERE id NOT IN (SELECT field_id FROM kaek_field_identity)").fetchall():
-        con.execute("INSERT INTO kaek_field_identity VALUES(?,?)", (row[0], str(uuid.uuid4())))
+    # Backfill existing fields once. Later identities belong to explicit enqueue
+    # writes; opening a page/database must not mutate newly added field records.
+    if first_install:
+        for row in con.execute("SELECT id FROM fields WHERE id NOT IN (SELECT field_id FROM kaek_field_identity)").fetchall():
+            con.execute("INSERT INTO kaek_field_identity VALUES(?,?)", (row[0], str(uuid.uuid4())))
+        con.execute("INSERT INTO migration_flags(name) VALUES('kaek_lookup_v1')")
 
 
 class LookupStore:
