@@ -59,7 +59,17 @@ manual scope=maps choice: map/provider/UI/geometry regressions, retained-license
 contracts and source/privacy/Gitleaks only. Android is not rerun for this
 Windows-only removal. Full verification remains the default. The removal commit
 uses [skip ci] to avoid an unrelated full automatic rerun, followed by this
-explicit focused dispatch. Focused hosted result: PENDING.
+explicit focused dispatch.
+
+Removal source: 328db9615d2fbe29657297e698430fa3afeb6949.
+https://github.com/Sxara242/Fieltra/actions/runs/39133240354
+- Source/privacy/Gitleaks PASS (992 source files).
+- Focused Windows PASS: 10/10 modules, 60 tests, including 23 map UI tests.
+- Development packaging/legal contracts PASS: 2 tests.
+- Android intentionally NOT RUN for this Windows-only change; its pre-removal
+  full run above passed. No unrelated full rerun or installer build occurred.
+- This handoff-only result update changes no tested application source and uses
+  [skip ci]. Native Sandbox/visual inspection remains owner-run and NOT RUN.
 
 ## Publication boundary
 
