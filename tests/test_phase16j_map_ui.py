@@ -54,10 +54,15 @@ class MapLocalizationTests(unittest.TestCase):
                 self.assertTrue(text.startswith('Παραγωγή / Αποθήκη · '), text)
                 self.assertIn('000123', text)
                 if has_geometry:
-                    self.assertIn('Παραγωγή.geojson', text)
-                    self.assertIn('Perimeter:' if code == 'en' else 'Περίμετρος:', text)
-                else:
-                    self.assertIn('No saved boundary' if code == 'en' else 'Δεν έχουν αποθηκευτεί όρια', text)
+                    self.assertNotIn('Παραγωγή.geojson', text)
+                    def inspect_sources(modal):
+                        technical=modal.findChild(QPlainTextEdit).toPlainText()
+                        self.assertIn('Παραγωγή.geojson',technical)
+                        self.assertIn('Perimeter:' if code=='en' else 'Περίμετρος:',technical)
+                        return QDialog.DialogCode.Rejected
+                    with patch.object(QDialog,'exec',new=inspect_sources):self.dialog.show_sources()
+                self.assertIn('Not specified' if code=='en' else 'Δεν έχει οριστεί',text)
+                self.assertNotIn('CRS:',text)
                 self.assertEqual('Parcel map' if code == 'en' else 'Χάρτης αγροτεμαχίου', self.dialog.windowTitle())
                 if code == 'en':
                     captions = [w.text() for w in self.dialog.findChildren(QAbstractButton)]
@@ -156,10 +161,8 @@ class MapLocalizationTests(unittest.TestCase):
             before = list(conn.iterdump())
         inspected = []
 
-        def inspect(parent, title, text, *args):
-            box = QMessageBox(parent)
-            box.setWindowTitle(title)
-            box.setText(text)
+        def inspect_box(box):
+            text = box.text()
             for code in ('el', 'en', 'el', 'en'):
                 self.language.set_language(code, persist=False)
                 self.language.apply_to(box)
@@ -169,22 +172,51 @@ class MapLocalizationTests(unittest.TestCase):
                 else:
                     self.assertTrue(_has_greek(box.text()), box.text())
             inspected.append(text)
-            box.deleteLater()
             return QMessageBox.StandardButton.Ok
 
-        with patch.object(QMessageBox, 'information', side_effect=inspect), patch.object(QMessageBox, 'warning', side_effect=inspect):
-            self.dialog.select_basemap(2)
-            self.dialog.select_basemap(3)
+        def inspect(parent, title, text, *args):
+            box = QMessageBox(parent)
+            box.setWindowTitle(title)
+            box.setText(text)
+            try:return inspect_box(box)
+            finally:box.deleteLater()
+
+        with patch.object(QMessageBox, 'information', side_effect=inspect), patch.object(QMessageBox, 'warning', side_effect=inspect), patch.object(QMessageBox, 'exec', new=inspect_box):
+            for index in (2,):
+                self.dialog.select_basemap(index)
+                self.assertEqual(0,self.dialog.basemap.currentIndex())
+                self.assertFalse(self.dialog.map.provider.tile_template)
+                for code in ('el','en'):
+                    self.language.set_language(code,persist=False)
+                    self.dialog._translate_basemap()
+                    status=self.dialog.imagery_status.text()
+                    self.assertIn('Unavailable:' if code=='en' else 'Μη διαθέσιμο:',status)
             self.dialog.offline()
+            self.assertIn('Bulk downloading has not been enabled under verified licensing terms.',inspected[-1])
+            self.assertIn('Nothing was downloaded.',inspected[-1])
             self.dialog.cadastre()
             self.dialog.tracks()
             invalid = Path(self.folder.name) / 'invalid.geojson'
             invalid.write_text('not geometry', encoding='utf-8')
             with patch('app.gis.dialog.QFileDialog.getOpenFileName', return_value=(str(invalid), '')), patch.object(self.dialog, 'source_crs', return_value='EPSG:4326'):
                 self.dialog.import_file()
-        self.assertEqual(6, len(inspected))
+        self.assertEqual(4, len(inspected))
         with self.db.connect() as conn:
             self.assertEqual(before, list(conn.iterdump()))
+
+    def test_empty_offline_warning_cycles_from_english_and_never_downloads(self):
+        self.dialog=ParcelMapDialog(self.db,self.field)
+        self.language.set_language('en',persist=False)
+        def inspect(box):
+            self.assertEqual('Offline map',box.windowTitle())
+            for code in ('el','en','el','en'):
+                self.language.set_language(code,persist=False)
+                self.assertEqual(code=='el',_has_greek(box.text()))
+                self.assertEqual(code=='el',_has_greek(box.windowTitle()))
+            return QMessageBox.StandardButton.Ok
+        with patch.object(QMessageBox,'exec',new=inspect), patch('app.gis.dialog.offline_pack') as pack:
+            self.dialog.offline()
+        pack.assert_not_called()
 
     def test_manual_coordinate_dialog_localizes_instructions_and_keeps_input(self):
         self.open_mapped_dialog()

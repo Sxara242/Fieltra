@@ -41,8 +41,8 @@ def _manifest(**overrides) -> bytes:
     data = {
         "schema": 1,
         "product": "Fieltra",
-        "version": "1.0.0-rc.3",
-        "channel": "rc",
+        "version": "1.0.1-alpha.2",
+        "channel": "alpha",
         "release_url": "https://example.invalid/releases/v0.40.0-alpha.3",
         "notes": "UI hotfix",
         "windows": {
@@ -58,10 +58,10 @@ def _manifest(**overrides) -> bytes:
 
 class Alpha2UpdateTests(unittest.TestCase):
     def test_clean_release_naming_contract(self) -> None:
-        self.assertEqual("1.0.0", APP_VERSION)
-        self.assertEqual("v1.0.0", GIT_TAG)
+        self.assertEqual("1.0.1-alpha.1", APP_VERSION)
+        self.assertEqual(f"v{APP_VERSION}", GIT_TAG)
         self.assertEqual(
-            "Fieltra-1.0.0-Setup.exe",
+            f"Fieltra-{APP_VERSION}-Setup.exe",
             WINDOWS_INSTALLER_NAME,
         )
         self.assertEqual(
@@ -78,7 +78,7 @@ class Alpha2UpdateTests(unittest.TestCase):
 
     def test_manifest_requires_https_and_checksum_for_direct_download(self) -> None:
         info = parse_manifest(_manifest())
-        self.assertEqual("1.0.0-rc.3", info.version)
+        self.assertEqual("1.0.1-alpha.2", info.version)
         self.assertTrue(info.is_newer)
 
         with self.assertRaises(UpdateError):

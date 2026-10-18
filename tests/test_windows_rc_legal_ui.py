@@ -8,6 +8,7 @@ from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QLabel, QPushButton
 
 from tests import test_ui_revamp_phase1 as ui_fixture
+from app.version import APP_VERSION
 
 
 class WindowsRcLegalUiTests(unittest.TestCase):
@@ -58,13 +59,13 @@ class WindowsRcLegalUiTests(unittest.TestCase):
                     self.window.grab().save(str(Path(evidence)/f'legal-{theme}-{code}.png'))
                 self.assertEqual(before,self.fixture.snapshot())
 
-    def test_staging_updates_show_rc_version_and_manual_offline_no_update(self):
+    def test_staging_updates_show_installed_version_and_manual_offline_no_update(self):
         self.fixture.nav.open('updates')
         self.fixture.controller.set_language('en',persist=False)
         QTest.qWait(100)
         tab=self.page.tabs.currentWidget()
         text='\n'.join(label.text() for label in tab.findChildren(QLabel))
-        self.assertIn('1.0.0-rc.2',text)
+        self.assertIn(APP_VERSION,text)
         self.assertIn('local test feed',text)
         self.assertFalse(self.page._mastixa_install_update_button.isVisible())
         self.page._mastixa_check_updates_button.click()
@@ -73,7 +74,7 @@ class WindowsRcLegalUiTests(unittest.TestCase):
             if self.page._mastixa_check_updates_button.isEnabled():
                 break
         self.assertTrue(self.page._mastixa_check_updates_button.isEnabled())
-        self.assertIn('1.0.0-rc.2',self.page._mastixa_update_status.text())
+        self.assertIn(APP_VERSION,self.page._mastixa_update_status.text())
         self.assertFalse(self.page._mastixa_install_update_button.isVisible())
         evidence=os.environ.get('MASTIXA_RC_EVIDENCE')
         if evidence:

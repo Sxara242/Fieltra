@@ -15,7 +15,8 @@ public class GeoStoreTest {
         try(var farm=new FarmStore(context,name)){
             farm.addField("Synthetic GIS field",1);String field=farm.fields().get(0).id();GeoStore geo=new GeoStore(farm);
             geo.saveGeometry(field,fixture(),"manual","",0);String point=geo.savePoint(null,field,"tree","Tree","",26.0005,38.0005,5,0);
-            byte[] backup=LocalBackup.snapshot(farm);assertEquals(18,new JSONObject(new String(backup,StandardCharsets.UTF_8)).getInt("schema"));assertEquals(1,LocalBackup.inspect(farm,backup));
+            // Logical backup format 19 is separate from SQLite database version 15.
+            byte[] backup=LocalBackup.snapshot(farm);assertEquals(19,new JSONObject(new String(backup,StandardCharsets.UTF_8)).getInt("schema"));assertEquals(1,LocalBackup.inspect(farm,backup));
             try{geo.saveGeometry(field,fixture(),"manual","",0);fail("Expected stale write rejection");}catch(IllegalArgumentException expected){}
             assertArrayEquals(backup,LocalBackup.snapshot(farm));
             geo.delete(point,1);assertTrue(geo.records(field,"point").isEmpty());LocalBackup.restore(farm,backup,recovery);assertEquals(1,geo.records(field,"point").size());
@@ -33,7 +34,7 @@ public class GeoStoreTest {
                 LegacySchema.dropSync(farm.getWritableDatabase());farm.getWritableDatabase().execSQL("DROP TABLE gis_records");farm.getWritableDatabase().setVersion(12);
             }
             try(var farm=new FarmStore(context,name)){
-                assertEquals(14,farm.getReadableDatabase().getVersion());assertEquals("Pre-GIS",farm.fields().get(0).name());assertEquals(1,LocalBackup.inspect(farm,old));
+                assertEquals(15,farm.getReadableDatabase().getVersion());assertEquals("Pre-GIS",farm.fields().get(0).name());assertEquals(1,LocalBackup.inspect(farm,old));
                 new GeoStore(farm).saveGeometry(farm.fields().get(0).id(),fixture(),"manual","",0);
                 File recovery=new File(context.getCacheDir(),"gis-stage12.json");try{LocalBackup.restore(farm,old,recovery);assertTrue(new GeoStore(farm).records(null,null).isEmpty());assertEquals(1,farm.fields().size());}finally{recovery.delete();}
             }

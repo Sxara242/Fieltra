@@ -86,7 +86,7 @@ try {
     & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "build_release.ps1") `
         -PythonPath $PythonPath `
         -InstallerOutputDir $outputDir `
-        -InstallerBuildAttempts 3
+        -InstallerBuildAttempts 1
     $exitCode = $LASTEXITCODE
     Write-Host "Windows release build exit code: $exitCode"
 }

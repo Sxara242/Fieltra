@@ -1,5 +1,6 @@
 """Source release contracts; no installer build or outbound requests."""
 from pathlib import Path
+import json
 import re
 import tempfile
 from types import SimpleNamespace
@@ -18,17 +19,20 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class Batch7ReleaseTests(unittest.TestCase):
     def test_windows_branding_and_numeric_string_versions(self):
+        # Retained packaging inputs describe accepted v1.0.0, not this unbuilt
+        # development checkout. Release preflight separately refuses that drift.
+        packaged_version = json.loads((ROOT / "packaging/windows-rc.json").read_text())['version']
+        self.assertEqual("1.0.0", packaged_version)
         text = (ROOT / "packaging/version_info.txt").read_text(encoding="utf-8")
         for key, value in {"FileDescription": "Fieltra - Farm Management", "ProductName": "Fieltra",
                            "InternalName": "Fieltra", "OriginalFilename": "Fieltra.exe",
-                           "FileVersion": APP_VERSION, "ProductVersion": APP_VERSION}.items():
+                           "FileVersion": packaged_version, "ProductVersion": packaged_version}.items():
             self.assertIn(f"StringStruct('{key}', '{value}')", text)
-        self.assertEqual("1.0.0", APP_VERSION)
-        numbers = (*map(int, APP_VERSION.split(".")), 0)
+        numbers = (*map(int, packaged_version.split(".")), 0)
         self.assertIn(f"filevers={numbers}", text)
         self.assertIn(f"prodvers={numbers}", text)
         iss = (ROOT / "installer/MastixaManager.iss").read_text(encoding="utf-8")
-        self.assertIn(f'#define MyAppVersion "{APP_VERSION}"', iss)
+        self.assertIn(f'#define MyAppVersion "{packaged_version}"', iss)
         self.assertIn("VersionInfoVersion=" + ".".join(map(str, numbers)), iss)
         spec = (ROOT / "packaging/MastixaManager.spec").read_text(encoding="utf-8")
         self.assertIn('version=str(repo_root / "packaging" / "version_info.txt")', spec)
@@ -70,7 +74,8 @@ class Batch7ReleaseTests(unittest.TestCase):
         page._composed_text = lambda label, text, **values: label.setText(text.format(**values))
         self.addCleanup(page.deleteLater)
         self.addCleanup(page.close)
-        info = update_manager.parse_manifest(_manifest(version=APP_VERSION))
+        info = update_manager.parse_manifest(_manifest(
+            version=APP_VERSION, channel=update_manager.RELEASE_CHANNEL))
         def thread(*, target, **_kwargs):
             return SimpleNamespace(start=target)
         with patch.object(update_integration, "fetch_update_info", return_value=info) as fetch, \

@@ -571,6 +571,9 @@ class MainWindow(QMainWindow):
             if profiles is not None
             else Database()
         )
+        from .gis.kaek_worker import controller_for
+        self.kaek_lookup = controller_for(self.db, self)
+        QApplication.instance().aboutToQuit.connect(self.kaek_lookup.stop)
         self.backup_manager = self._build_backup_manager()
         active_profile = self.profile_manager.active_profile
         self.setWindowTitle(
@@ -1471,6 +1474,8 @@ def run_app() -> None:
     configure_logging(BASE_DIR)
     logger.info("Application startup")
     app = QApplication(sys.argv)
+    from .wheel_navigation import install_wheel_navigation
+    install_wheel_navigation(app)
     app.setApplicationName(APP_NAME)
     app.setApplicationVersion(APP_VERSION)
     app.setOrganizationName("Fieltra")

@@ -15,7 +15,7 @@ from .version import APP_VERSION, RELEASE_CHANNEL, is_newer_version, parse_versi
 
 UPDATE_FEED_URL = (
     "https://raw.githubusercontent.com/Sxara242/"
-    f"Mastixa-Manager-Source/main/updates/{RELEASE_CHANNEL}.json"
+    f"Fieltra/main/updates/{RELEASE_CHANNEL}.json"
 )
 # Staging is deliberately offline until a reviewed production feed is published.
 UPDATE_FEED_MODE = "staging"
@@ -111,7 +111,8 @@ def _project_artifact(info: UpdateInfo) -> UpdateInfo:
         try:
             url = urlsplit(info.windows.url)
             allowed = (url.scheme == "https" and url.hostname == "github.com"
-                       and url.path.startswith("/Sxara242/Mastixa-Manager-Source/releases/download/")
+                       and any(url.path.startswith(f"/Sxara242/{repository}/releases/download/")
+                               for repository in ("Fieltra", "Mastixa-Manager-Source"))
                        and not url.username and not url.password and url.port in (None, 443))
         except ValueError:
             allowed = False

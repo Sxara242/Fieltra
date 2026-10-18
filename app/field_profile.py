@@ -19,6 +19,7 @@ from .localized_messages import _language, _text
 from .database import Database
 from .field_activity_timeline import load_field_timeline_rows
 from .ui_helpers import compact_decimal, format_kg, table_widget
+from .gis.cadastral import cadastral_text, cultivated_area_text
 
 
 class FieldProfilePage(QWidget):
@@ -159,7 +160,7 @@ class FieldProfilePage(QWidget):
             ("Όνομα", self.name_value),
             ("ΚΑΕΚ", self.kaek_value),
             ("Τοποθεσία", self.location_value),
-            ("Έκταση", self.area_value),
+            ("Δηλωμένη καλλιεργούμενη έκταση", self.area_value),
             ("Παραγωγικά δέντρα", self.trees_value),
         ]
 
@@ -171,6 +172,13 @@ class FieldProfilePage(QWidget):
             identity.addWidget(value, row_index, 1)
 
         identity.setColumnStretch(1, 1)
+        self.cadastral_value=QLabel()
+        self.cadastral_value.setWordWrap(True)
+        self.cadastral_value.setTextFormat(Qt.TextFormat.PlainText)
+        self.cadastral_value.setProperty('mastixaI18nSkipText',True)
+        identity.addWidget(self.cadastral_value,len(fields),0,1,2)
+        lookup=getattr(db,'_kaek_lookup_controller',None)
+        if lookup:lookup.changed.connect(self._refresh_cadastral)
         layout.addWidget(identity_box)
 
         # KPI cards
@@ -501,6 +509,11 @@ class FieldProfilePage(QWidget):
                     self._set_body(item, str(value))
                 self.timeline.setItem(row_index, column, item)
 
+    def _refresh_cadastral(self,field_id=0):
+        selected=self.field.currentData()
+        if selected is not None and field_id in (0,int(selected)):
+            self._composed_text(self.cadastral_value,'{value}',value=lambda:cadastral_text(self.db,int(selected)))
+
     def _clear(self) -> None:
         for label in (
             self.name_value,
@@ -508,6 +521,7 @@ class FieldProfilePage(QWidget):
             self.location_value,
             self.area_value,
             self.trees_value,
+            self.cadastral_value,
         ):
             self._composed_text(label, "—")
 
@@ -545,7 +559,8 @@ class FieldProfilePage(QWidget):
         self._composed_text(self.name_value, '{value}', value=field['name'] or '—')
         self._composed_text(self.kaek_value, '{value}', value=field['kaek'] or '—')
         self._composed_text(self.location_value, '{value}', value=field['location'] or '—')
-        self._composed_text(self.area_value, '{value0} στρ.', value0=compact_decimal(field['area_stremma'], 3))
+        self._composed_text(self.area_value, '{value}', value=lambda:cultivated_area_text(field['area_stremma']))
+        self._composed_text(self.cadastral_value, '{value}', value=lambda:cadastral_text(self.db,int(field_id)))
         self._composed_text(self.trees_value, "{value}", value=str(int(field["productive_trees"] or 0)))
 
         production = self._sum(

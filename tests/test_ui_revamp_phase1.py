@@ -357,6 +357,88 @@ class UiRevampTests(unittest.TestCase):
             combo = page.field if key == "field_profile" else page.field_filter
             self.assertEqual(str(field_id), str(combo.currentData()))
 
+    def _cadastral_only_field(self):
+        from app.gis.kaek_lookup import LookupStore
+        from app.gis.kaek_provider import NorthAegeanProvider
+        from app.gis.geometry import manual_coordinates
+        field_id = self.db.execute("INSERT INTO fields(name,kaek) VALUES(?,?)",
+                                   ("Synthetic cadastral-only field", "510000000001"))
+        provider = NorthAegeanProvider(self.root / "unused-cache")
+        store = LookupStore(self.db)
+        store.enqueue(field_id, provider)
+        request = store.claim(provider)
+        geometry = manual_coordinates("26 38\n26.001 38\n26.001 38.001\n26 38.001", "EPSG:4326")
+        store.complete(dict(request, kind="kaek-result", geometry=geometry.original,
+                            source_crs="EPSG:4326", provider=provider.identity,
+                            source_url=provider.source_url, terms_url=provider.terms_url,
+                            attribution=provider.attribution, source_date="2026-10-06",
+                            retrieved_at=store.clock()), provider)
+        return field_id
+
+    def _assert_cadastral_map(self, dialog, field_id):
+        self.assertEqual(field_id, dialog.field_id)
+        self.assertIsNone(dialog.record)  # No cultivation polygon is required.
+        self.assertIsNotNone(dialog.map.cadastral_item)
+        self.assertTrue(dialog.map.cadastral_item.isVisible())
+        self.assertIsNotNone(dialog.map.cadastral_bounds)
+        self.assertFalse(dialog.map.boundaries)
+        self.assertFalse(dialog.map.pending)
+        dialog.map.shutdown()
+        dialog.deleteLater()
+        return 0
+
+    def test_fields_header_map_opens_cadastral_only_dialog(self):
+        field_id = self._cadastral_only_field()
+        self.nav.open("fields")
+        fields = self.window.pages[2][1].resolved_page()
+        fields.load_selected(0, 0)
+        fields.name.setText("Unsaved field-name edit")
+        before = self.snapshot()
+        opened = []
+
+        def open_dialog(dialog):
+            result = self._assert_cadastral_map(dialog, field_id)
+            opened.append(dialog.field_id)
+            return result
+
+        with patch("app.gis.kaek_provider.NorthAegeanProvider.fetch") as fetch, patch(
+            "app.gis.dialog.ParcelMapDialog.exec", new=open_dialog,
+        ):
+            self.nav.actions["map"].click()
+            self.assertEqual([field_id], opened)
+            fetch.assert_not_called()
+        self.assertEqual("Unsaved field-name edit", fields.name.text())
+        self.assertEqual(before, self.snapshot())
+
+    def test_parcel_card_map_uses_card_selection_instead_of_previous_fields_selection(self):
+        previous = self.db.execute("INSERT INTO fields(name) VALUES('Previous Fields selection')")
+        field_id = self._cadastral_only_field()
+        self.nav.open("fields")
+        fields = self.window.pages[2][1].resolved_page()
+        for row in range(fields.table.rowCount()):
+            if fields.table.item(row, 0).data(Qt.ItemDataRole.UserRole) == previous:
+                fields.load_selected(row, 0)
+        self.nav.context_action("field_profile")
+        card = self.window.pages[self.nav.targets["field_profile"].page][1].resolved_page()
+        card.field.setCurrentIndex(card.field.findData(field_id))
+        before = self.snapshot()
+        opened = []
+
+        def open_dialog(dialog):
+            result = self._assert_cadastral_map(dialog, field_id)
+            opened.append(dialog.field_id)
+            return result
+
+        with patch("app.gis.kaek_provider.NorthAegeanProvider.fetch") as fetch, patch(
+            "app.gis.dialog.ParcelMapDialog.exec", new=open_dialog,
+        ):
+            self.nav.actions["map"].click()
+            self.assertEqual([field_id], opened)
+            fetch.assert_not_called()
+        self.assertEqual(field_id, fields.selected_field_id)
+        self.assertEqual("Synthetic cadastral-only field", fields.name.text())
+        self.assertEqual(before, self.snapshot())
+
     def test_calendar_and_history_scroll_content_and_export_point_font(self):
         from PySide6.QtWidgets import QScrollArea
         self.window.resize(950, 650)

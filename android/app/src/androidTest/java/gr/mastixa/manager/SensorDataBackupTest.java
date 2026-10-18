@@ -14,7 +14,7 @@ public class SensorDataBackupTest {
         byte[] digest = MessageDigest.getInstance("SHA-256").digest(data.getBytes(StandardCharsets.UTF_8));
         StringBuilder hex = new StringBuilder();
         for (byte b : digest) hex.append(String.format("%02x", b & 255));
-        return source.put("schema",18).put("payload",data).put("sha256",hex.toString())
+        return source.put("schema",19).put("payload",data).put("sha256",hex.toString())
             .toString().getBytes(StandardCharsets.UTF_8);
     }
 
@@ -39,7 +39,7 @@ public class SensorDataBackupTest {
 
             byte[] before = LocalBackup.snapshot(store);
             JSONObject current = new JSONObject(new String(before, StandardCharsets.UTF_8));
-            assertEquals(18,current.getInt("schema"));
+            assertEquals(19,current.getInt("schema"));
             assertEquals(1,LocalBackup.inspect(store,before));
 
             sensors.appendObservation(new SensorData.Observation(

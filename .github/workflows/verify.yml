@@ -55,9 +55,13 @@ jobs:
           --module-timeout tests.test_phase16j_composed_ui_localization=180
           --module-timeout tests.test_sale_sources=360
           --module-timeout tests.test_stabilization=360
-      - name: Packaging and legal preflight (no installer)
+      - name: Development packaging and legal contracts (release remains blocked)
         if: ${{ !cancelled() }}
-        run: python packaging/validate_windows_release.py
+        run: >-
+          python -m unittest
+          tests.test_windows_rc_release.WindowsRcReleaseTests.test_development_metadata_cannot_build_with_retained_stable_configuration
+          tests.test_windows_rc_release.WindowsRcReleaseTests.test_preflight_refuses_incomplete_native_legal_and_source_delivery
+          -v
   android:
     runs-on: ubuntu-latest
     timeout-minutes: 35

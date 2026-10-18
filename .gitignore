@@ -86,3 +86,11 @@ credentials*.json
 service-account*.json
 google-services.json
 audit-output/
+
+# Local map data and Sandbox output never belong in public source.
+*.pmtiles
+*.mbtiles
+*.pbf
+*.wsb
+SandboxArtifacts/
+FieltraSprintResults/

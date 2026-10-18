@@ -33,6 +33,17 @@ public final class ParcelGeometry {
     }
     public static void position(double lon,double lat){if(!Double.isFinite(lon)||!Double.isFinite(lat)||lon< -180||lon>180||lat< -90||lat>90)throw new IllegalArgumentException("Invalid WGS84 longitude/latitude");}
     public boolean contains(double lon,double lat){position(lon,lat);return geometry.covers(FACTORY.createPoint(new Coordinate(lon,lat)));}
+    public enum FixRelation { INSIDE, OUTSIDE, UNCERTAIN }
+    /** Approximate local tangent-plane distance to every boundary, including holes.
+     * Reported phone accuracy is an uncertainty estimate, never a survey guarantee. */
+    public FixRelation classifyFix(double lon,double lat,double accuracy){
+        position(lon,lat);if(!Double.isFinite(accuracy)||accuracy<0)throw new IllegalArgumentException("Invalid GPS accuracy");
+        Geometry local=geometry.getBoundary().copy();
+        local.apply((CoordinateFilter)c->{var relative=Geodesic.WGS84.Inverse(lat,lon,c.y,c.x);double bearing=Math.toRadians(relative.azi1);c.x=relative.s12*Math.sin(bearing);c.y=relative.s12*Math.cos(bearing);});local.geometryChanged();
+        double distance=local.distance(FACTORY.createPoint(new Coordinate(0,0)));
+        if(distance<=accuracy+.01)return FixRelation.UNCERTAIN;
+        return contains(lon,lat)?FixRelation.INSIDE:FixRelation.OUTSIDE;
+    }
     public static String crs(String value){
         String name=value.trim().toUpperCase(Locale.ROOT);
         if(!name.matches("EPSG:[0-9]{4,6}"))throw new IllegalArgumentException("Source EPSG CRS required");

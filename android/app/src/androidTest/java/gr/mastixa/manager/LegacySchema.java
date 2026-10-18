@@ -12,9 +12,11 @@ final class LegacySchema {
         for (String table : PlantTrackingBackup.TABLES) payload.remove(table);
         payload.remove(PlantingHistory.TABLE);
         for (String table : SensorDataBackup.TABLES) payload.remove(table);
+        payload.remove("cadastral_reference");
     }
 
     static void dropSync(android.database.sqlite.SQLiteDatabase db) {
+        db.execSQL("DROP TABLE IF EXISTS cadastral_reference");
         for (String table : GisSyncRepository.TABLES) db.execSQL("DROP TABLE IF EXISTS " + table);
     }
 

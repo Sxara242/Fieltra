@@ -5,8 +5,8 @@ from dataclasses import dataclass
 
 
 APP_NAME = "Fieltra"
-APP_VERSION = "1.0.0"
-RELEASE_CHANNEL = "stable"
+APP_VERSION = "1.0.1-alpha.1"
+RELEASE_CHANNEL = "alpha"
 APP_DESCRIPTOR = "Farm Management"
 APP_LICENSE = "AGPL-3.0-only"
 GIT_TAG = f"v{APP_VERSION}"

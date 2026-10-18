@@ -26,16 +26,25 @@ public final class GeoStore {
     }
     public Record parcel(String fieldId){var rows=records(fieldId,"parcel");return rows.isEmpty()?null:rows.get(0);}
     public static ParcelGeometry geometry(Record row){return ParcelGeometry.normalize(row.payload().optString("original_geojson"),row.payload().optString("source_crs"));}
+    static JSONObject geometryPayload(ParcelGeometry geometry,String source,String sourceDate)throws JSONException{
+        return new JSONObject().put("original_geojson",geometry.original).put("source_crs",geometry.sourceCrs).put("wgs84_geojson",geometry.wgs84)
+            .put("area_m2",geometry.area).put("perimeter_m",geometry.perimeter).put("centroid_lon",geometry.centroidLon).put("centroid_lat",geometry.centroidLat)
+            .put("bbox",new JSONArray(geometry.bbox)).put("geometry_source",source).put("geometry_source_date",sourceDate);
+    }
     public String saveGeometry(String fieldId,ParcelGeometry geometry,String source,String sourceDate,long expectedRevision){
         try{
-            JSONObject payload=new JSONObject().put("original_geojson",geometry.original).put("source_crs",geometry.sourceCrs).put("wgs84_geojson",geometry.wgs84)
-                .put("area_m2",geometry.area).put("perimeter_m",geometry.perimeter).put("centroid_lon",geometry.centroidLon).put("centroid_lat",geometry.centroidLat)
-                .put("bbox",new JSONArray(geometry.bbox)).put("geometry_source",source).put("geometry_source_date",sourceDate);
+            JSONObject payload=geometryPayload(geometry,source,sourceDate);
             return save(fieldId,fieldId,"parcel",payload,expectedRevision);
         }catch(JSONException e){throw new IllegalArgumentException(e);}
     }
     public String savePoint(String id,String fieldId,String type,String title,String notes,double lon,double lat,double accuracy,long expectedRevision){
         try{return save(id,fieldId,"point",new JSONObject().put("point_type",type).put("title",title.trim()).put("notes",notes).put("longitude",lon).put("latitude",lat).put("accuracy",accuracy),expectedRevision);}
+        catch(JSONException e){throw new IllegalArgumentException(e);}
+    }
+    /** Timestamp belongs to the received GPS fix, not to the later Save action. */
+    public String saveGpsPoint(String id,String fieldId,String type,String title,String notes,double lon,double lat,double accuracy,long fixTime,long expectedRevision){
+        if(fixTime<=0)throw new IllegalArgumentException("GPS fix timestamp required");
+        try{return save(id,fieldId,"point",new JSONObject().put("point_type",type).put("title",title.trim()).put("notes",notes).put("longitude",lon).put("latitude",lat).put("accuracy",accuracy).put("fix_time_ms",fixTime),expectedRevision);}
         catch(JSONException e){throw new IllegalArgumentException(e);}
     }
     public String save(String id,String fieldId,String kind,JSONObject payload,long expectedRevision){
@@ -84,6 +93,7 @@ public final class GeoStore {
             }else if(kind.equals("point")){
                 if(!POINT_TYPES.contains(value.getString("point_type"))||value.getString("title").isBlank())throw new IllegalArgumentException("Point type/title required");
                 ParcelGeometry.position(value.getDouble("longitude"),value.getDouble("latitude"));double accuracy=value.getDouble("accuracy");if(!Double.isFinite(accuracy)||accuracy<0)throw new IllegalArgumentException("Invalid accuracy");value.getString("notes");
+                if(value.has("fix_time_ms")&&(!(value.get("fix_time_ms") instanceof Number)||value.getDouble("fix_time_ms")!=value.getLong("fix_time_ms")||value.getLong("fix_time_ms")<=0))throw new IllegalArgumentException("Invalid GPS fix timestamp");
             }else if(kind.equals("track")){
                 var points=value.getJSONArray("positions");if(points.length()>20000)throw new IllegalArgumentException("Track exceeds 20000 points");
                 long previous=0;for(int i=0;i<points.length();i++){var p=points.getJSONArray(i);if(p.length()!=4)throw new IllegalArgumentException("Track position requires lon/lat/accuracy/time");ParcelGeometry.position(p.getDouble(0),p.getDouble(1));if(!Double.isFinite(p.getDouble(2))||p.getDouble(2)<0||p.getLong(3)<previous)throw new IllegalArgumentException("Invalid track fix");previous=p.getLong(3);}

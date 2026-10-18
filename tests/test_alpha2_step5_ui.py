@@ -2,7 +2,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock,patch
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
@@ -130,7 +130,7 @@ class Alpha2Step5UiTests(unittest.TestCase):
             finally:
                 page.deleteLater()
 
-    def test_cadastre_auto_retrieval_is_disabled_without_provider_or_raw_error(self) -> None:
+    def test_legacy_ui_installer_preserves_verified_cadastre_queue_action(self) -> None:
         with tempfile.TemporaryDirectory() as folder:
             db = self.make_db(Path(folder))
             db.execute(
@@ -143,6 +143,8 @@ class Alpha2Step5UiTests(unittest.TestCase):
             )
             field = db.query_one("SELECT id FROM fields ORDER BY id DESC LIMIT 1")
             self.assertIsNotNone(field)
+            controller=Mock()
+            db._kaek_lookup_controller=controller
 
             with patch(
                 "app.gis.providers.UnverifiedCadastreProvider.fetch"
@@ -151,10 +153,9 @@ class Alpha2Step5UiTests(unittest.TestCase):
             ) as information:
                 dialog = ParcelMapDialog(db, int(field["id"]))
                 try:
-                    cadastre = dialog.findChild(QPushButton, "cadastreAutoButton")
+                    cadastre = dialog.findChild(QPushButton, "cadastreLookupButton")
                     self.assertIsNotNone(cadastre)
-                    self.assertFalse(cadastre.isEnabled())
-                    self.assertIn("Υπό κατασκευή", cadastre.text())
+                    self.assertTrue(cadastre.isEnabled())
 
                     enabled_texts = {
                         button.text()
@@ -164,13 +165,10 @@ class Alpha2Step5UiTests(unittest.TestCase):
                     self.assertIn("Εισαγωγή ορίων", enabled_texts)
                     self.assertIn("Συντεταγμένες", enabled_texts)
 
-                    dialog.cadastre()
+                    cadastre.click()
                     provider_fetch.assert_not_called()
-                    information.assert_called_once()
-                    message = information.call_args.args[2]
-                    self.assertNotIn("404", message)
-                    self.assertNotIn("http", message.lower())
-                    self.assertIn("προσωρινά μη διαθέσιμη", message)
+                    information.assert_not_called()
+                    controller.retry.assert_called_once_with(int(field['id']))
                 finally:
                     dialog.map.shutdown()
                     dialog.deleteLater()

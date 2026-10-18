@@ -63,7 +63,9 @@ class UpdateRetryTests(unittest.TestCase):
 
     def test_failed_check_can_be_retried_and_no_update_keeps_install_hidden(self):
         page = self.make_page()
-        current = update_manager.parse_manifest(_manifest(version=update_integration.APP_VERSION))
+        current = update_manager.parse_manifest(_manifest(
+            version=update_integration.APP_VERSION,
+            channel=update_manager.RELEASE_CHANNEL))
         with patch.object(update_integration.threading, "Thread", side_effect=self.immediate_thread), \
              patch.object(update_integration, "fetch_update_info", side_effect=[
                  update_manager.UpdateError("offline"), current]) as fetch, \

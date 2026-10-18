@@ -3,7 +3,9 @@ from __future__ import annotations
 from functools import wraps
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QHeaderView, QTableWidget, QScrollArea, QWidget, QVBoxLayout, QLayout, QFormLayout
+from PySide6.QtGui import QColor, QPalette
+from PySide6.QtWidgets import (QHeaderView, QTableWidget, QScrollArea, QWidget,
+    QVBoxLayout, QLayout, QFormLayout, QProxyStyle, QStyle, QStyledItemDelegate, QStyleOptionViewItem)
 
 
 def scrollable_entry_layout(page):
@@ -59,9 +61,60 @@ def batched_table_refresh(refresh):
     return batched
 
 
+class _ComboPopupStyle(QProxyStyle):
+    def styleHint(self, hint, option=None, widget=None, returnData=None):
+        # Qt's menu mode can defer doHidePopup/resetButton through flashing
+        # timers. Use the native scrolling list with synchronous close/reset,
+        # so a second arrow click cannot encounter a still-visible container.
+        if hint in (QStyle.StyleHint.SH_ComboBox_Popup,
+                    QStyle.StyleHint.SH_Menu_FlashTriggeredItem):
+            return 0
+        return super().styleHint(hint, option, widget, returnData)
+
+
+class _ComboPopupDelegate(QStyledItemDelegate):
+    def paint(self,painter,option,index):
+        opt=QStyleOptionViewItem(option)
+        # The selected row itself identifies the keyboard's current item.
+        # Remove only the duplicate native focus rectangle, never focus/input.
+        opt.state &= ~QStyle.StateFlag.State_HasFocus
+        super().paint(painter,opt,index)
+
+
 def configure_combo_popup(combo):
-    """Keep long status rows readable without widening the entry form."""
+    """Prepare Qt's own popup before Show; retain native input/focus handling."""
+    if not hasattr(combo, '_fieltra_popup_style'):
+        # Do not give QProxyStyle QApplication.style(): the proxy owns its base.
+        proxy = _ComboPopupStyle()
+        proxy.setParent(combo)
+        combo._fieltra_popup_style = proxy
+        combo.setStyle(proxy)
     view = combo.view()
+    if not isinstance(view.itemDelegate(),_ComboPopupDelegate):
+        view.setItemDelegate(_ComboPopupDelegate(view))
+    popup = view.window()
+    popup.setObjectName('fieltraComboPopup')
+    popup.setAutoFillBackground(True)
+    view.setAutoFillBackground(True)
+    view.viewport().setAutoFillBackground(True)
+    theme = combo.window().property('mastixaTheme')
+    dark = (theme == 'dark' if theme in ('light','dark') else
+            combo.palette().color(QPalette.ColorRole.Window).lightness() < 128)
+    background, foreground, border, selected = (
+        ('#20272C', '#EDF2F4', '#75838C', '#355F4A') if dark else
+        ('#FFFFFF', '#24312B', '#718278', '#315F49'))
+    sheet = ('QFrame#fieltraComboPopup { background: '+background+'; border: 1px solid '+border+'; } '
+        'QFrame#fieltraComboPopup QAbstractItemView { background: '+background+'; color: '+foreground+'; '
+        'border: 0px; selection-background-color: '+selected+'; selection-color: white; } '
+        'QFrame#fieltraComboPopup QAbstractItemView::item { background: '+background+'; color: '+foreground+'; } '
+        'QFrame#fieltraComboPopup QAbstractItemView::item:selected, '
+        'QFrame#fieltraComboPopup QAbstractItemView::item:hover { background: '+selected+'; color: white; }')
+    if popup.styleSheet() != sheet:popup.setStyleSheet(sheet)
+    palette = QPalette(view.palette())
+    for role in (QPalette.ColorRole.Window, QPalette.ColorRole.Base):
+        palette.setColor(role, QColor(background))
+    view.setPalette(palette);view.viewport().setPalette(palette);popup.setPalette(palette)
+    popup._mastixa_scoped_theme_generation = getattr(combo, '_mastixa_scoped_theme_generation', -1)
     view.setMouseTracking(True)
     if hasattr(view, "setSpacing"):
         view.setSpacing(2)

@@ -20,6 +20,7 @@ public class LocalBackupTest {
     private static byte[] downgrade(byte[] current, int schema) throws Exception {
         JSONObject envelope = new JSONObject(new String(current, StandardCharsets.UTF_8));
         JSONObject payload = new JSONObject(envelope.getString("payload"));
+        if(schema<19)payload.remove("cadastral_reference");
         if (schema < 18) {
             for (String table : SensorDataBackup.TABLES) payload.remove(table);
         }
@@ -40,6 +41,36 @@ public class LocalBackupTest {
         envelope.put("payload", data);
         envelope.put("sha256", sha256(data));
         return envelope.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    @Test public void schema18RestorePreservesCultivationWithoutInventingCadastralReference() throws Exception {
+        var context=InstrumentationRegistry.getInstrumentation().getTargetContext();
+        assertTrue(context.getPackageName().endsWith(".checks"));
+        String database="backup-schema18-test.db";
+        File recovery=new File(context.getCacheDir(),"backup-schema18-recovery.json");
+        context.deleteDatabase(database);
+        try(FarmStore store=new FarmStore(context,database)) {
+            store.saveField(null,"Historical field",2,"510201507004","",0,"");
+            String field=store.fields().get(0).id();
+            ParcelGeometry cultivated=ParcelGeometry.manual("26 38\n26.001 38\n26.001 38.001\n26 38.001","EPSG:4326");
+            GeoStore geo=new GeoStore(store);
+            geo.saveGeometry(field,cultivated,"manual","",0);
+            CadastralStore cadastre=new CadastralStore(store);
+            cadastre.saveImported(field,"510201507004",cultivated,"synthetic-reference.geojson",0);
+            byte[] current=LocalBackup.snapshot(store);
+            byte[] historical=downgrade(current,18);
+            assertEquals(18,new JSONObject(new String(historical,StandardCharsets.UTF_8)).getInt("schema"));
+            assertEquals(1,LocalBackup.inspect(store,historical));
+            assertNotNull(cadastre.parcel(field));
+            store.addField("After backup",7);
+            LocalBackup.restore(store,historical,recovery);
+            assertEquals(1,store.fields().size());
+            assertEquals("Historical field",store.fields().get(0).name());
+            assertEquals(2,store.fields().get(0).area(),0);
+            assertEquals(cultivated.original,GeoStore.geometry(geo.parcel(field)).original);
+            assertNull("Schema18 contains no official/reference geometry",cadastre.parcel(field));
+            assertEquals(19,new JSONObject(new String(LocalBackup.snapshot(store),StandardCharsets.UTF_8)).getInt("schema"));
+        } finally { context.deleteDatabase(database); recovery.delete(); }
     }
 
     @Test public void roundTripAndRejectedRestore() throws Exception {
@@ -86,8 +117,9 @@ public class LocalBackupTest {
             ));
 
             byte[] bytes=LocalBackup.snapshot(store);
-            assertEquals(18,new JSONObject(new String(bytes,StandardCharsets.UTF_8)).getInt("schema"));
+            assertEquals(19,new JSONObject(new String(bytes,StandardCharsets.UTF_8)).getInt("schema"));
             assertEquals(1,LocalBackup.inspect(store,bytes));
+            assertEquals(1,LocalBackup.inspect(store,downgrade(bytes,18)));
             byte[] schema17=downgrade(bytes,17);
             byte[] schema16=downgrade(bytes,16);
             byte[] schema15=downgrade(bytes,15);

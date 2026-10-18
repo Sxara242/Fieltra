@@ -76,7 +76,7 @@ public class InventoryTest {
                 LegacySchema.dropStage12(store.getWritableDatabase());store.getWritableDatabase().execSQL("DROP TABLE equipment_maintenance");store.getWritableDatabase().execSQL("DROP TABLE equipment");store.getWritableDatabase().execSQL("DROP INDEX money_service");store.getWritableDatabase().execSQL("DROP TABLE planting_batches");store.getWritableDatabase().execSQL("DROP TABLE plant_protection_records");store.getWritableDatabase().execSQL("DROP TABLE labor_entries");store.getWritableDatabase().execSQL("DROP TABLE workers");store.getWritableDatabase().execSQL("DROP TABLE farm_activities");store.getWritableDatabase().execSQL("DROP TABLE production_sales");store.getWritableDatabase().execSQL("DROP TABLE production");store.getWritableDatabase().execSQL("DROP TABLE money_entries");store.getWritableDatabase().execSQL("DROP TABLE inventory_movements");store.getWritableDatabase().execSQL("DROP TABLE inventory_items");store.getWritableDatabase().setVersion(4);
             }
             try(var store=new FarmStore(context,name)){
-                assertEquals(14,store.getReadableDatabase().getVersion());assertEquals("Kept",store.fields().get(0).name());assertEquals(1,new PartnerStore(store).partners().size());
+                assertEquals(15,store.getReadableDatabase().getVersion());assertEquals("Kept",store.fields().get(0).name());assertEquals(1,new PartnerStore(store).partners().size());
                 new InventoryStore(store).saveItem(new InventoryStore.Item(null,"New","","kg",0,""));LocalBackup.restore(store,old,file);assertTrue(new InventoryStore(store).items().isEmpty());assertEquals(1,new PartnerStore(store).partners().size());
             }
         }finally{context.deleteDatabase(name);file.delete();}

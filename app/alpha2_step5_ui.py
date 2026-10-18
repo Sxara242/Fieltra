@@ -15,7 +15,6 @@ from PySide6.QtWidgets import (
 
 from .declaration import DeclarationPage
 from .fields import FieldsPage
-from .gis.dialog import ParcelMapDialog
 from .invoice_documents import InvoiceDocumentsPage
 from .upload_center import UploadCenterPage
 
@@ -180,40 +179,6 @@ def _install_fields_ai_import_gate() -> None:
     FieldsPage.__init__ = init_with_future_ai_import
 
 
-def _install_cadastre_gate() -> None:
-    original_init = ParcelMapDialog.__init__
-
-    def cadastre_unavailable(self) -> None:
-        QMessageBox.information(
-            self,
-            "Κτηματολόγιο",
-            (
-                "Η αυτόματη online ανάκτηση ορίων είναι προσωρινά μη διαθέσιμη. "
-                "Χρησιμοποίησε εισαγωγή αρχείου ή χειροκίνητες συντεταγμένες."
-            ),
-        )
-
-    ParcelMapDialog.cadastre = cadastre_unavailable
-
-    def init_with_safe_cadastre_state(self, db, field_id, parent=None) -> None:
-        original_init(self, db, field_id, parent)
-        for button in self.findChildren(QPushButton):
-            text = button.text()
-            if "Κτηματολόγιο" not in text and "Cadastre" not in text:
-                continue
-            button.setObjectName("cadastreAutoButton")
-            button.setText("Ανάκτηση ορίων από Κτηματολόγιο — Υπό κατασκευή")
-            button.setEnabled(False)
-            button.setToolTip(
-                "Η αυτόματη online ανάκτηση ορίων είναι προσωρινά μη διαθέσιμη. "
-                "Η εισαγωγή αρχείου και οι χειροκίνητες συντεταγμένες "
-                "παραμένουν διαθέσιμες."
-            )
-            break
-
-    ParcelMapDialog.__init__ = init_with_safe_cadastre_state
-
-
 def install_alpha2_step5_ui() -> None:
     global _INSTALLED
     if _INSTALLED:
@@ -222,5 +187,6 @@ def install_alpha2_step5_ui() -> None:
     _install_declaration_gate()
     _install_invoice_documents_gate()
     _install_fields_ai_import_gate()
-    _install_cadastre_gate()
+    # KAEK now has a verified provider/queue. Do not replace the real map
+    # handler or disable its action with the historical unverified-API gate.
     _INSTALLED = True

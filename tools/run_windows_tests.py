@@ -10,10 +10,23 @@ import subprocess
 import sys
 import tempfile
 import time
+import traceback
 
 ROOT = Path(__file__).resolve().parents[1]
 
+def failure_summary(text):
+    # A failed assertIn can print an entire PowerShell script. A tail-only
+    # summary then hides the test name, traceback and actual failing assertion.
+    # Full output is retained in the existing per-entry log.
+    blocks = re.split(r'(?m)(?=^(?:FAIL|ERROR): )', text)[1:]
+    if not blocks:
+        return text[-6000:]
+    return '\n'.join(block if len(block) <= 2400 else
+                     block[:2000] + '\n[excerpt shortened; full output in module log]\n' + block[-400:]
+                     for block in blocks)
+
 def execute(module, timeout, output):
+    print(f'START: {module} (bound {timeout}s)', flush=True)
     started = time.monotonic()
     env = dict(os.environ, QT_QPA_PLATFORM='offscreen', PYTHONUTF8='1')
     env['MASTIXA_TEST_TIMEOUT'] = str(timeout)
@@ -40,9 +53,9 @@ def execute(module, timeout, output):
     return {'module': module, 'status': 'TIMEOUT' if timed_out else ('PASS' if process.returncode == 0 else 'FAIL'),
             'exit_code': process.returncode, 'tests': int(match[1]) if match else None,
             'timeout_seconds': timeout, 'elapsed_seconds': round(time.monotonic() - started, 3),
-            'failed_cases': cases, 'summary': text[-6000:] if process.returncode else ''}
+            'failed_cases': cases, 'summary': failure_summary(text) if process.returncode else ''}
 
-if __name__ == '__main__':
+def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--jobs', type=int, choices=range(1, 5), default=1)
     parser.add_argument('--timeout', type=int, default=120)
@@ -50,7 +63,7 @@ if __name__ == '__main__':
                         help='Explicit bound for a measured heavyweight module; all other modules keep --timeout')
     parser.add_argument('--output', type=Path)
     parser.add_argument('modules', nargs='*')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     if args.timeout < 10:
         parser.error('Timeout must be at least 10 seconds')
     if args.output:
@@ -65,18 +78,34 @@ if __name__ == '__main__':
             parser.error('Duplicate module timeout: ' + name)
         bounds[name] = int(value)
     results = []
+    print(f'Selected {len(modules)} test entries; collecting all results, including failures.', flush=True)
     with ThreadPoolExecutor(max_workers=args.jobs) as executor:
         futures = [executor.submit(execute, m, bounds.get(m, args.timeout), args.output) for m in modules]
-        for future in futures:
-            result = future.result()
+        for module, future in zip(modules, futures):
+            try:
+                result = future.result()
+            except Exception:
+                # A spawn/cleanup/logging error must fail this entry, not omit
+                # the other independent modules or their final summary.
+                result = {'module': module, 'status': 'ERROR', 'exit_code': None,
+                          'tests': None, 'timeout_seconds': bounds.get(module, args.timeout),
+                          'elapsed_seconds': None, 'failed_cases': [],
+                          'summary': traceback.format_exc()}
             results.append(result)
             print(f"{result['status']}: {result['module']} ({result['tests']} tests)", flush=True)
             if result['status'] != 'PASS':
+                for case in result['failed_cases']:
+                    print(f'  FAILED CASE: {case}', flush=True)
+                if args.output:
+                    print(f"  Full output: {args.output / (module + '.log')} (worker errors are in results.json)", flush=True)
                 print(result['summary'], flush=True)
     report = {'modules': results, 'tests': sum(r['tests'] or 0 for r in results),
               'passed_modules': sum(r['status'] == 'PASS' for r in results),
               'failed_modules': sum(r['status'] != 'PASS' for r in results)}
     if args.output:
         (args.output/'results.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
-    print(f"Modules: {len(results)}; passed: {report['passed_modules']}; blocked: {report['failed_modules']}; tests completed: {report['tests']}")
-    raise SystemExit(bool(report['failed_modules']))
+    print(f"Modules: {len(results)}; passed: {report['passed_modules']}; failed: {report['failed_modules']}; tests completed: {report['tests']}")
+    return bool(report['failed_modules'])
+
+if __name__ == '__main__':
+    raise SystemExit(main())

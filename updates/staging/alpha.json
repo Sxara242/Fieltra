@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "product": "Fieltra",
+  "version": "1.0.1-alpha.1",
+  "channel": "alpha",
+  "release_url": "https://github.com/Sxara242/Fieltra/releases",
+  "notes": "Local development fixture only. Unreleased and unaccepted; no downloadable assets.",
+  "windows": null,
+  "android": null
+}

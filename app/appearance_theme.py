@@ -454,8 +454,15 @@ class ThemeController(QObject):
         self.theme_changed.emit(theme)
 
     def _style_exposed_tree(self, root: QWidget, *, include_hidden=False) -> None:
+        # Qt is already opening this native popup. Re-polishing its container
+        # or viewport during Show interferes with popup painting/input state.
+        # configure_combo_popup prepares it while its owning combo is styled.
+        if root.window().objectName() == 'fieltraComboPopup':
+            return
         root.window().setProperty("mastixaTheme", self._theme)
         for widget in (root, *root.findChildren(QWidget)):
+            if widget.window().objectName() == 'fieltraComboPopup':
+                continue
             if widget is not root and not include_hidden and not widget.isVisible():
                 continue
             if getattr(widget, "_mastixa_scoped_theme_generation", -1) == self._theme_generation:

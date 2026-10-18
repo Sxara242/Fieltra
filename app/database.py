@@ -201,6 +201,8 @@ class Database:
             migrate_gis(con)
             from .gis.sync_repository import migrate as migrate_gis_sync
             migrate_gis_sync(con)
+            from .gis.kaek_lookup import migrate as migrate_kaek
+            migrate_kaek(con)
             self._remove_connection_and_queue_schema(con)
             self._import_legacy_products(con)
             self._seed_app_settings(con)

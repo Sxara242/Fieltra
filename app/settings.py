@@ -789,7 +789,7 @@ class SettingsPage(QWidget):
             self,
             _text("Εισαγωγή προφίλ"),
             "",
-            _text("Προφίλ Fieltra") + " (*.fieltraprofile)",
+            _text("Προφίλ Fieltra") + " (*.fieltraprofile *.mastixaprofile)",
         )
         if not selected:
             return

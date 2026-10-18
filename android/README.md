@@ -2,6 +2,84 @@
 > licensing: [BUILDING](../docs/BUILDING.md), [release status](../docs/RELEASE_STATUS.md),
 > [LICENSE](../LICENSE), [Android notices](THIRD_PARTY_NOTICES.md).
 
+## Fieltra v1.0.1 — Android validation completed (2026-10-17)
+
+Actual results: compilation/test-APK assembly **PASS**; final Gradle batch
+**BUILD SUCCESSFUL in43s**; lint **0errors/13warnings**. The saved original15-case
+run completed14PASS/1FAIL/0errors/0skips. Its only failure expected logical backup
+schema18 instead of19. The saved assertion correction was verified against the
+production contract: backup19 adds cadastral_reference; backup18 and older remain
+readable, independently of database migration14->15.
+
+Focused rerun: **2/2 PASS,0failures/errors/skips** — the repaired GeoStore method
+and new schema18 restore regression preserving cultivation and leaving the
+absent cadastral reference empty. Combined accepted coverage is16 unique passing
+cases (14 retained + repaired case + new case); no full-suite rerun was performed.
+Saved initial XML: `app/build/outputs/androidTest-results/fieltra-v101-gps-initial15.xml`.
+Latest report: `app/build/reports/androidTests/connected/checks/index.html`.
+
+Lint review added explicit OS cloud/device-transfer exclusions for Android12+
+and equivalent legacy backup rules, retaining allowBackup=false and manual
+logical backups. Remaining13warnings:3 drawing allocations,7 text composition,
+1 test-runner dependency version,1 target API,1 missing launcher icon. Android
+icon/branding polish and physical-device GPS/lifecycle acceptance remain pending;
+no unrelated warning cleanup/toolchain update. KAEK device sync remains FALSE.
+
+Commands below are retained reproduction references; do not repeat accepted
+tests without a relevant change. The next acceptance is the owner Windows GUI
+session and physical Android GPS validation, not another full instrumentation run.
+
+The current, uncommitted development source adds local GPS accuracy classification,
+fix timestamps, and a separate imported cadastral-reference overlay. Database
+schema is **15**, logical backup schema **19** (older backups remain readable).
+`CadastralStore.ANDROID_KAEK_SYNC_ENABLED` remains **false**. This checkpoint does
+not enable Windows–Android transfer, pairing, discovery or a cloud relay.
+The older results and sync descriptions below are historical; they do not validate
+these development changes or imply that v1.0.1 device sync is enabled.
+
+The owner explicitly authorizes normal Android Studio/JDK/SDK/Gradle/adb/emulator
+execution on the existing Windows host. The previous BSOD restriction concerned
+the Python 3.14.8/registry-rename validation path; it does **not** require a new
+VM or duplicate Android toolchain/cache. That risky Python/registry path remains
+prohibited. Preserve the separate Windows GUI Sandbox session.
+
+Use the active public source checkout and existing JDK 21, SDK 36/build-tools
+36.0.0, Gradle cache and `Medium_Phone` AVD. In host PowerShell, from `android/`:
+
+```powershell
+$env:ANDROID_HOME = 'C:\Users\<user>\AppData\Local\Android\Sdk'
+$env:ANDROID_SDK_ROOT = $env:ANDROID_HOME
+.\gradlew.bat --no-daemon '-PmastixaVersionName=1.0.1-alpha.1' lintDebug assembleDebug assembleChecksAndroidTest --console=plain
+```
+
+Quote the Gradle version property in PowerShell so the dotted version remains
+one argument. No Windows installer task is involved. Compilation/lint status and
+instrumentation results are recorded below after execution, not inferred from
+toolchain availability.
+
+After compilation succeeds, reuse the existing emulator (start `Medium_Phone`
+without wiping it if stopped). Run the focused **15 cases** in the same directory,
+with only this emulator selected (`ANDROID_SERIAL` when necessary):
+
+```powershell
+.\gradlew.bat --no-daemon '-PmastixaVersionName=1.0.1-alpha.1' connectedChecksAndroidTest '-Pandroid.testInstrumentationRunnerArguments.class=gr.mastixa.manager.AndroidGpsLocalTest,gr.mastixa.manager.GpsTrackTest,gr.mastixa.manager.GeoStoreTest,gr.mastixa.manager.LocalBackupTest,gr.mastixa.manager.ParcelMapUiTest' --console=plain
+```
+
+This compiles the complete instrumentation APK and executes only local GPS,
+geometry/migration, backup and map/permission regressions in the separate
+`gr.mastixa.manager.checks` target. Tests use synthetic databases and simulated
+fixes; no real GPS walk, user database, KAEK dataset download or device sync is
+required. Read the actual Gradle summary and retain `app/build/reports/lint-results-debug.html`
+and `app/build/reports/androidTests/connected/` plus the corresponding XML results
+under `app/build/outputs/androidTest-results/connected/`. Do not infer real-device
+GPS acceptance from emulator instrumentation. Diagnose an actual failure without
+automatic retries, real-app uninstall, or AVD wipes.
+
+The existing hosted `verify.yml`, `android-update-gate.yml` and
+`android-runtime.yml` already provide Ubuntu build/emulator paths for committed
+source. Dispatching them now would test the public commit, not this dirty working
+tree. No push or workflow dispatch is needed for this authorized local validation.
+
 # Mastixa Android — πρώτη offline έκδοση
 
 Android έργο στο `android/` του κοινού repository με την εφαρμογή Windows.

@@ -13,11 +13,11 @@ import java.util.UUID;
 public final class FarmStore extends SQLiteOpenHelper {
     public record Field(String id, String name, double area, String kaek, String location, int trees, String notes) {}
     public FarmStore(Context context) { this(context, "mastixa.db"); }
-    public FarmStore(Context context, String name) { super(context, name, null, 14); }
+    public FarmStore(Context context, String name) { super(context, name, null, 15); }
     @Override public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE fields(id TEXT PRIMARY KEY, name TEXT NOT NULL, area REAL NOT NULL CHECK(area>=0), revision INTEGER NOT NULL, updated_at INTEGER NOT NULL)");
         db.execSQL("CREATE TABLE pending_changes(operation_id TEXT PRIMARY KEY, entity_id TEXT NOT NULL, entity TEXT NOT NULL, operation TEXT NOT NULL, revision INTEGER NOT NULL, created_at INTEGER NOT NULL)");
-        onUpgrade(db, 1, 14);
+        onUpgrade(db, 1, 15);
     }
     @Override public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion < 2) {
@@ -39,6 +39,7 @@ public final class FarmStore extends SQLiteOpenHelper {
         if(oldVersion<12){DocumentStore.create(db);YearLocks.create(db);}
         if(oldVersion<13)GeoStore.create(db);
         if(oldVersion<14)GisSyncRepository.create(db);
+        if(oldVersion<15)CadastralStore.create(db);
     }
     public void addField(String name, double area) {
         saveField(null,name,area,"","",0,"");

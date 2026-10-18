@@ -280,6 +280,20 @@
     "sha256": "f8c52517ba079fd917bdcecfd160e3cc086eeb988558537b4c700db082506f8c"
   },
   {
+    "path": "app/assets/geonames_gr.json",
+    "category": "THIRD-PARTY DATA / CC-BY-4.0",
+    "ships_windows": true,
+    "evidence": "GeoNames Greece public extract; Fieltra filters geographic/settlement records and selects Greek display names. Attribution and modification notice in THIRD_PARTY_NOTICES.md; deterministic transform in tools/update_geonames_gazetteer.py. No application/user database.",
+    "origin": "https://download.geonames.org/export/dump/GR.zip",
+    "license": "CC-BY-4.0",
+    "license_file": "licenses/CRS/CC-BY-4.0.txt",
+    "attribution": "GeoNames (https://www.geonames.org/)",
+    "acquired_at": "2026-10-16T14:23:19+00:00",
+    "source_last_modified": "Fri, 16 Oct 2026 02:02:34 GMT",
+    "source_sha256": "ea70b0ff949bfe76f4637cc206b92e49e8c9ec4389dc8ff204651ee3902d0cb0",
+    "sha256": "8901c5d4d63a2ae5a29de6a41e7c4ca4ae32c9f0525451e096371e1f6f0adbf2"
+  },
+  {
     "path": "packaging/mastixa_manager.ico",
     "category": "PROJECT-CREATED / AI-ASSISTED",
     "ships_windows": true,

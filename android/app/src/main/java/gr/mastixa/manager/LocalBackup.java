@@ -12,8 +12,8 @@ import java.security.MessageDigest;
 /** Versioned logical snapshot of all current application tables. */
 public final class LocalBackup {
     private static final int LIMIT = 50 * 1024 * 1024;
-    private static final int CURRENT_SCHEMA = 18;
-    private static final String[] TABLES = {"fields", "pending_changes", "producer", "products", "product_fields", "business_partners", "inventory_items", "inventory_movements", "money_entries", "production", "production_sales", "farm_activities", "plant_protection_records", "workers", "labor_entries", "planting_batches", "equipment", "equipment_maintenance", "invoice_documents", "year_locks", "gis_records", "gis_sync_state", "gis_sync_cursor", "gis_sync_conflicts", "crop_programs", "crop_program_rules", "crop_program_assignments", "crop_tasks", "individual_plants", "plant_events", "planting_replantings", "sensor_devices", "sensor_channels", "sensor_observations"};
+    private static final int CURRENT_SCHEMA = 19;
+    private static final String[] TABLES = {"fields", "pending_changes", "producer", "products", "product_fields", "business_partners", "inventory_items", "inventory_movements", "money_entries", "production", "production_sales", "farm_activities", "plant_protection_records", "workers", "labor_entries", "planting_batches", "equipment", "equipment_maintenance", "invoice_documents", "year_locks", "gis_records", "gis_sync_state", "gis_sync_cursor", "gis_sync_conflicts", "crop_programs", "crop_program_rules", "crop_program_assignments", "crop_tasks", "individual_plants", "plant_events", "planting_replantings", "sensor_devices", "sensor_channels", "sensor_observations", "cadastral_reference"};
     private static final String[][] COLUMNS = {
         {"id","name","area","revision","updated_at","kaek","location","trees","notes","deleted_at"},
         {"operation_id","entity_id","entity","operation","revision","created_at"},
@@ -21,7 +21,7 @@ public final class LocalBackup {
         {"id","name","unit","is_active","revision","updated_at"},
         {"id","product_id","field_id","variety","planting_date","cultivation_status","revision","updated_at"},
         {"id","name","partner_type","tax_id","contact_person","phone","email","address","products","payment_terms","notes","revision","updated_at","deleted_at"},
-        InventoryStore.ITEM_COLUMNS,InventoryStore.MOVEMENT_COLUMNS,MoneyStore.COLUMNS,ProductionStore.HARVEST_COLUMNS,ProductionStore.SALE_COLUMNS,ActivityStore.COLUMNS,WorkStore.PROTECTION_COLUMNS,WorkStore.WORKER_COLUMNS,WorkStore.LABOR_COLUMNS,WorkStore.PLANTING_COLUMNS,WorkStore.EQUIPMENT_COLUMNS,WorkStore.SERVICE_COLUMNS,DocumentStore.COLUMNS,YearLocks.COLUMNS,GeoStore.COLUMNS,GisSyncRepository.COLUMNS[0],GisSyncRepository.COLUMNS[1],GisSyncRepository.COLUMNS[2],CropProgramBackup.COLUMNS[0],CropProgramBackup.COLUMNS[1],CropProgramBackup.COLUMNS[2],CropProgramBackup.COLUMNS[3],PlantTrackingBackup.COLUMNS[0],PlantTrackingBackup.COLUMNS[1],PlantingHistory.COLUMNS,SensorDataBackup.COLUMNS[0],SensorDataBackup.COLUMNS[1],SensorDataBackup.COLUMNS[2]
+        InventoryStore.ITEM_COLUMNS,InventoryStore.MOVEMENT_COLUMNS,MoneyStore.COLUMNS,ProductionStore.HARVEST_COLUMNS,ProductionStore.SALE_COLUMNS,ActivityStore.COLUMNS,WorkStore.PROTECTION_COLUMNS,WorkStore.WORKER_COLUMNS,WorkStore.LABOR_COLUMNS,WorkStore.PLANTING_COLUMNS,WorkStore.EQUIPMENT_COLUMNS,WorkStore.SERVICE_COLUMNS,DocumentStore.COLUMNS,YearLocks.COLUMNS,GeoStore.COLUMNS,GisSyncRepository.COLUMNS[0],GisSyncRepository.COLUMNS[1],GisSyncRepository.COLUMNS[2],CropProgramBackup.COLUMNS[0],CropProgramBackup.COLUMNS[1],CropProgramBackup.COLUMNS[2],CropProgramBackup.COLUMNS[3],PlantTrackingBackup.COLUMNS[0],PlantTrackingBackup.COLUMNS[1],PlantingHistory.COLUMNS,SensorDataBackup.COLUMNS[0],SensorDataBackup.COLUMNS[1],SensorDataBackup.COLUMNS[2],CadastralStore.COLUMNS
     };
     private static String hash(String value) throws Exception {
         byte[] digest = MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
@@ -45,7 +45,8 @@ public final class LocalBackup {
             case 15 -> 28;
             case 16 -> 30;
             case 17 -> 31;
-            case 18 -> TABLES.length;
+            case 18 -> 34;
+            case 19 -> TABLES.length;
             default -> throw new IOException("Μη συμβατό αντίγραφο Mastixa Android.");
         };
     }
@@ -118,6 +119,7 @@ public final class LocalBackup {
                     if(t>=28 && t<=29) PlantTrackingBackup.validateRow(t-28,row);
                     if(t==30) PlantingHistory.validateBackupRow(row);
                     if(t>=31 && t<=33) SensorDataBackup.validateRow(t-31,row);
+                    if(t==34) CadastralStore.validateBackup(row);
                     if(t==20){if(row.getString("id").isBlank()||row.getString("field_id").isBlank())throw new IOException("Missing GIS identity");GeoStore.validatePayload(row.getString("kind"),new JSONObject(row.getString("payload")));}
                     if(t==0 && (row.getString("id").isBlank() || row.getString("name").isBlank() || row.getLong("trees")>Integer.MAX_VALUE)) throw new IOException("Μη έγκυρο αγροτεμάχιο.");
                     if(t==1 && (row.getString("operation_id").isBlank() || !java.util.Set.of("fields","producer","products","product_fields","business_partners","inventory_items","inventory_movements","money_entries","production","production_sales","farm_activities","plant_protection_records","workers","labor_entries","planting_batches","equipment","equipment_maintenance","invoice_documents","year_locks","gis_records").contains(row.getString("entity")) || !java.util.Set.of("create","update","delete").contains(row.getString("operation")))) throw new IOException("Μη έγκυρη αλλαγή.");
@@ -172,6 +174,7 @@ public final class LocalBackup {
             PlantTrackingBackup.validateRelations(stage);
             PlantingHistory.validateRelations(stage);
             SensorDataBackup.validateRelations(stage);
+            try(var c=stage.rawQuery("SELECT 1 FROM cadastral_reference c LEFT JOIN fields f ON f.id=c.field_id WHERE f.id IS NULL LIMIT 1",null)){if(c.moveToFirst())throw new IOException("Cadastral field relationship mismatch");}
             return stage;
         } catch(Exception error) { stage.close(); throw error; }
     }

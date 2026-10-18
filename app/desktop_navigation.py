@@ -324,6 +324,15 @@ class DesktopNavigation:
 
     def open(self, key):
         target = self.targets[key]
+        map_field_id = None
+        if target.detail == "map":
+            source_index = self.window._current_page_index()
+            source = self.window.pages[source_index][1]
+            source = source.resolved_page() if hasattr(source, "resolved_page") else source
+            if source_index == self.targets["field_profile"].page:
+                map_field_id = source.field.currentData()
+            else:
+                map_field_id = getattr(source, "selected_field_id", None)
         self._opening = True
         try:
             self.window.change_page(target.page)
@@ -331,6 +340,16 @@ class DesktopNavigation:
             if target.detail:
                 page = page.resolved_page() if hasattr(page, "resolved_page") else page
                 if target.detail == "map":
+                    if map_field_id is not None and page.selected_field_id != map_field_id:
+                        for row in range(page.table.rowCount()):
+                            item = page.table.item(row, 0)
+                            if item is not None and item.data(Qt.ItemDataRole.UserRole) == map_field_id:
+                                page.table.selectRow(row)
+                                page.load_selected(row, 0)
+                                break
+                    if map_field_id is not None and page.selected_field_id == map_field_id:
+                        page.open_map()
+                        return
                     if not hasattr(page, "farm_map_hint"):
                         page.farm_map_hint = QLabel(_text("Επίλεξε χωράφι και πάτησε «Χάρτης αγροτεμαχίου»."), page)
                         page.farm_map_hint.setWordWrap(True)

@@ -75,7 +75,7 @@ public class MoneyTest {
                 LegacySchema.dropStage12(db);db.execSQL("DROP TABLE equipment_maintenance");db.execSQL("DROP TABLE equipment");db.execSQL("DROP INDEX money_service");db.execSQL("DROP TABLE planting_batches");db.execSQL("DROP TABLE plant_protection_records");db.execSQL("DROP TABLE labor_entries");db.execSQL("DROP TABLE workers");db.execSQL("DROP TABLE farm_activities");db.execSQL("DROP TABLE production_sales");db.execSQL("DROP TABLE production");db.execSQL("DROP TABLE money_entries");db.setVersion(5);
             }
             try(var store=new FarmStore(context,name)){
-                assertEquals(14,store.getReadableDatabase().getVersion());assertEquals(1,new MoneyStore(store).entries("expense").size());assertEquals(20,new MoneyStore(store).entries("expense").get(0).amount(),0);LocalBackup.restore(store,legacy,file);assertEquals(1,new MoneyStore(store).entries("expense").size());LocalBackup.restore(store,legacy,file);assertEquals(1,new MoneyStore(store).entries("expense").size());
+                assertEquals(15,store.getReadableDatabase().getVersion());assertEquals(1,new MoneyStore(store).entries("expense").size());assertEquals(20,new MoneyStore(store).entries("expense").get(0).amount(),0);LocalBackup.restore(store,legacy,file);assertEquals(1,new MoneyStore(store).entries("expense").size());LocalBackup.restore(store,legacy,file);assertEquals(1,new MoneyStore(store).entries("expense").size());
             }
         }finally{context.deleteDatabase(name);file.delete();}
     }

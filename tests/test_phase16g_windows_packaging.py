@@ -155,7 +155,7 @@ public class Fixture {
                         capture_output=True, text=True, timeout=20)
                     self.assertEqual(expected == "PASS", result.returncode == 0,
                                      result.stdout + result.stderr)
-                    reports = list(run_root.glob("Fieltra-smoke-*/result.json"))
+                    reports = list(run_root.glob("MastixaManager-smoke-*/result.json"))
                     self.assertEqual(1, len(reports), result.stdout + result.stderr)
                     report = json.loads(reports[0].read_text(encoding="utf-8-sig"))
                     self.assertEqual(expected, report["status"])
@@ -171,21 +171,17 @@ public class Fixture {
                         ], capture_output=True, timeout=10)
                         self.assertEqual(0, check.returncode, "Timed-out child survived cleanup")
 
-    def test_release_versions_are_consistent(self) -> None:
+    def test_retained_release_packaging_versions_are_consistent(self) -> None:
         readme = self._read("README.md")
-        version_module = self._read("app/version.py")
         iss = self._read("installer/MastixaManager.iss")
         version_info = self._read("packaging/version_info.txt")
+        config = json.loads(self._read("packaging/windows-rc.json"))
 
-        readme_match = re.search(r"Current Windows source targets \*\*([^*]+)\*\*", readme)
-        module_match = re.search(r'^APP_VERSION = "([^"]+)"', version_module, re.MULTILINE)
         iss_match = re.search(r'^#define MyAppVersion "([^"]+)"', iss, re.MULTILINE)
         file_match = re.search(r"StringStruct\('FileVersion', '([^']+)'\)", version_info)
         product_match = re.search(r"StringStruct\('ProductVersion', '([^']+)'\)", version_info)
 
         for match in (
-            readme_match,
-            module_match,
             iss_match,
             file_match,
             product_match,
@@ -193,13 +189,13 @@ public class Fixture {
             self.assertIsNotNone(match)
 
         versions = {
-            readme_match.group(1),
-            module_match.group(1),
+            config['version'],
             iss_match.group(1),
             file_match.group(1),
             product_match.group(1),
         }
-        self.assertEqual(1, len(versions), f"Release versions drifted: {sorted(versions)}")
+        self.assertEqual({'1.0.0'}, versions, f"Retained release versions drifted: {sorted(versions)}")
+        self.assertIn('/releases/tag/v1.0.0', readme)
 
     def test_installer_upgrade_contract_preserves_external_user_data(self) -> None:
         iss = self._read("installer/MastixaManager.iss")
@@ -279,21 +275,25 @@ public class Fixture {
         self.assertNotIn("self-hosted", workflow)
         self.assertNotIn("winget install", workflow)
 
-    def test_release_output_is_isolated_and_retries_transient_windows_locks(self) -> None:
+    def test_release_output_is_isolated_and_stops_after_one_installer_attempt(self) -> None:
         build = self._read("packaging/build_release.ps1")
         ci_build = self._read("packaging/ci_windows_release.ps1")
         workflow = self._read(".github/workflows/windows-release-gate.yml")
 
         self.assertIn('[string]$InstallerOutputDir = ""', build)
-        self.assertIn("[int]$InstallerBuildAttempts = 3", build)
-        self.assertIn('$outputArg = "/O$installerOutput"', build)
-        self.assertIn("for ($attempt = 1; $attempt -le $InstallerBuildAttempts; $attempt++)", build)
-        self.assertIn("Retrying in $delaySeconds seconds", build)
+        self.assertIn("[int]$InstallerBuildAttempts = 1", build)
+        self.assertIn('if ($InstallerBuildAttempts -ne 1) { throw', build)
+        self.assertIn('& $compiler "/O$installerOutput"', build)
+        self.assertEqual(1, build.count('& $compiler '))
+        self.assertIn('if ($LASTEXITCODE -ne 0) { throw', build)
+        self.assertIn('No automatic retry.', build)
+        self.assertNotRegex(build, r'for\s*\(\s*\$attempt\b')
         self.assertIn('$outputDir = Join-Path $env:RUNNER_TEMP', ci_build)
         self.assertIn('$env:GITHUB_RUN_ID', ci_build)
         self.assertIn('$env:GITHUB_RUN_ATTEMPT', ci_build)
         self.assertIn("-InstallerOutputDir $outputDir", ci_build)
-        self.assertIn("-InstallerBuildAttempts 3", ci_build)
+        self.assertIn("-InstallerBuildAttempts 1", ci_build)
+        self.assertNotIn("-InstallerBuildAttempts 3", ci_build)
         self.assertNotIn("ci_windows_release.ps1", workflow)
         self.assertNotIn('dist\\installer\\Fieltra-', workflow)
 

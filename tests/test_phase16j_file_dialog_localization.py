@@ -24,23 +24,23 @@ CASES = [
     ("annual_report", "AnnualFarmReportPage", "export_csv", "getSaveFileName", "Αποθήκευση Ετήσιας Αναφοράς", "Save Annual Report", "annual_report_2027.csv", "CSV (*.csv)", "CSV (*.csv)"),
     ("audit", "AuditPage", "export_csv", "getSaveFileName", "Εξαγωγή ιστορικού CSV", "Export history CSV", "mastixa_audit_history.csv", "CSV (*.csv)", "CSV (*.csv)"),
     ("dashboard", "DashboardPage", "restore_backup", "getOpenFileName", "Επίλεξε backup για επαναφορά", "Select a backup to restore", RAW_DIR, "SQLite Database (*.db);;Όλα τα αρχεία (*)", "SQLite Database (*.db);;All files (*)"),
-    ("data_export", "DataExportPage", "export_zip", "getSaveFileName", "Δημιουργία φορητού ZIP", "Create portable ZIP", "mastixa_data_export_20270405_060708.zip", "ZIP (*.zip)", "ZIP (*.zip)"),
+    ("data_export", "DataExportPage", "export_zip", "getSaveFileName", "Δημιουργία φορητού ZIP", "Create portable ZIP", "fieltra_data_export_20270405_060708.zip", "ZIP (*.zip)", "ZIP (*.zip)"),
     ("data_quality", "DataQualityPage", "export_csv", "getSaveFileName", "Εξαγωγή ελέγχου δεδομένων", "Export data check", "mastixa_data_quality.csv", "CSV (*.csv)", "CSV (*.csv)"),
     ("field_finance", "FieldFinancePage", "export_csv", "getSaveFileName", "Εξαγωγή κόστους ανά αγροτεμάχιο", "Export cost by field", "mastixa_field_costs_2027.csv", "CSV (*.csv)", "CSV (*.csv)"),
     ("gis.dialog", "ParcelMapDialog", "import_file", "getOpenFileName", "Εισαγωγή ορίων", "Import boundary", "", "Γεωμετρία (*.geojson *.json *.kml *.gml *.xml *.zip *.dxf)", "Geometry (*.geojson *.json *.kml *.gml *.xml *.zip *.dxf)"),
     ("gis.export_dialog", "CoordinateExportDialog", "export", "getSaveFileName", "Εξαγωγή", "Export", RAW_NAME + "_KAEK_123_coordinates_source.csv", "CSV (*.csv)", "CSV (*.csv)"),
     ("inventory_report", "InventoryReportPage", "export_csv", "getSaveFileName", "Αποθήκευση Αναφοράς Αποθήκης", "Save Inventory Report", "inventory_stock_report.csv", "CSV (*.csv)", "CSV (*.csv)"),
     ("invoice_documents", "InvoiceDocumentsPage", "choose_files", "getOpenFileNames", "Εισαγωγή τιμολογίων", "Import invoices", "", "Τιμολόγια (*.jpg *.jpeg *.png *.bmp *.tif *.tiff *.webp *.pdf);;Όλα (*.*)", "Invoices (*.jpg *.jpeg *.png *.bmp *.tif *.tiff *.webp *.pdf);;All (*.*)"),
-    ("invoice_documents", "InvoiceDocumentsPage", "export_selected", "getSaveFileName", "Εξαγωγή επιλεγμένων τιμολογίων", "Export selected invoices", "mastixa_invoices_20270405_060708.zip", "ZIP (*.zip)", "ZIP (*.zip)"),
-    ("reports", "ReportsPage", "export_pdf", "getSaveFileName", "Εξαγωγή αναφοράς σε PDF", "Export report to PDF", "mastixa_report_2027.pdf", "PDF (*.pdf)", "PDF (*.pdf)"),
-    ("reports", "ReportsPage", "export_excel", "getSaveFileName", "Εξαγωγή αναφοράς σε Excel", "Export report to Excel", "mastixa_report_2027.xlsx", "Excel (*.xlsx)", "Excel (*.xlsx)"),
+    ("invoice_documents", "InvoiceDocumentsPage", "export_selected", "getSaveFileName", "Εξαγωγή επιλεγμένων τιμολογίων", "Export selected invoices", "fieltra_invoices_20270405_060708.zip", "ZIP (*.zip)", "ZIP (*.zip)"),
+    ("reports", "ReportsPage", "export_pdf", "getSaveFileName", "Εξαγωγή αναφοράς σε PDF", "Export report to PDF", "fieltra_report_2027.pdf", "PDF (*.pdf)", "PDF (*.pdf)"),
+    ("reports", "ReportsPage", "export_excel", "getSaveFileName", "Εξαγωγή αναφοράς σε Excel", "Export report to Excel", "fieltra_report_2027.xlsx", "Excel (*.xlsx)", "Excel (*.xlsx)"),
     ("sales_report", "SalesReportPage", "export_csv", "getSaveFileName", "Αποθήκευση Αναφοράς Πωλήσεων", "Save Sales Report", "sales_report.csv", "CSV (*.csv)", "CSV (*.csv)"),
     ("settings", "SettingsPage", "choose_profile_avatar", "getOpenFileName", "Εικόνα προφίλ", "Profile image", "", "Εικόνες (*.png *.jpg *.jpeg *.webp *.bmp)", "Images (*.png *.jpg *.jpeg *.webp *.bmp)"),
-    ("settings", "SettingsPage", "export_profile", "getSaveFileName", "Εξαγωγή προφίλ", "Export profile", RAW_NAME + ".fieltraprofile", "Προφίλ Mastixa (*.fieltraprofile)", "Mastixa profile (*.fieltraprofile)"),
-    ("settings", "SettingsPage", "import_profile", "getOpenFileName", "Εισαγωγή προφίλ", "Import profile", "", "Προφίλ Mastixa (*.fieltraprofile)", "Mastixa profile (*.fieltraprofile)"),
+    ("settings", "SettingsPage", "export_profile", "getSaveFileName", "Εξαγωγή προφίλ", "Export profile", RAW_NAME + ".fieltraprofile", "Προφίλ Fieltra (*.fieltraprofile)", "Fieltra profile (*.fieltraprofile)"),
+    ("settings", "SettingsPage", "import_profile", "getOpenFileName", "Εισαγωγή προφίλ", "Import profile", "", "Προφίλ Fieltra (*.fieltraprofile *.mastixaprofile)", "Fieltra profile (*.fieltraprofile *.mastixaprofile)"),
     ("settings", "SettingsPage", "choose_backup_folder", "getExistingDirectory", "Επιλογή φακέλου backups", "Choose backup folder", RAW_DIR, None, None),
-    ("upload_center", "UploadCenterPage", "export_selected_snapshot", "getSaveFileName", "Εξαγωγή επιλεγμένου snapshot", "Export selected snapshot", "mastixa_snapshot_2027_64.json", "JSON (*.json)", "JSON (*.json)"),
-    ("upload_center", "UploadCenterPage", "export_json", "getSaveFileName", "Εξαγωγή πακέτου JSON", "Export JSON package", "mastixa_declaration_2027.json", "JSON (*.json)", "JSON (*.json)"),
+    ("upload_center", "UploadCenterPage", "export_selected_snapshot", "getSaveFileName", "Εξαγωγή επιλεγμένου snapshot", "Export selected snapshot", "fieltra_snapshot_2027_64.json", "JSON (*.json)", "JSON (*.json)"),
+    ("upload_center", "UploadCenterPage", "export_json", "getSaveFileName", "Εξαγωγή πακέτου JSON", "Export JSON package", "fieltra_declaration_2027.json", "JSON (*.json)", "JSON (*.json)"),
 ]
 
 
@@ -188,7 +188,7 @@ class FileDialogTests(unittest.TestCase):
     def test_selected_profile_avatar_and_directory_paths_exact(self):
         for code in ("el", "en"):
             self.controller.set_language(code, persist=False)
-            for index, operation, ext in ((14, "set_avatar", ".png"), (15, "export_profile", ".fieltraprofile"), (16, "import_profile", ".fieltraprofile")):
+            for index, operation, ext in ((14, "set_avatar", ".png"), (15, "export_profile", ".fieltraprofile"), (16, "import_profile", ".fieltraprofile"), (16, "import_profile", ".mastixaprofile")):
                 path = RAW_DIR + "\\" + RAW_NAME + ext
                 with patch.object(self.modules["settings"], "_message"):
                     self.invoke(CASES[index], path)
@@ -244,7 +244,7 @@ class FileDialogTests(unittest.TestCase):
         catalogs = Path(language.__file__).parent / "locales"
         target = catalogs / "en_phase16j_file_dialogs.json"
         entries = json.loads(target.read_text(encoding="utf-8"))["translations"]
-        self.assertEqual(set(entries), {"Εισαγωγή τιμολογίων", "Όλα τα αρχεία", "Γεωμετρία", "Εικόνες", "Προφίλ Mastixa"})
+        self.assertEqual(set(entries), {"Εισαγωγή τιμολογίων", "Όλα τα αρχεία", "Γεωμετρία", "Εικόνες", "Προφίλ Fieltra"})
         for source, translated in entries.items():
             self.assertNotRegex(translated, r"[\u0370-\u03ff\u1f00-\u1fff]")
             self.assertNotIn("*", translated)

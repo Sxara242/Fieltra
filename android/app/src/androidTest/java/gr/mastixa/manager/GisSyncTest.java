@@ -93,7 +93,7 @@ public class GisSyncTest {
                 legacy=envelope.put("schema",13).put("payload",data).put("sha256",hash.toString()).toString().getBytes(StandardCharsets.UTF_8);LegacySchema.dropSync(farm.getWritableDatabase());farm.getWritableDatabase().setVersion(13);
             }
             try(var farm=new FarmStore(context,name)){
-                assertEquals(14,farm.getReadableDatabase().getVersion());assertNotNull(new GeoStore(farm).parcel(id));assertEquals(1,LocalBackup.inspect(farm,legacy));
+                assertEquals(15,farm.getReadableDatabase().getVersion());assertNotNull(new GeoStore(farm).parcel(id));assertEquals(1,LocalBackup.inspect(farm,legacy));
                 GisSyncContract.run(new GisSyncRepository(farm,DATASET),new Server());LocalBackup.restore(farm,legacy,recovery);
                 assertNotNull(new GeoStore(farm).parcel(id));assertNull(new GisSyncRepository(farm,DATASET).state(id));assertEquals(0,new GisSyncRepository(farm,DATASET).cursor());
             }

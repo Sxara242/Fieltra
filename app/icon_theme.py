@@ -331,7 +331,7 @@ def _apply_icon_theme_impl(root) -> int:
 
     # Standard tab widgets.
     for tabs in root.findChildren(QTabWidget):
-        if tabs.property("mastixaHiddenNavigation"):
+        if tabs.property("mastixaHiddenNavigation") or tabs.property("mastixaCompactTabs"):
             continue
         tabs.setIconSize(_TAB_ICON_SIZE)
         tabs.setMaximumHeight(_QT_MAX_SIZE)
@@ -348,7 +348,8 @@ def _apply_icon_theme_impl(root) -> int:
     # Direct QTabBar support is important because the current Fieltra
     # uses tab-like navigation that can be populated/wrapped dynamically.
     for bar in root.findChildren(QTabBar):
-        if bar.parent() is not None and bar.parent().property("mastixaHiddenNavigation"):
+        if bar.parent() is not None and (bar.parent().property("mastixaHiddenNavigation")
+                or bar.parent().property("mastixaCompactTabs")):
             continue
         bar.setMaximumHeight(_QT_MAX_SIZE)
         bar.setIconSize(_TAB_ICON_SIZE)
