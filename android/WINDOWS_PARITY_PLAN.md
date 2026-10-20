@@ -1,3 +1,100 @@
+> CURRENT review/hardening checkpoint — 2026-10-20
+>
+> Owner review package A–K completed; source saved, NOT COMPILED / NOT TESTED.
+> Branch develop/v1.0.1 / ce76cc08c8ad8a2551b5f2ef2e32c91472ed89f1 unchanged.
+> B02.1 contracts unchanged; B02.2/3/4 PARTIAL; union/WMS/offline foundations
+> SOURCE COMPLETE means isolated source only. TEE geometry provider BLOCKED.
+> Corrected early-commit guard bypass, exact fence validation, binary raw-source/
+> captured-input fingerprint parity, forged/stale publication, obsolete jobs,
+> SQL/FK constraints, bounded regional reads/union, API26 URL encoding, secure
+> XML/URL/WMS coalescing and optional offline SHA256/license/index handling.
+> Eight instrumentation classes now prepared; standalone pure-JVM contracts
+> require explicit javac/java and are not discovered by testDebugUnitTest.
+> All JVM/Android compile/lint/build/runtime/CI/GUI/GPS acceptance NOT RUN.
+> Existing original app/MainActivity/FarmStore/forms/GPS/DB15/backup19/manifest/
+> signing/Gradle/dependencies untouched. All112 F-IDs/26 assignments retained.
+> API28+ default cleartext policy blocks published HTTP WMS; no policy relaxation,
+> HTTPS assumption or live provider call. Actual Android PRJ/format/heap,
+> geometry equivalence, live Atom/TEE metadata and production writer/activation/
+> restore/backup/GUI gates remain open. No B02.6/B02.7 implementation.
+> [Exact review manifest, findings, blockers and future hosted commands](../docs/CODEX_PROJECT_CONTEXT.md#b02-source-review-and-hardening--final-owner-checkpoint-2026-10-20)
+>
+> Historical dated checkpoints below retain their original scope.
+
+---
+
+> CURRENT final package checkpoint — 2026-10-20
+>
+> B02.2–B02.5/WMS/INSPIRE isolated source package reached owner review. Historical
+> per-stage STOP gates below are superseded only within this authorized package.
+> B02.2/B02.3/B02.4 PARTIAL; Android true union SOURCE COMPLETE using already
+> declared JTS1.20.0/Proj4J1.4.3; WMS/offline foundations SOURCE COMPLETE.
+> These labels mean written source, not compilation/runtime/GUI acceptance.
+> Android DB15/backup19, package/signing/manifest/permissions/Gradle, current
+> main forms/map/GPS and original installation remain unchanged.
+> Synthetic target schema/row import/receipts/fences, M:N repository/jobs/CAS,
+> bounded regional ZIP/SHP/SHX/DBF/CPG/verified-PRJ parser, cancellable executor
+> workers, true union, secure WMS/Atom and immutable offline vector index exist.
+> No real PRJ hash is bundled; official regional compatibility is unverified.
+> Cleartext WMS may be blocked by existing Android policy; no policy relaxation.
+> LIVE ATOM ENDPOINT NOT VERIFIED. No live acquisition, build/test/lint/CI/install.
+> Five new instrumentation test classes plus CadastralSynthetic generator are
+> PREPARED, NOT RUN; shared SQL uses existing androidTest fixture assets.
+> Production activation/old writer/restore integration BLOCKED; full backup/ZIP,
+> Settings/Linked KAEKs and map/GPS acceptance remain B02.6/B02.7 or later gates.
+> All112 F-IDs/26 gap assignments unchanged, no new PASS.
+> [Exact manifest, states and next integration steps](../docs/CODEX_PROJECT_CONTEXT.md#b022b025-wms-and-inspire--final-source-checkpoint-2026-10-20)
+> [A–N source support and acceptance limits](../docs/MASTER_PROGRESS.md#additive-an-implementation-support--all-acceptance-not-run)
+>
+> Historical notes below retain their original scope.
+
+---
+
+
+> CURRENT B02.1 checkpoint — 2026-10-20: owner explicitly authorized isolated
+> foundation source only. CountryExtensions.java / CadastralProtocol.java and
+> Python equivalents are CODE WRITTEN / STATICALLY REVIEWED, NOT TESTED.
+> Seven Python/six Android test methods and one shared synthetic fixture prepared;
+> no tests/build/lint/CI/install executed. No existing app source/form/startup/DB
+> changed; DB15/backup19 retained. No provider/union/Settings/storage activation.
+> [Current decisions and exact file manifest](../docs/CODEX_PROJECT_CONTEXT.md#b021-isolated-foundation--owner-authorized-2026-10-20)
+> and [current stage TODO](../docs/MASTER_PROGRESS.md#b021--core-contracts-and-isolated-foundation).
+> **B02.2 NOT STARTED. WAITING FOR OWNER APPROVAL.** Earlier checkpoints below
+> retain their dated scope; previous implementation-not-authorized statements
+> are superseded only for B02.1. No F-ID or full A–N acceptance gained PASS.
+>
+> FINAL approved owner architecture — 2026-10-20: explicit Country of cultivation
+> default **GR**, Greece-only extension implementation, no titles/ownership,
+> mandatory many-to-many field/cadastral-parcel links, and true union/dissolve
+> overlay with exterior vertices. Greek main forms remain exactly unchanged;
+> additional KAEKs use a secondary management flow. Preserve original geometry,
+> cultivated area, UUIDs/business relations and GPS data. One field/five KAEKs
+> never creates five agricultural fields or multiplies quantities/costs.
+> [Current detailed design](../docs/CODEX_PROJECT_CONTEXT.md#final-approved-cadastral-architecture-and-b02-design--2026-10-20)
+> and [A–N tests / B02 proposal](../docs/MASTER_PROGRESS.md#arch-cad-intl-01--p0-prerequisite-before-b02)
+> are documentation only: **implementation NOT STARTED; explicit approval needed**.
+> Earlier pending-architecture/title/cardinality/default-country proposals below
+> are superseded; historical evidence is retained without relabelling PASS.
+>
+> Earlier owner amendment — 2026-10-20: **International Cadastral Identifier
+> Architecture (P0 ARCH-CAD-INTL-01)** requires owner architecture approval BEFORE
+> B02. Greek 12-digit KAEK is a Greece-specific rule, never the global cadastral
+> model. Preserve existing Greek data/UUIDs/geometry/cache/jobs and all historical
+> evidence. Independent field UUID plus optional country/system/authority/
+> jurisdiction-aware string references; no language/GPS/locale inference or B01
+> migrations. Design/source audit: linked canonical context and TODO below.
+>
+> CURRENT plan — 2026-10-20: the owner-approved B01–B10 plan supersedes this
+> historical September inventory for current work. Canonical decisions/rules:
+> [CODEX_PROJECT_CONTEXT](../docs/CODEX_PROJECT_CONTEXT.md#android-parity-owner-decisions--2026-10-20).
+> Canonical 112-feature TODO and B01 evidence/owner GUI chunks:
+> [MASTER_PROGRESS](../docs/MASTER_PROGRESS.md#android-parity-b01--2026-10-20).
+> Current checkpoint: [CODEX_HANDOFF](../docs/CODEX_HANDOFF.md).
+> B01 is documentation/source audit only and stops for owner approval.
+> No historical PASS/FAIL/checkbox below was rewritten or adopted blindly.
+> All future automated tests/CI use free standard GitHub-hosted public runners;
+> host emulator and Windows Sandbox are for owner manual acceptance only.
+
 # Πλήρης μεταφορά λειτουργιών Windows → Android
 
 Καταγραφή: 7 Σεπτεμβρίου 2026. Βάση αναφοράς: ο τοπικός κώδικας του Mastixa Manager Windows (README v0.40.0-alpha.1), η λίστα 32 σελίδων του `app/main_window.py`, οι υλοποιήσεις των αντίστοιχων σελίδων και οι βοηθητικοί μηχανισμοί δεδομένων. Πρόκειται για έλεγχο κώδικα και σχεδιασμό μεταφοράς, όχι για πιστοποίηση ότι εκτελέστηκαν όλες οι λειτουργίες Windows.
@@ -251,3 +348,171 @@ Windows ZIP: equipment/equipment_maintenance μαζί με τα αντίστοι
 Νέα οδηγία χρήστη: μετά την ολοκλήρωση και επαλήθευση αυτής της εργασίας, ακολουθεί το `Mastixa_Manager_Codex_Master_Prompt.txt` από PHASE 1, με τη σειρά του, αντί της προηγούμενης αυτόματης συνέχειας σε ημερολόγιο/αναζήτηση.
 
 Επαλήθευση Φάσης 0 (9/9/2026): επιτυχές assembleDebug/assembleChecks/assembleChecksAndroidTest, πλήρης σουίτα 96 επιτυχημένων τεστ σε 151,285 s (/sdcard/mastixa-dashboard-tests.txt). Οπτικός έλεγχος Dashboard ελληνικά/αγγλικά και φιλτραρισμένων ειδοποιήσεων. Εγκατάσταση debug APK με install -r (Success), WelcomeActivity Status: ok, χωρίς διαγραφή δεδομένων. Η τρέχουσα εργασία ολοκληρώθηκε· ακολουθεί Φάση 1 του master prompt.
+
+
+B02.2 checkpoint (2026-10-20, autonomous package authority): isolated schema at
+shared/fixtures/cadastral_schema_v2.sql; Python app/gis/cadastral_migration.py;
+Android CadastralMigration.java; tests/test_cadastral_migration.py. Transactional
+schema, default-deny DML guards, immutable snapshots, synthetic staging and pure
+activation-marker refusal/recovery are implemented. PARTIAL: Android staging
+orchestration and legacy extraction; production activation BLOCKED until startup,
+restore/profile/import/background/business writers and legacy-path fence are
+integrated. No global multi-file atomicity claim. Source reviewed; tests/builds/CI
+NOT RUN. Existing B02.1 and master-source bytes preserved. Current authorization
+supersedes historical per-stage STOP only for B02.2–B02.5/WMS/INSPIRE; no GUI,
+real profiles/downloads, dependency change, Git mutation or dispatch. Continue
+B02.3 repository automatically. All 112 IDs / 26 gap assignments and A–N retained.
+
+
+B02.3 checkpoint (2026-10-20): app/gis/cadastral_store.py and Android
+CadastralParcelRepository.java implement scoped parcel/UUID-alias dedup, exact
+spellings, idempotent M:N links, reverse sharing, tombstones/revision CAS, immutable
+source records, conflict-preserving selection, deduplicated jobs, immutable input
+snapshots and shared-field invalidation/stale union publication refusal. Primary
+projection is checked against unchanged fields.kaek; removing/changing the primary
+slot is explicitly refused until the later confirmed compatibility/UI flow.
+No business field/area/crop/finance writes. Python synthetic migration now records
+classification and validates source tables; completed identical retry is a no-op,
+incomplete targets retained/refused. Android API26 uses INSERT/UPDATE rather than
+SQLite UPSERT. Test source tests/test_cadastral_store.py; NOT RUN/NOT COMPILED.
+State PARTIAL pending primary-edit/legacy-payload extraction and lookup completion
+integration; continue B02.4. No production callers, dependency or config edits.
+
+
+B02.4 checkpoint (2026-10-20): Python app/gis/greek_cadastre.py reuses the
+existing NorthAegeanProvider parser once per explicit local ZIP/multiple KAEKs;
+no existing cache/provider/request behavior changed. Android GreekCadastreDataset,
+GreekCadastreProvider and CadastralLookupWorker implement local ZIP/SHP type5/SHX,
+dBASE III KAEK+bLfSpnVr character fields and UTF-8 CPG. Flat five-member archive,
+path/CRC/ratio/count/size/offset/record/finite-coordinate/ring/topology/cancellation
+checks; 32MiB compressed, 64MiB expanded (Android deliberately below Windows128MiB),
+48MiB entry, 500000 rows, 20000 points/parcel and 100000 selected points. PRJ is
+accepted ONLY by caller-supplied independently verified EPSG:2100 SHA256 hashes;
+no live PRJ hash is bundled, so real Android regional compatibility is PARTIAL /
+BLOCKED on verified PRJ evidence. Local archive provenance never becomes official
+merely by import. Worker returns results only; transactional completion next.
+No nationwide claim, hidden network, permission or current-map change. Tests to
+be extended with generated synthetic ZIP source; all automated execution NOT RUN.
+
+B02.5 checkpoint (2026-10-20): Python cadastral_union.py uses union_all(grid_size=0),
+Android CadastralUnion.java uses existing JTS1.20.0 UnaryUnionNG FLOATING, without
+snap/repair fallback. Dependency declarations and android/THIRD_PARTY_NOTICES.md
+already cover JTS EPL2/EDL1 and Proj4J; requirements-windows-rc pins Shapely2.1.2.
+No dependency/configuration change. Both implement all nine states, completeness,
+100000/16MiB budgets, EPSG2100 / Greek-bounded EPSG4326 copies, holes/multipart,
+exterior-only vertices, explicit executor/cancellation and stale publication CAS.
+Native engine calls cannot be preempted mid-call; cooperative 30s checks only.
+Test source tests/test_cadastral_union.py covers five/overlap/gaps/holes/multipart/
+point-touch/invalid/missing/CRS/engine/stale cases. SOURCE WRITTEN, NOT RUN/COMPILED;
+Android cross-platform geometric equivalence remains unverified. Continue WMS.
+
+
+WMS checkpoint (2026-10-20): app/gis/provider_io.py + cadastre_wms.py and Android
+CadastralProviderIO.java + GreekCadastreWms.java implement secure bounded XML,
+GetCapabilities discovery/inheritance, advertised layer/style/format checks,
+WMS1.1.1 SRS vs1.3 CRS axes (EPSG4326 lat/lon only in1.3), finite/dimension-bounded
+GetMap, explicit executor/timeout/cancellation, duplicate in-flight coalescing,
+service/image error detection and original response metadata. Published HTTP
+endpoint retained exactly; HTTPS not assumed. Android respects existing cleartext
+policy and returns explicit transport failure; no manifest/security change.
+No live capabilities/layer/transport claim. Disk caching disabled pending reviewed
+provider terms. Viewer is a source/terms reference, not a verified offline license.
+Tests in tests/test_cadastre_providers.py are synthetic and NOT RUN. Continue INSPIRE.
+
+INSPIRE checkpoint (2026-10-20): app/gis/inspire_offline.py and Android
+InspireOffline.java parse bounded Atom/INSPIRE identifiers, versions/dates/coverage,
+relative download links and rights/provenance. Explicit user-selected ZIP retrieval,
+size/time/cancellation/CRC/traversal/bomb checks, SHA256 immutable exclusive file
+publication and separate transactional index. No extraction API. Index commit and
+blob publication are recoverable steps (verified orphan possible, never partial
+AVAILABLE); no automatic cleanup. Fresh-only downloads; resume predicate validates
+206/Content-Range/strong ETag but downloader never appends. Local reader validation
+callback enables B02.4-compatible archives, without guessing all INSPIRE formats.
+LIVE ATOM ENDPOINT NOT VERIFIED. No replacement URL invented, live dataset fetched,
+orthophoto/vector confusion or WMS bulk download. Source written, test sources
+prepared NOT RUN; official format/provenance/terms/live verification pending.
+Next: complete focused Android synthetic tests and static cross-contract review.
+
+
+## Source hardening review — inventory checkpoint, 2026-10-20
+
+New owner SOURCE REVIEW, HARDENING & CI READINESS package authorized; no local
+execution, workflow edits, remote mutations, live provider probes or activation.
+Verified develop/v1.0.1 / ce76cc08c8ad8a2551b5f2ef2e32c91472ed89f1, unchanged.
+Inventory matches the previous manifest: B02.1 nine files (four application,
+four test sources, one JSON fixture), later27 files (16 application modules,
+ten test/helper sources, one shared SQL schema). All36 remain untracked; four
+canonical documents contain checkpoints (context/master are locally ignored).
+Two unrelated dirty master-source documents remain protected; no existing live
+application source is modified. Current hashes/lengths captured in tool state,
+not duplicated on disk. All previous runtime/compile/test claims remain NOT RUN.
+Next: inspect architecture/contracts, then storage/repositories, parsers/union,
+WMS/Atom/TEE feasibility and prepare exact hosted commands without execution.
+
+
+### Hardening checkpoints A–C — 2026-10-20 (source only, NOT RUN)
+
+A: country/UUID/GR default contracts reviewed; settings remain unpersisted in live
+farms and no language/GPS inference found. HIGH cross-platform defect corrected:
+Python JSON/hex vs Java JSON/text source/input hashes now use versioned signed-int32
+length framing of strict UTF8/raw bytes/null. Added cadastral_fingerprint.py and
+CadastralFingerprint.java; Android source payload now immutable bytes with existing
+text constructors retained. This is an isolated internal contract, not schema1 sync.
+
+B: HIGH independent-commit bypass corrected before commit: Python requires owned
+connect_synthetic/GuardedConnection and rejects transaction SQL/cursor/executescript
+through an authorizer; Android uses SQLiteTransactionListener to veto premature
+commit/yield and checks balanced completion. Exact fence definitions are checked,
+not just names; missing/altered fences refuse writes. Shared SQL now rejects null
+text PKs, duplicate request tokens, cross-provider snapshot selections and invalid
+link timestamps/counts. Production activation remains BLOCKED: no legacy-store
+fence, resolver/file activation, restore/profile/import/business integration exists.
+These helpers are not a hostile arbitrary-SQL/filesystem security guarantee.
+
+C: HIGH forged/truncated input snapshots could reuse the correct fingerprint and
+publish a partial COMPLETE result; publication now compares the entire immutable
+capture and result counts. Stale active lookup jobs are superseded rather than
+returned forever; reselecting an identical current snapshot is idempotent. Primary
+GUI edits and overall multi-provider conflict decisions remain isolated/deferred.
+All fixes UNVERIFIED; focused guard/hash/CAS regression sources are being extended.
+Next: dataset/union/WMS/offline boundary review, then TEE/hosted readiness.
+
+
+### Hardening checkpoints D–H — 2026-10-20 (NOT RUN)
+
+D: regional inputs remain local-only, actual official Android PRJ/DBF/SHP variant
+UNKNOWN beyond existing Windows parser contracts. Added ZIP member/CRC checks to
+new Windows adapter without altering the old provider, aggregate100000/16MiB output
+bounds, strict supported jurisdiction, streamed Android ZIP hashes and mutation
+checks, no duplicate-shell collapse, exact-size entry reads avoiding BAOS copies.
+No official dataset was fetched/read. Android64MiB expanded bound still needs
+hosted/device memory measurements; no universal official archive compatibility.
+
+E: both true-unsnapped union APIs retained. Corrected cross-platform state priority,
+coordinate-loop cancellation, finite transformed measurements, explicit transform
+failures and derived output vertex bound. No native-call hard-preemption claim.
+F: API33 URL encode/decode overloads replaced by API1 UTF8 forms for minSdk26;
+reserved WMS query keys cleared, injected-transport size/cancellation validated.
+Manifest has no cleartext exception/network config; target36 defaults to denied
+HTTP on API28+, subject to actual OS policy. No endpoint/HTTPS probe or manifest edit.
+
+G: offline root/index link refusal, dedicated index validation, optional reviewed
+SHA256 verification (no invented feed checksum namespace), hash-preserving source
+bytes, broken-link corruption handling and shared versioned dataset keys added.
+Mixed XML rights text order retained; XML depth/attribute/URL boundaries aligned.
+Missing Atom endpoint remains unverified; downloads stay explicit/fresh-only, no
+resume append, extraction or WMS bulk acquisition. File/index publication remains
+recoverable separate steps, with possible verified orphans after interruption.
+
+H TEE: owner-observed parcel display/search/popup is evidence of portal behavior,
+not an independently reusable API. geocode.arcgis.com is search/geocoding;
+utility.arcgisonline.com is transformation; services-eu1.arcgis.com/query alone
+lacks service/layer/field metadata, and returnGeometry=false proves no coordinates.
+The TEE proxy.php observation is an internal portal route, not an approved direct
+provider URL. Implementation BLOCKED pending exact officially documented feature
+service/layer, KAEK field/type, geometry-returning capability, CRS/pagination/errors,
+auth/access/license/attribution/rate conditions and direct-vs-proxy authorization.
+A future adapter can reuse GR scoped identities/repository snapshots/jobs, remain
+disabled and preserve competing sources. No TEE code, scraping, credentials or
+network probes; imagery rendering was not established by the owner's screenshot.
+Next: focused regression sources and exact hosted CI/Git proposal, no execution.

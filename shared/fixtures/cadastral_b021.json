@@ -1,0 +1,54 @@
+{
+  "fixture": "fieltra-b02.1-synthetic-v1",
+  "notice": "Invented records and geometries. Never query these identifiers live. No real farm data.",
+  "farm_scope": "synthetic-farm-A",
+  "other_farm_scope": "synthetic-farm-B",
+  "field_uuids": [
+    "10000000-0000-4000-8000-000000000001",
+    "10000000-0000-4000-8000-000000000002"
+  ],
+  "legacy_values": ["", "000000000001", "  Legacy A/00-1  ", "123"],
+  "identifier_cases": [
+    {"raw": "510201507004", "valid": true},
+    {"raw": "000000000001", "valid": true},
+    {"raw": "", "valid": false},
+    {"raw": "123", "valid": false},
+    {"raw": "12345678901", "valid": false},
+    {"raw": "1234567890123", "valid": false},
+    {"raw": " 510201507004", "valid": false},
+    {"raw": "510201507004 ", "valid": false},
+    {"raw": "51020150700A", "valid": false},
+    {"raw": "５１０２０１５０７００４", "valid": false},
+    {"raw": "٥١٠٢٠١٥٠٧٠٠٤", "valid": false}
+  ],
+  "source_crs": "EPSG:2100",
+  "anchor_notice": "Artificial planar anchor for rectangle specifications, not verified cadastral geometry or transformed source data.",
+  "parcels": [
+    {"uuid": "20000000-0000-4000-8000-000000000001", "raw": "510000000001", "ring": [[686000,4249000],[686020,4249000],[686020,4249020],[686000,4249020],[686000,4249000]]},
+    {"uuid": "20000000-0000-4000-8000-000000000002", "raw": "510000000002", "ring": [[686020,4249000],[686040,4249000],[686040,4249020],[686020,4249020],[686020,4249000]]},
+    {"uuid": "20000000-0000-4000-8000-000000000003", "raw": "510000000003", "ring": [[686040,4249000],[686060,4249000],[686060,4249020],[686040,4249020],[686040,4249000]]},
+    {"uuid": "20000000-0000-4000-8000-000000000004", "raw": "510000000004", "ring": [[686060,4249000],[686080,4249000],[686080,4249020],[686060,4249020],[686060,4249000]]},
+    {"uuid": "20000000-0000-4000-8000-000000000005", "raw": "510000000005", "ring": [[686080,4249000],[686100,4249000],[686100,4249020],[686080,4249020],[686080,4249000]]}
+  ],
+  "business": {
+    "field_count": 1,
+    "crop_link_count": 1,
+    "cultivated_area_stremma": 3.25,
+    "harvest_kg": 100,
+    "sold_kg": 20,
+    "income": 200,
+    "expense": 50,
+    "net": 150,
+    "received_stock": 10,
+    "activity_consumption": 2,
+    "remaining_stock": 8
+  },
+  "future_union_expectations_NOT_IMPLEMENTED": {
+    "width_m": 100,
+    "height_m": 20,
+    "area_m2": 2000,
+    "perimeter_m": 240,
+    "components": 1,
+    "internal_seams": 0
+  }
+}
