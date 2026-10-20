@@ -14,6 +14,7 @@ from pathlib import Path
 import sqlite3
 import tempfile
 import time
+import unicodedata
 from urllib.parse import urljoin
 from urllib.request import build_opener, Request
 import zipfile
@@ -145,28 +146,48 @@ def parse_feed(data: bytes, descriptor: FeedDescriptor, retrieved_at: int) -> tu
     return tuple(result)
 
 
+def _zip_member_key(entry):
+    # ZipInfo.filename may have lost NUL suffixes or Windows separators. Never
+    # use that normalization as proof that the decoded central name was safe.
+    original, name = entry.orig_filename, entry.filename
+    for candidate in (original, name):
+        parts = candidate.split('/')
+        if candidate.endswith('/'):
+            parts = parts[:-1]  # One explicit directory marker is permitted.
+        if (not candidate or candidate.startswith('/') or '\\' in candidate
+                or ':' in candidate or '\x00' in candidate or not parts
+                or any(not p or p in ('.', '..') or p.endswith((' ', '.')) for p in parts)):
+            raise ValueError('Unsafe ZIP member name')
+    if original != name:
+        raise ValueError('ZIP member name was normalized')
+    # Comparison only, never repair/rename archive members. Include directory/
+    # file aliases, Unicode canonical equivalence and the existing case folding.
+    return unicodedata.normalize('NFC', name.rstrip('/')).casefold()
+
+
 def inspect_zip(path, cancelled=lambda: False, *, max_total=64*1024*1024):
     """Validate every entry, without extracting any path or trusting suffix alone."""
     data = io.BytesIO(path) if isinstance(path, bytes) else path
     if (len(path) if isinstance(path, bytes) else Path(path).stat().st_size) > 32*1024*1024:
         raise ValueError('ZIP compressed budget exceeded')
-    total, names = 0, set()
+    total, names, member_keys = 0, set(), set()
     with zipfile.ZipFile(data) as archive:
         entries = archive.infolist()
         if not entries or len(entries) > 256:
             raise ValueError('ZIP entry budget exceeded')
         for entry in entries:
-            name = entry.filename
-            parts = name.split('/')
-            if (not name or name.startswith('/') or '\\' in name or ':' in name or '\x00' in name
-                    or any(p in ('..', '.') for p in parts) or name.casefold() in names
+            key = _zip_member_key(entry)
+            if (key in member_keys
                     or (entry.external_attr >> 16) & 0o170000 == 0o120000 or entry.flag_bits & 1):
                 raise ValueError('Unsafe ZIP member')
-            names.add(name.casefold())
+            member_keys.add(key)
+            names.add(entry.filename.casefold())
             total += entry.file_size
             if entry.file_size > max_total or total > max_total or entry.file_size > max(1, entry.compress_size)*1000:
                 raise ValueError('ZIP expansion budget exceeded')
             consumed = 0
+            # open(ZipInfo) checks the decoded local-header name against
+            # orig_filename; do not look up by a potentially colliding string.
             with archive.open(entry) as stream:
                 while chunk := stream.read(65536):
                     if cancelled():

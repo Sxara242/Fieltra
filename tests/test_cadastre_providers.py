@@ -6,7 +6,9 @@ from contextlib import closing
 from dataclasses import replace
 import io
 import hashlib
+import binascii
 from pathlib import Path
+import struct
 import tempfile
 import unittest
 from urllib.parse import parse_qs, urlsplit
@@ -39,6 +41,33 @@ def archive_bytes(name='synthetic.txt', payload=b'synthetic vector candidate'):
     with zipfile.ZipFile(stream,'w') as archive:
         archive.writestr(name,payload)
     return stream.getvalue()
+
+
+def raw_archive_bytes(*names, local_names=None):
+    """Tiny stored UTF-8 ZIPs with literal header names, bypassing ZipInfo.
+
+    writestr sanitizes backslashes on Windows and truncates NUL names. Pack
+    local/central headers directly so every hostile spelling survives on disk.
+    Optional distinct local names exercise ZipFile.open's consistency check.
+    """
+    local_names = names if local_names is None else local_names
+    if len(names) != len(local_names):
+        raise ValueError('One local name per central-directory name required')
+    body, central = bytearray(), bytearray()
+    for name, local_name in zip(names, local_names):
+        encoded, local = name.encode('utf-8'), local_name.encode('utf-8')
+        payload = b'' if name.endswith('/') else b'synthetic vector candidate'
+        crc = binascii.crc32(payload)
+        offset = len(body)
+        body.extend(struct.pack('<4s5H3I2H', b'PK\x03\x04', 20, 0x800, 0, 0, 33,
+                                crc, len(payload), len(payload), len(local), 0))
+        body.extend(local)
+        body.extend(payload)
+        central.extend(struct.pack('<4s6H3I5H2I', b'PK\x01\x02', 20, 20, 0x800, 0, 0, 33,
+                                   crc, len(payload), len(payload), len(encoded), 0, 0, 0, 0, 0, offset))
+        central.extend(encoded)
+    end = struct.pack('<4s4H2IH', b'PK\x05\x06', 0, 0, len(names), len(names), len(central), len(body), 0)
+    return bytes(body + central + end)
 
 
 class WmsTests(unittest.TestCase):
@@ -92,6 +121,106 @@ class WmsTests(unittest.TestCase):
 
 
 class OfflineTests(unittest.TestCase):
+    # All added/modified ZIP regression tests: NOT EXECUTED locally.
+    def raw_zip(self, *names, local_names=None):
+        data = raw_archive_bytes(*names, local_names=local_names)
+        expected_local = names if local_names is None else local_names
+        with zipfile.ZipFile(io.BytesIO(data)) as archive:
+            entries = archive.infolist()
+            self.assertEqual(list(names), [entry.orig_filename for entry in entries])
+            for entry, local in zip(entries, expected_local):
+                start = entry.header_offset
+                self.assertEqual(b'PK\x03\x04', data[start:start+4])
+                length = struct.unpack_from('<H', data, start+26)[0]
+                self.assertEqual(local.encode('utf-8'), data[start+30:start+30+length])
+        return data
+
+    def refuse_raw_zip(self, *names):
+        with self.assertRaisesRegex(ValueError, 'Unsafe ZIP member|normalized'):
+            inspect_zip(self.raw_zip(*names))
+
+    def test_zip_legitimate_nested_members_and_directory(self):
+        self.assertEqual(('folder/', 'folder/nested/', 'folder/nested/valid.txt'),
+            inspect_zip(self.raw_zip('folder/', 'folder/nested/', 'folder/nested/valid.txt')))
+
+    def test_zip_parent_traversal_rejected(self):
+        self.refuse_raw_zip('../escape.txt')
+
+    def test_zip_nested_parent_traversal_rejected(self):
+        self.refuse_raw_zip('folder/../escape.txt')
+
+    def test_zip_absolute_path_rejected(self):
+        self.refuse_raw_zip('/absolute.txt')
+
+    def test_zip_drive_relative_path_rejected(self):
+        self.refuse_raw_zip('C:escape.txt')
+
+    def test_zip_drive_absolute_path_rejected(self):
+        self.refuse_raw_zip('C:/escape.txt')
+
+    def test_zip_original_backslash_rejected(self):
+        self.refuse_raw_zip('folder\\escape.txt')
+
+    def test_zip_backslash_traversal_rejected(self):
+        self.refuse_raw_zip('folder\\..\\escape.txt')
+
+    def test_zip_unc_path_rejected(self):
+        self.refuse_raw_zip('\\\\server\\share\\escape.txt')
+
+    def test_zip_original_nul_suffix_rejected(self):
+        self.refuse_raw_zip('valid.txt\x00hidden')
+
+    def test_zip_dot_segment_rejected(self):
+        self.refuse_raw_zip('folder/./valid.txt')
+
+    def test_zip_repeated_separator_rejected(self):
+        self.refuse_raw_zip('folder//valid.txt')
+
+    def test_zip_duplicate_name_rejected(self):
+        self.refuse_raw_zip('valid.txt', 'valid.txt')
+
+    def test_zip_case_collision_rejected(self):
+        self.refuse_raw_zip('folder/Valid.txt', 'FOLDER/valid.txt')
+
+    def test_zip_separator_normalization_collision_rejected(self):
+        self.refuse_raw_zip('folder/valid.txt', 'folder\\valid.txt')
+
+    def test_zip_nul_normalization_collision_rejected(self):
+        self.refuse_raw_zip('valid.txt', 'valid.txt\x00hidden')
+
+    def test_zip_unicode_normalization_collision_rejected(self):
+        self.refuse_raw_zip('caf\u00e9.txt', 'cafe\u0301.txt')
+
+    def test_zip_file_directory_alias_rejected(self):
+        self.refuse_raw_zip('folder', 'folder/')
+
+    def test_zip_windows_trailing_dot_alias_rejected(self):
+        self.refuse_raw_zip('folder/valid.txt', 'folder./valid.txt')
+
+    def test_zip_windows_trailing_space_alias_rejected(self):
+        self.refuse_raw_zip('folder/valid.txt', 'folder /valid.txt')
+
+    def test_zip_local_header_name_mismatch_rejected(self):
+        data = self.raw_zip('valid.txt', local_names=('other.txt',))
+        with self.assertRaisesRegex(zipfile.BadZipFile, 'differ'):
+            inspect_zip(data)
+
+    def test_zip_local_header_backslash_not_silently_normalized(self):
+        data = self.raw_zip('folder/valid.txt', local_names=('folder\\valid.txt',))
+        with self.assertRaisesRegex(zipfile.BadZipFile, 'differ'):
+            inspect_zip(data)
+
+    def test_zip_local_header_nul_not_silently_truncated(self):
+        data = self.raw_zip('valid.txt', local_names=('valid.txt\x00hidden',))
+        with self.assertRaisesRegex(zipfile.BadZipFile, 'differ'):
+            inspect_zip(data)
+
+    def test_zip_content_crc_corruption_rejected(self):
+        data = bytearray(self.raw_zip('valid.txt'))
+        data[30+len('valid.txt')] ^= 1
+        with self.assertRaisesRegex(zipfile.BadZipFile, 'CRC'):
+            inspect_zip(bytes(data))
+
     def test_expected_checksum_failure_timeout_and_versioned_availability(self):
         dataset=self.dataset();data=archive_bytes();original=dataset.download_links[0]
         class Stream(io.BytesIO):
@@ -166,16 +295,30 @@ class OfflineTests(unittest.TestCase):
             self.assertEqual([],list(Path(directory).glob('*.zip')))
             self.assertEqual([],list(Path(directory).glob('*.part')))
 
-    def test_zip_traversal_cancel_corruption_and_resume_refusal(self):
+    def test_unsafe_zip_download_never_becomes_available(self):
+        dataset=self.dataset();link=dataset.download_links[0]
+        data=self.raw_zip('folder\\escape.txt')
+        class Stream(io.BytesIO):
+            status=200
+            headers={}
+            def geturl(self):return link.url
+        with tempfile.TemporaryDirectory() as directory, closing(OfflineDatasetStore(directory)) as store:
+            with self.assertRaisesRegex(ValueError,'Unsafe ZIP member'):
+                store.download(dataset,link,initiated_by_user=True,open_stream=lambda url:Stream(data))
+            self.assertEqual(('MISSING',None),store.available(dataset,link))
+            self.assertEqual([],list(Path(directory).glob('*.zip')))
+            self.assertEqual([],list(Path(directory).glob('*.part')))
+
+    def test_zip_cancellation(self):
         with tempfile.TemporaryDirectory() as directory:
             path=Path(directory)/'fixture.zip'
-            for name in ('../escape.txt','/absolute.txt','folder\\escape.txt','C:escape.txt'):
-                path.write_bytes(archive_bytes(name))
-                with self.assertRaises(ValueError):inspect_zip(path)
             path.write_bytes(archive_bytes())
             with self.assertRaises(InterruptedError):inspect_zip(path,lambda:True)
-            path.write_bytes(b'not a zip')
-            with self.assertRaises(zipfile.BadZipFile):inspect_zip(path)
+
+    def test_zip_invalid_archive_rejected(self):
+        with self.assertRaises(zipfile.BadZipFile):inspect_zip(b'not a zip')
+
+    def test_resume_refusal_and_protocol_predicate(self):
         self.assertFalse(resume_is_valid(status=200,content_range=None,strong_etag='"v1"',previous_etag='"v1"',offset=100,expected_total=200))
         self.assertTrue(resume_is_valid(status=206,content_range='bytes 100-199/200',strong_etag='"v1"',previous_etag='"v1"',offset=100,expected_total=200))
 

@@ -1,3 +1,82 @@
+> CURRENT B02 CI remediation preparation — 2026-10-20
+>
+> Local ZIP correction SAVED in app/gis/inspire_offline.py and
+> tests/test_cadastre_providers.py;28 replacement/new named tests NOT EXECUTED.
+> Validate original decoded/effective names; literal local/central ZIP fixtures
+> preserve malformed bytes; no relaxed limits or extraction. No corrected PASS.
+>
+> develop/v1.0.1 /6b61a488a2d296be20c1ddd5b3d5cc4640958e06 unchanged;
+> run39440425647 remains FAILURE. Four Windows timeouts unresolved. Prior two
+> inspected runs passed them;115s stack samples are distinguished from final
+> unfinished cases. No DB/Qt/UI production correction or timeout increase.
+>
+> JVM checker and its three Java SE dependencies: NOT COMPILED / NOT EXECUTED;
+> exact hosted JDK21/--release17/repo-root commands are prepared.
+> Eight B02 instrumentation classes: SOURCE PRESENT / COMPILED at6b61a488,
+>25 prepared methods, NOT EXECUTED / runtime PASS NOT VERIFIED:
+> CountryExtensionsTest(3), CadastralM2MTest(3), CadastralMigrationTest(3),
+> CadastralParcelRepositoryTest(2), GreekCadastreDatasetTest(3),
+> CadastralUnionTest(4), CadastreProvidersTest(4), CadastralHardeningTest(3).
+> CadastralSynthetic is a shared helper, not an additional test class.
+>
+> Existing connectedChecksAndroidTest runs the ENTIRE checks androidTest suite
+> on configured API36 x86_64; no eight-class filter exists. Runtime workflow
+> inventory has zero hosted runs. APK compilation is not instrumentation PASS.
+> API26 desugaring/NIO/SQLite/XML behavior, real regional PRJ/format/heap,
+> cross-platform runtime, full backup/write/restore/activation and GUI/GPS
+> remain NOT VERIFIED. Existing tests cover synthetic guards/refusal, not
+> complete production backup/whole-file restore.
+>
+> [Complete matrix, dependencies, exact later commands, timeout diagnostics,
+>48 protected hashes and approval gate](../docs/CODEX_PROJECT_CONTEXT.md#b02-ci-remediation-and-hosted-verification-preparation--2026-10-20).
+> No Gradle/manifest/dependency/workflow edit; no local execution or remote
+> mutation. Six permitted files updated, previous canonical work preserved.
+> Index/HEAD and both dirty protected master-source documents retained.
+> Context/master are ignored local ledgers, excluded from proposed publication.
+>
+> Proposed public commit: only ZIP source/test +handoff/parity docs, after
+> owner approval. Existing full verify/API36 full-suite dispatch need no
+> workflow change; focused Windows/JVM/eight-class/API26 coverage needs one.
+> All commit/push/dispatch/rerun/testing actions remain separately gated.
+>112 IDs/26 gaps/A–N unchanged; B02 activation and B02.6/B02.7 not authorized.
+> STOP AT OWNER REVIEW. Older checkpoints below remain historical.
+
+---
+
+
+> CURRENT first hosted B02 verification — 2026-10-20
+>
+> One reviewed44-path development commit/push complete:
+> 6b61a488a2d296be20c1ddd5b3d5cc4640958e06, parent ce76cc08c8ad8a2551b5f2ef2e32c91472ed89f1.
+> [Automatic run39440425647](https://github.com/Sxara242/Fieltra/actions/runs/39440425647),
+> attempt1 /exact SHA: COMPLETED FAILURE. Source/security PASS; Android job PASS.
+> Production debug/checks Java and all eight B02 instrumentation classes COMPILED;
+> assembleDebug/assembleChecksAndroidTest and lintDebug PASS. Gradle
+> testDebugUnitTest explicitly NO-SOURCE (zero tests). Standalone
+> CadastralContractsCheck NOT DISCOVERED /NOT COMPILED /NOT EXECUTED.
+> Instrumentation:25 prepared methods, zero emulator executions. Shared golden
+> vectors, JTS unions and Android SQLite fences/rollback therefore NOT EXECUTED.
+> Windows B02 modules all executed:39/40 PASS. ZIP-path assertion failed at
+> tests/test_cadastre_providers.py:174; source-based Windows normalization diagnosis
+> and original-name/byte-faithful-fixture correction proposed, NOT APPLIED.
+> Full Windows suite155/160 modules PASS; four other unchanged modules TIMEOUT,
+> one new B02 module FAIL;1134 reported completed tests. Packaging/legal2/2 PASS.
+> [Exact manifest, classes/counts, failure analysis and next hosted scope](../docs/CODEX_PROJECT_CONTEXT.md#first-hosted-b02-verification--owner-review-checkpoint-2026-10-20).
+>
+> No Android installation, original-package change, profile/DB migration, GUI/GPS,
+> dependency/Gradle/manifest/workflow/signing edit, release or new CI run.
+> Main/Stable and two dirty master-source files preserved. No B02 end-to-end
+> acceptance or F-ID PASS; all 112 features/26 original gaps retained.
+> Official regional PRJ/format/heap and runtime parity, all-writer/activation/
+> restore/backup/ZIP, GUI/GPS, live WMS HTTP policy, missing Atom and TEE API
+> gates remain. Remediation +JVM/instrumentation execution precedes B02.6/B02.7
+> readiness. Four canonical result-doc updates stay LOCAL and uncommitted.
+>
+> STOP at owner review; historical dated checkpoints below remain retained.
+
+---
+
+
 > CURRENT review/hardening checkpoint — 2026-10-20
 >
 > Owner review package A–K completed; source saved, NOT COMPILED / NOT TESTED.

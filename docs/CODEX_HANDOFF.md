@@ -1,3 +1,108 @@
+# B02 ZIP remediation and hosted verification preparation — 2026-10-20
+
+**Local ZIP correction SAVED. All new/modified tests NOT EXECUTED.
+Run39440425647 remains FAILURE. STOP AT OWNER REVIEW; no B02 activation.**
+
+Verified develop/v1.0.1 / HEAD and local+published remote development SHA
+6b61a488a2d296be20c1ddd5b3d5cc4640958e06, parent ce76cc08c8ad8a2551b5f2ef2e32c91472ed89f1.
+Index empty/unstaged. No commit/push/dispatch/rerun or workflow/dependency change.
+Pre-existing handoff/parity updates and both dirty master-source files preserved;
+context/master remain ignored local ledgers. All48 protected hashes compared.
+
+ZIP correction in app/gis/inspire_offline.py validates orig_filename AND filename,
+rejects unsafe original spellings/normalization/collisions, retains stdlib
+local-header consistency and CRC reads plus existing bounds/publication/checksum/
+cancellation/resume-refusal contracts. Synthetic fixtures pack literal ZIP headers
+instead of passing hostile names through writestr.28 replacement/new named methods
+NOT EXECUTED; providers prospective source inventory38 methods. Prior39/40 B02
+PASS belongs only to the old published source; no corrected-source PASS claimed.
+
+Four Windows timeouts remain unresolved.115s sampled stacks enter legacy schema
+initialization; phase16j/transaction/owner later advance to other final unfinished
+tests. Do not confuse the sample with the120s termination location.
+Prior successful39122298896 and failed39120669306 both passed these four modules.
+Unchanged source does not establish a pre-existing failure. Separate observed
+localization DB-read callback and deleted-DB/deleted-QObject worker faults need
+their own bounded scope; no legacy DB/Qt/UI source was changed here.
+
+Standalone JVM compilation closure: CountryExtensions, CadastralProtocol,
+CadastralFingerprint plus CadastralContractsCheck; Java SE only, JDK21 with
+--release17, repo-root TSV and output-only classpath. NOT COMPILED/EXECUTED.
+Eight Android B02 classes/25 methods were COMPILED at6b61a488, never runtime
+EXECUTED/PASSED. Existing android-runtime.yml runs the whole checks suite on
+API36, without filters; read-only workflow inventory has zero runs. API26 and
+official regional/backup/activation/GUI/GPS acceptance remain NOT VERIFIED.
+
+[Full local A–G report: timeout matrix, exact future JVM/Windows/Android commands,
+28-test inventory,48 protected hashes and approval gates](CODEX_PROJECT_CONTEXT.md#b02-ci-remediation-and-hosted-verification-preparation--2026-10-20).
+This linked context is ignored/private; do not force-add it.
+
+Proposed public commit ONLY: app/gis/inspire_offline.py,
+tests/test_cadastre_providers.py, this handoff and android/WINDOWS_PARITY_PLAN.md,
+including prior result-doc updates. Separate approval required for commit/push
+(and automatic full verify), any dispatch/rerun, focused workflow/JVM/filter/API26
+changes and hosted execution. Existing verify supports full/maps only; maps
+omits B02. Existing API36 full-suite dispatch needs no workflow edit but still
+requires authorization. Focused-first execution requires approved workflow scope.
+No112-ID/26-gap/A–N change; no main/Stable/release/install/profile/data mutation.
+
+Earlier dated checkpoints below are retained; their old NOT APPLIED proposals
+are superseded only by this unexecuted local ZIP correction.
+
+---
+
+
+# First hosted B02 verification — owner-review checkpoint, 2026-10-20
+
+**One scoped commit/push COMPLETE. Hosted run FAIL. B02 Python39/40 PASS.
+Android source/test compilation + lint PASS; Android/JVM runtime NOT EXECUTED.
+B02 end-to-end / production migration / GUI / GPS NOT ACCEPTED. STOP.**
+
+Published development SHA: 6b61a488a2d296be20c1ddd5b3d5cc4640958e06
+Parent: ce76cc08c8ad8a2551b5f2ef2e32c91472ed89f1.
+Origin https://github.com/Sxara242/Fieltra.git; only develop/v1.0.1 pushed,
+one non-force attempt. Reviewed manifest matched44 paths (42 new +two docs),
+5581 additions/no deletions or binaries; no workflow/Gradle/dependency/manifest/
+package/version/installer change. Both dirty master-source documents preserved
+with exact prior SHA256s and unstaged. Ignored private ledgers stayed excluded.
+Remote main/v1.0.0 remain6dd72e1e07a51173b15b5b72ac709e1c7141da5c.
+
+[Run39440425647](https://github.com/Sxara242/Fieltra/actions/runs/39440425647),
+automatic push, attempt1, exact published SHA; terminal FAILURE18:08:06 Athens.
+Source-audit ubuntu-latest PASS:1034 files,3 tests, Gitleaks no leaks.
+Android ubuntu-latest PASS: production/checks/test-APK compilation, debug assembly
+and lintDebug. testDebugUnitTest NO-SOURCE; standalone JVM NOT DISCOVERED /
+NOT COMPILED / NOT EXECUTED; eight instrumentation classes COMPILED, NOT RUN.
+Windows windows-latest FAIL:160 modules,155 PASS, one assertion-failure module,
+four120s TIMEOUT modules; harness reported1134 completed tests (partial timeout
+cases not counted). Separate development packaging/legal contracts PASS 2/2.
+
+All seven B02 Python modules EXECUTED: country3, M:N4, migration5, repository4,
+union6, hardening7 PASS; providers10 PASS/1 FAIL. Four golden vectors, actual
+input/source hashes, five-parcel unions and synthetic guards/rollback PASS on
+Windows; corresponding Android execution and geometric equivalence UNPROVEN.
+
+New failure: tests/test_cadastre_providers.py:174 ZIP rejection expectation.
+CPython Windows filename normalization explains the likely fixture mismatch;
+original-name validation also needs review. Four pre-existing unchanged modules
+timed out: test_batch5_ui, test_phase16j_generated_tables_localization,
+test_transaction_integrity, test_windows_owner_fix_batch1. Old DB initialization,
+language-callback DB reads and worker/resource-lifetime evidence are recorded;
+their timing root cause is UNPROVEN. No correction, extra commit/push or rerun.
+
+[Consolidated safety report, exact44 paths, test classes, failure locations,
+source-based diagnosis and next scope](CODEX_PROJECT_CONTEXT.md#first-hosted-b02-verification--owner-review-checkpoint-2026-10-20).
+Context/master remain private local ignored ledgers; this link is local.
+All 112 feature IDs/26 gaps and previous checkpoints retained, no feature PASS.
+UUID/legacy/every-writer/old-restore/activation/backup/ZIP/official Android dataset/
+GUI/GPS/live WMS/missing Atom/TEE gates remain. Recommend targeted remediation,
+standalone JVM +focused instrumentation execution before B02.6/B02.7 readiness.
+These four result-doc updates are LOCAL ONLY, unstaged/uncommitted. No local
+tests/build/lint/compile, install, dependency change, manual CI or real migration.
+
+---
+
+
 # B02 review/hardening — final owner-review checkpoint, 2026-10-20
 
 **Source review and bounded corrections saved. ALL TESTS / COMPILATION / LINT /
