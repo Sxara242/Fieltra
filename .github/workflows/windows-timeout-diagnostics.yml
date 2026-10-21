@@ -11,8 +11,6 @@ jobs:
     env:
       QT_QPA_PLATFORM: offscreen
       PYTHONUTF8: '1'
-      MASTIXA_DATA_HOME: ${{ runner.temp }}/fieltra-timeout-home-${{ github.run_id }}-${{ github.run_attempt }}
-      FIELTRA_DIAGNOSTIC_OUTPUT: ${{ runner.temp }}/fieltra-windows-timeouts-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,6 +26,9 @@ jobs:
       - name: Run seven modules once, sequentially, with unchanged bounds
         timeout-minutes: 25
         shell: pwsh
+        env:
+          MASTIXA_DATA_HOME: ${{ runner.temp }}/fieltra-timeout-home-${{ github.run_id }}-${{ github.run_attempt }}
+          FIELTRA_DIAGNOSTIC_OUTPUT: ${{ runner.temp }}/fieltra-windows-timeouts-${{ github.run_id }}-${{ github.run_attempt }}
         # As in verify.yml, the GitHub pwsh wrapper propagates LASTEXITCODE.
         run: >-
           python tools/run_windows_tests.py --jobs 1 --timeout 120
@@ -46,6 +47,8 @@ jobs:
         if: always()
         timeout-minutes: 2
         shell: pwsh
+        env:
+          FIELTRA_DIAGNOSTIC_OUTPUT: ${{ runner.temp }}/fieltra-windows-timeouts-${{ github.run_id }}-${{ github.run_attempt }}
         run: |
           @'
           import json, math, os, pathlib
@@ -130,6 +133,8 @@ jobs:
       - name: Retain only runner results and seven synthetic module logs
         if: ${{ always() && steps.evidence.outputs.upload_safe == 'true' }}
         timeout-minutes: 5
+        env:
+          FIELTRA_DIAGNOSTIC_OUTPUT: ${{ runner.temp }}/fieltra-windows-timeouts-${{ github.run_id }}-${{ github.run_attempt }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: windows-timeouts-${{ github.run_id }}-${{ github.run_attempt }}

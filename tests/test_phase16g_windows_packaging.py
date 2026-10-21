@@ -414,8 +414,12 @@ public class Fixture {
         return fields, parsed
 
     def _assert_report_upload(self, step, paths, condition="always()", timeout=None,
-                              artifact_name="android-${{ env.RUNTIME_SCOPE }}-${{ github.run_id }}-${{ github.run_attempt }}"):
+                              artifact_name="android-${{ env.RUNTIME_SCOPE }}-${{ github.run_id }}-${{ github.run_attempt }}",
+                              step_env=None):
         keys = {"name", "if", "uses", "with"}
+        if step_env is not None:
+            keys.add("env")
+            self.assertEqual(step_env, self._workflow_mapping(step, "env"))
         if timeout is not None:
             keys.add("timeout-minutes")
             self.assertEqual(str(timeout), self._workflow_scalar(step, "timeout-minutes"))
@@ -491,11 +495,15 @@ public class Fixture {
         self.assertEqual("windows-latest", self._workflow_scalar(job, "runs-on"))
         self.assertEqual("50", self._workflow_scalar(job, "timeout-minutes"))
         env = self._workflow_mapping(job, "env")
-        self.assertEqual({"QT_QPA_PLATFORM", "PYTHONUTF8", "MASTIXA_DATA_HOME", "FIELTRA_DIAGNOSTIC_OUTPUT"}, set(env))
-        self.assertEqual("offscreen", self._workflow_scalar(env, "QT_QPA_PLATFORM"))
-        self.assertEqual("1", self._workflow_scalar(env, "PYTHONUTF8"))
-        for key, prefix in (("MASTIXA_DATA_HOME", "fieltra-timeout-home"), ("FIELTRA_DIAGNOSTIC_OUTPUT", "fieltra-windows-timeouts")):
-            self.assertEqual("${{ runner.temp }}/" + prefix + "-${{ github.run_id }}-${{ github.run_attempt }}", self._workflow_scalar(env, key))
+        # GitHub does not allow the runner context in jobs.<job_id>.env.
+        for value, body in env.values():
+            self.assertNotRegex(value + "\n" + body, r"\$\{\{\s*runner(?:\.|\[)")
+        self.assertEqual({"QT_QPA_PLATFORM": ("offscreen", ""), "PYTHONUTF8": ("1", "")}, env)
+        execution_env = {key: ("${{ runner.temp }}/" + prefix +
+                               "-${{ github.run_id }}-${{ github.run_attempt }}", "")
+                         for key, prefix in (("MASTIXA_DATA_HOME", "fieltra-timeout-home"),
+                                             ("FIELTRA_DIAGNOSTIC_OUTPUT", "fieltra-windows-timeouts"))}
+        output_env = {"FIELTRA_DIAGNOSTIC_OUTPUT": execution_env["FIELTRA_DIAGNOSTIC_OUTPUT"]}
         steps = self._workflow_steps(job)
         self.assertEqual(6, len(steps))
         self.assertEqual(["actions/checkout@v4", "actions/setup-python@v5", REPORT_UPLOAD],
@@ -509,7 +517,8 @@ public class Fixture {
             self.assertEqual(timeout, self._workflow_scalar(step, "timeout-minutes"))
         self.assertEqual("python -m pip install -r requirements-dev.txt -c requirements-windows-rc.txt", self._workflow_scalar(steps[2], "run"))
         self.assertEqual({"name", "timeout-minutes", "shell", "run"}, set(steps[2]))
-        self.assertEqual({"name", "timeout-minutes", "shell", "run"}, set(steps[3]))
+        self.assertEqual({"name", "timeout-minutes", "shell", "env", "run"}, set(steps[3]))
+        self.assertEqual(execution_env, self._workflow_mapping(steps[3], "env"))
         self.assertEqual(">-", steps[3]["run"][0])
         self.assertEqual([
             "python", "tools/run_windows_tests.py", "--jobs", "1", "--timeout", "120",
@@ -518,19 +527,68 @@ public class Fixture {
             "--output", "$env:FIELTRA_DIAGNOSTIC_OUTPUT", *TIMEOUT_MODULES,
         ], shlex.split(steps[3]["run"][1]))
         evidence = steps[4]
-        self.assertEqual({"name", "id", "if", "timeout-minutes", "shell", "run"}, set(evidence))
+        self.assertEqual({"name", "id", "if", "timeout-minutes", "shell", "env", "run"}, set(evidence))
+        self.assertEqual(output_env, self._workflow_mapping(evidence, "env"))
         self.assertEqual("evidence", self._workflow_scalar(evidence, "id"))
         self.assertEqual("always()", self._workflow_scalar(evidence, "if"))
         for guard in ('"results.json"', '"TIMEOUT"', '"exit_code"', '"elapsed_seconds"',
+                      'out = pathlib.Path(os.environ["FIELTRA_DIAGNOSTIC_OUTPUT"])',
                       "len(set(names)) != 7", "set(names) != set(expected)", "upload_safe=", "if issues:", "raise SystemExit("):
             self.assertIn(guard, evidence["run"][1])
         self._assert_report_upload(steps[5], ["${{ env.FIELTRA_DIAGNOSTIC_OUTPUT }}/" + name
                                            for name in ("results.json", *(module + ".log" for module in TIMEOUT_MODULES))],
                                    "${{ always() && steps.evidence.outputs.upload_safe == 'true' }}", timeout=5,
-                                   artifact_name="windows-timeouts-${{ github.run_id }}-${{ github.run_attempt }}")
+                                   artifact_name="windows-timeouts-${{ github.run_id }}-${{ github.run_attempt }}",
+                                   step_env=output_env)
 
     def test_reusable_windows_timeout_diagnostics_report_policy(self) -> None:
         self._assert_windows_timeout_report_policy(self._read(".github/workflows/windows-timeout-diagnostics.yml"))
+
+    def test_windows_timeout_paths_reject_context_and_isolation_regressions(self) -> None:
+        original = self._read(".github/workflows/windows-timeout-diagnostics.yml")
+        home = "${{ runner.temp }}/fieltra-timeout-home-${{ github.run_id }}-${{ github.run_attempt }}"
+        output = "${{ runner.temp }}/fieltra-windows-timeouts-${{ github.run_id }}-${{ github.run_attempt }}"
+        output_mapping = "        env:\n          FIELTRA_DIAGNOSTIC_OUTPUT: " + output + "\n"
+        execution_mapping = ("        env:\n          MASTIXA_DATA_HOME: " + home +
+                             "\n          FIELTRA_DIAGNOSTIC_OUTPUT: " + output + "\n")
+        # Reconstruct the exact invalid placement rejected by GitHub, not just
+        # a changed directory that would fail the existing path allowlist.
+        job_paths = "      MASTIXA_DATA_HOME: " + home + "\n      FIELTRA_DIAGNOSTIC_OUTPUT: " + output + "\n"
+        invalid_job_env = original.replace(execution_mapping, "", 1).replace(output_mapping, "")
+        invalid_job_env = invalid_job_env.replace("      PYTHONUTF8: '1'\n", "      PYTHONUTF8: '1'\n" + job_paths, 1)
+        mutations = {
+            "original invalid job context": invalid_job_env,
+            "runner context added to job env": original.replace(
+                "      PYTHONUTF8: '1'\n", "      PYTHONUTF8: '1'\n" + job_paths, 1),
+            "missing execution data home": original.replace("          MASTIXA_DATA_HOME: " + home + "\n", "", 1),
+            "unapproved execution data home": original.replace(home, "${{ github.workspace }}/data-home", 1),
+            "runner output bypasses mapped directory": original.replace(
+                '--output "$env:FIELTRA_DIAGNOSTIC_OUTPUT"', '--output "$env:RUNNER_TEMP"', 1),
+            "accounting bypasses mapped directory": original.replace(
+                'out = pathlib.Path(os.environ["FIELTRA_DIAGNOSTIC_OUTPUT"])',
+                'out = pathlib.Path(os.environ["RUNNER_TEMP"])', 1),
+        }
+        for stage, header, mapping in (
+            ("execution", "      - name: Run seven modules once, sequentially, with unchanged bounds\n", execution_mapping),
+            ("accounting", "      - name: Account for diagnostic evidence, including incomplete setup or cleanup\n", output_mapping),
+            ("upload", "      - name: Retain only runner results and seven synthetic module logs\n", output_mapping),
+        ):
+            before, section = original.split(header, 1)
+            for label, changed_mapping in (
+                ("missing mapping", ""),
+                ("missing output variable", mapping.replace("          FIELTRA_DIAGNOSTIC_OUTPUT: " + output + "\n", "")),
+                ("inconsistent output directory", mapping.replace("fieltra-windows-timeouts", "fieltra-other-timeouts")),
+                ("workspace output", mapping.replace(output, "${{ github.workspace }}/diagnostics")),
+                ("missing run isolation", mapping.replace("-${{ github.run_id }}", "")),
+                ("missing attempt isolation", mapping.replace("-${{ github.run_attempt }}", "")),
+                ("unresolved output indirection", mapping.replace(output, "${{ env.FIELTRA_DIAGNOSTIC_OUTPUT }}")),
+            ):
+                mutations[stage + ": " + label] = before + header + section.replace(mapping, changed_mapping, 1)
+        for label, changed in mutations.items():
+            with self.subTest(mutation=label):
+                self.assertNotEqual(original, changed)
+                with self.assertRaises(AssertionError):
+                    self._assert_windows_timeout_report_policy(changed)
 
     def _assert_verify_timeout_routing_policy(self, text):
         # Match the reviewed expressions, never evaluate arbitrary YAML or expressions.
