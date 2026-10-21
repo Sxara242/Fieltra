@@ -5,17 +5,18 @@ on:
   workflow_dispatch:
     inputs:
       scope:
-        description: Full verification or focused map-provider checks
+        description: Full verification, focused map checks, or serial Windows timeout diagnostics
         type: choice
-        options: [full, maps]
+        options: [full, maps, windows-timeouts]
         default: full
 permissions:
   contents: read
 concurrency:
-  group: verify-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: verify-${{ github.workflow }}-${{ github.ref }}${{ github.event_name == 'workflow_dispatch' && inputs.scope == 'windows-timeouts' && '-windows-timeouts' || '' }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' || inputs.scope != 'windows-timeouts' }}
 jobs:
   source-audit:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.scope != 'windows-timeouts' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -37,6 +38,7 @@ jobs:
           tar -xzf "$AUDIT_TOOL_DIR/gitleaks.tar.gz" -C "$AUDIT_TOOL_DIR" gitleaks
           "$AUDIT_TOOL_DIR/gitleaks" dir . --config .gitleaks.toml --redact --no-banner --max-archive-depth 2 --max-decode-depth 3
   windows:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.scope != 'windows-timeouts' }}
     runs-on: windows-latest
     timeout-minutes: 45
     env:
@@ -82,7 +84,7 @@ jobs:
           tests.test_windows_rc_release.WindowsRcReleaseTests.test_preflight_refuses_incomplete_native_legal_and_source_delivery
           -v
   android:
-    if: ${{ inputs.scope != 'maps' }}
+    if: ${{ inputs.scope != 'maps' && (github.event_name != 'workflow_dispatch' || inputs.scope != 'windows-timeouts') }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -117,3 +119,8 @@ jobs:
       - name: Android build, lint and test APK compilation
         working-directory: android
         run: bash ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug assembleChecksAndroidTest --console=plain
+  windows-timeouts:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.scope == 'windows-timeouts' }}
+    permissions:
+      contents: read
+    uses: ./.github/workflows/windows-timeout-diagnostics.yml

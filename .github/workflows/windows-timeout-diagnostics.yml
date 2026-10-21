@@ -1,0 +1,146 @@
+name: Windows timeout diagnostics (reusable, manual via Verify, synthetic only)
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  diagnostics:
+    runs-on: windows-latest
+    # Seven existing bounds total 1200s; allow setup, process-tree cleanup and upload.
+    timeout-minutes: 50
+    env:
+      QT_QPA_PLATFORM: offscreen
+      PYTHONUTF8: '1'
+      MASTIXA_DATA_HOME: ${{ runner.temp }}/fieltra-timeout-home-${{ github.run_id }}-${{ github.run_attempt }}
+      FIELTRA_DIAGNOSTIC_OUTPUT: ${{ runner.temp }}/fieltra-windows-timeouts-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          architecture: x64
+      - name: Install established source-test dependencies
+        timeout-minutes: 15
+        shell: pwsh
+        run: python -m pip install -r requirements-dev.txt -c requirements-windows-rc.txt
+      - name: Run seven modules once, sequentially, with unchanged bounds
+        timeout-minutes: 25
+        shell: pwsh
+        # As in verify.yml, the GitHub pwsh wrapper propagates LASTEXITCODE.
+        run: >-
+          python tools/run_windows_tests.py --jobs 1 --timeout 120
+          --module-timeout tests.test_activity_expense_sync=240
+          --module-timeout tests.test_stabilization=360
+          --output "$env:FIELTRA_DIAGNOSTIC_OUTPUT"
+          tests.test_activity_expense_sync
+          tests.test_batch5_ui
+          tests.test_batch7_exports
+          tests.test_stabilization
+          tests.test_transaction_integrity
+          tests.test_ui_revamp_phase1
+          tests.test_windows_owner_fix_batch1
+      - name: Account for diagnostic evidence, including incomplete setup or cleanup
+        id: evidence
+        if: always()
+        timeout-minutes: 2
+        shell: pwsh
+        run: |
+          @'
+          import json, math, os, pathlib
+
+          expected = {
+              "tests.test_activity_expense_sync": 240,
+              "tests.test_batch5_ui": 120,
+              "tests.test_batch7_exports": 120,
+              "tests.test_stabilization": 360,
+              "tests.test_transaction_integrity": 120,
+              "tests.test_ui_revamp_phase1": 120,
+              "tests.test_windows_owner_fix_batch1": 120,
+          }
+          out = pathlib.Path(os.environ["FIELTRA_DIAGNOSTIC_OUTPUT"])
+          issues, rows = [], []
+          files = [out / "results.json"] + [out / (name + ".log") for name in expected]
+          upload_safe = not (out.is_symlink() or out.is_junction())
+          for path in files:
+              if path.is_symlink() or path.is_junction() or (path.exists() and not path.is_file()):
+                  upload_safe = False
+              if not path.is_file() or path.is_symlink() or path.is_junction():
+                  issues.append("Missing/non-regular diagnostic file: " + path.name)
+          if not upload_safe:
+              issues.append("Diagnostic directory must not redirect outside runner temp")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as stream:
+              stream.write("upload_safe=" + str(upload_safe).lower() + "\n")
+          try:
+              if not upload_safe:
+                  raise ValueError("Refusing to read redirected diagnostic output")
+              report = json.loads((out / "results.json").read_text(encoding="utf-8"))
+              rows = report["modules"]
+              if not isinstance(rows, list) or len(rows) != 7:
+                  raise ValueError("Expected all seven module results")
+              names = [row["module"] for row in rows]
+              if len(set(names)) != 7 or set(names) != set(expected):
+                  raise ValueError("Missing/duplicate/unexpected module identities")
+              for row in rows:
+                  status, count = row["status"], row["tests"]
+                  if status not in {"PASS", "FAIL", "TIMEOUT", "ERROR"}:
+                      raise ValueError("Unknown module status")
+                  if row["timeout_seconds"] != expected[row["module"]]:
+                      raise ValueError("Module limit changed")
+                  if count is not None and (type(count) is not int or count < 1):
+                      raise ValueError("Invalid completed-test count")
+                  if status == "PASS" and (row["exit_code"] != 0 or count is None):
+                      raise ValueError("PASS without successful exit/complete unittest summary")
+                  if status in {"FAIL", "TIMEOUT"} and row["exit_code"] in (None, 0):
+                      raise ValueError("Failure status without failing process exit")
+                  elapsed = row["elapsed_seconds"]
+                  if elapsed is None and status != "ERROR":
+                      raise ValueError("Missing module duration")
+                  if elapsed is not None and (not math.isfinite(elapsed) or elapsed < 0):
+                      raise ValueError("Invalid module duration")
+                  if not isinstance(row["failed_cases"], list) or not isinstance(row["summary"], str):
+                      raise ValueError("Missing failure diagnostics")
+              if (report["tests"] != sum(row["tests"] or 0 for row in rows)
+                      or report["passed_modules"] != sum(row["status"] == "PASS" for row in rows)
+                      or report["failed_modules"] != sum(row["status"] != "PASS" for row in rows)):
+                  raise ValueError("Aggregate result counts disagree")
+          except (OSError, ValueError, KeyError, TypeError) as exc:
+              issues.append("INCONCLUSIVE diagnostic evidence: " + str(exc))
+              if not isinstance(rows, list):
+                  rows = []
+          summary = {
+              "evidence_issues": issues,
+              "modules": [{key: str(row.get(key))[:160] if key in {"module", "status"} else
+                           row.get(key) if type(row.get(key)) in (int, float, type(None)) else "invalid"
+                           for key in
+                           ("module", "status", "exit_code", "tests", "timeout_seconds", "elapsed_seconds")}
+                          for row in rows[:7] if isinstance(row, dict)],
+              "interpretation": "Unknown counts remain null; serial results do not accept full CI or prove contention.",
+          }
+          text = json.dumps(summary, indent=2)
+          print(text)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
+              stream.write("### Serial Windows diagnostics\n\n```json\n" + text + "\n```\n")
+          if issues:
+              raise SystemExit("INCONCLUSIVE: missing or inconsistent diagnostic evidence")
+          if any(row["status"] != "PASS" for row in rows):
+              raise SystemExit("Diagnostic failures remain visible; inspect retained module logs")
+          '@ | python -
+      - name: Retain only runner results and seven synthetic module logs
+        if: ${{ always() && steps.evidence.outputs.upload_safe == 'true' }}
+        timeout-minutes: 5
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: windows-timeouts-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 1
+          if-no-files-found: error
+          path: |
+            ${{ env.FIELTRA_DIAGNOSTIC_OUTPUT }}/results.json
+            ${{ env.FIELTRA_DIAGNOSTIC_OUTPUT }}/tests.test_activity_expense_sync.log
+            ${{ env.FIELTRA_DIAGNOSTIC_OUTPUT }}/tests.test_batch5_ui.log
+            ${{ env.FIELTRA_DIAGNOSTIC_OUTPUT }}/tests.test_batch7_exports.log
+            ${{ env.FIELTRA_DIAGNOSTIC_OUTPUT }}/tests.test_stabilization.log
+            ${{ env.FIELTRA_DIAGNOSTIC_OUTPUT }}/tests.test_transaction_integrity.log
+            ${{ env.FIELTRA_DIAGNOSTIC_OUTPUT }}/tests.test_ui_revamp_phase1.log
+            ${{ env.FIELTRA_DIAGNOSTIC_OUTPUT }}/tests.test_windows_owner_fix_batch1.log

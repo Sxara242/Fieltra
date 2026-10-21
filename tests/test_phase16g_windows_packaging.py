@@ -4,15 +4,27 @@ from pathlib import Path
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import tempfile
+import textwrap
 import unittest
 
 from app.runtime_paths import resolve_base_dir
 
 
 ROOT = Path(__file__).resolve().parents[1]
+REPORT_UPLOAD = "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"
+TIMEOUT_MODULES = {
+    "tests.test_activity_expense_sync": 240,
+    "tests.test_batch5_ui": 120,
+    "tests.test_batch7_exports": 120,
+    "tests.test_stabilization": 360,
+    "tests.test_transaction_integrity": 120,
+    "tests.test_ui_revamp_phase1": 120,
+    "tests.test_windows_owner_fix_batch1": 120,
+}
 
 
 class Phase16GWindowsPackagingTests(unittest.TestCase):
@@ -313,13 +325,385 @@ public class Fixture {
         self.assertNotIn("Set-MpPreference", ci_build)
 
     def test_ci_storage_is_manual_only_and_short_lived(self) -> None:
-        for name in ("verify.yml", "windows-release-gate.yml", "android-runtime.yml"):
+        for name in ("verify.yml", "windows-release-gate.yml"):
             self.assertNotIn("actions/upload-artifact", self._read(".github/workflows/" + name))
+        self._assert_android_runtime_report_policy(self._read(".github/workflows/android-runtime.yml"))
         workflow = self._read(".github/workflows/android-update-gate.yml")
         self.assertIn("workflow_dispatch:", workflow)
         self.assertNotIn("  push:", workflow)
         self.assertIn("if: ${{ inputs.upload_apk }}", workflow)
         self.assertIn("retention-days: 1", workflow)
+
+    def _workflow_fields(self, text):
+        """Read only the reviewed block-mapping shape, not arbitrary YAML.
+
+        No YAML dependency is declared. Reject duplicate/ambiguous root keys and
+        unreviewed scalar/flow/anchor forms; ignore indentation width/comments.
+        This policy inspection is not a workflow validator or a data-leak proof.
+        """
+        self.assertNotIn("\t", text, "Tabs are outside the reviewed mapping shape")
+        lines = textwrap.dedent("\n".join(line for line in text.splitlines()
+                                         if not line.lstrip().startswith("#"))).splitlines()
+        headers = []
+        for index, line in enumerate(lines):
+            if not line.strip() or line.lstrip().startswith("#") or line[0].isspace():
+                continue
+            match = re.fullmatch(r"([A-Za-z_][A-Za-z0-9_-]*)\s*:\s*(.*)", line)
+            self.assertIsNotNone(match, "Unreviewed workflow mapping syntax: " + line)
+            key, value = match.groups()
+            value = re.sub(r"\s+#.*$", "", value).strip()
+            self.assertFalse(value.startswith(("&", "*", "!")), "Unreviewed YAML anchor, alias or tag")
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+                value = value[1:-1]
+            self.assertNotIn(key, [item[1] for item in headers], "Duplicate workflow key")
+            headers.append((index, key, value))
+        result = {}
+        for n, (index, key, value) in enumerate(headers):
+            end = headers[n + 1][0] if n + 1 < len(headers) else len(lines)
+            body = textwrap.dedent("\n".join(lines[index + 1:end]))
+            if value and value not in {"|", ">-"}:
+                self.assertFalse(body.strip(), "Unreviewed multiline scalar: " + key)
+            result[key] = (value, body)
+        return result
+
+    def _workflow_scalar(self, fields, key):
+        self.assertIn(key, fields)
+        value, body = fields[key]
+        self.assertFalse(body.strip(), "Unexpected nested scalar: " + key)
+        return value
+
+    def _workflow_mapping(self, fields, key):
+        self.assertIn(key, fields)
+        self.assertEqual("", fields[key][0], "Expected reviewed block mapping: " + key)
+        return self._workflow_fields(fields[key][1])
+
+    def _workflow_steps(self, job):
+        self.assertIn("steps", job)
+        self.assertEqual("", job["steps"][0])
+        lines = job["steps"][1].splitlines()
+        starts = [n for n, line in enumerate(lines) if line.startswith("- ")]
+        self.assertTrue(starts)
+        self.assertTrue(all(not line.strip() or line.lstrip().startswith("#") for line in lines[:starts[0]]))
+        steps = []
+        for n, start in enumerate(starts):
+            end = starts[n + 1] if n + 1 < len(starts) else len(lines)
+            steps.append(self._workflow_fields("\n".join(["  " + lines[start][2:]] + lines[start + 1:end])))
+        return steps
+
+    def _report_workflow_jobs(self, text, trigger="workflow_dispatch"):
+        fields = self._workflow_fields(text)
+        self.assertLessEqual(set(fields), {"name", "on", "permissions", "env", "jobs"})
+        triggers = self._workflow_mapping(fields, "on")
+        self.assertEqual({trigger}, set(triggers))
+        self.assertEqual("", triggers[trigger][0])
+        self.assertEqual({"contents": ("read", "")}, self._workflow_mapping(fields, "permissions"))
+        self.assertEqual(1, len(re.findall(r"(?m)^\s*permissions\s*:", text)))
+        self.assertNotRegex(text, r"\$\{\{\s*secrets(?:\.|\[)")
+        self.assertNotRegex(text, r"(?m)^\s*(?:continue-on-error|environment|secrets)\s*:")
+        self.assertNotRegex(text, r"(?i)\bgh\s+(?:release|workflow|api)\b|\bgit\s+(?:push|commit)\b")
+        jobs = self._workflow_mapping(fields, "jobs")
+        for name, value in jobs.items():
+            self.assertEqual("", value[0], "Expected reviewed job block: " + name)
+        parsed = {name: self._workflow_fields(value[1]) for name, value in jobs.items()}
+        for job in parsed.values():
+            checkouts = [step for step in self._workflow_steps(job)
+                         if step.get("uses", ("", ""))[0].startswith("actions/checkout@")]
+            self.assertEqual(1, len(checkouts))
+            self.assertEqual("actions/checkout@v4", self._workflow_scalar(checkouts[0], "uses"))
+            self.assertEqual({"persist-credentials": ("false", "")}, self._workflow_mapping(checkouts[0], "with"))
+        return fields, parsed
+
+    def _assert_report_upload(self, step, paths, condition="always()", timeout=None,
+                              artifact_name="android-${{ env.RUNTIME_SCOPE }}-${{ github.run_id }}-${{ github.run_attempt }}"):
+        keys = {"name", "if", "uses", "with"}
+        if timeout is not None:
+            keys.add("timeout-minutes")
+            self.assertEqual(str(timeout), self._workflow_scalar(step, "timeout-minutes"))
+        self.assertEqual(keys, set(step))
+        self.assertEqual(REPORT_UPLOAD, self._workflow_scalar(step, "uses"))
+        self.assertEqual(re.sub(r"\s+", "", condition), re.sub(r"\s+", "", self._workflow_scalar(step, "if")))
+        options = self._workflow_mapping(step, "with")
+        self.assertEqual({"name", "retention-days", "if-no-files-found", "path"}, set(options))
+        self.assertEqual(artifact_name, self._workflow_scalar(options, "name"))
+        self.assertEqual("1", self._workflow_scalar(options, "retention-days"))
+        self.assertEqual("error", self._workflow_scalar(options, "if-no-files-found"))
+        self.assertEqual("|", options["path"][0])
+        self.assertEqual(paths, [line.strip() for line in options["path"][1].splitlines() if line.strip()])
+
+    def _assert_android_runtime_report_policy(self, text):
+        fields, jobs = self._report_workflow_jobs(text)
+        self.assertEqual({"name", "on", "permissions", "env", "jobs"}, set(fields))
+        env = self._workflow_mapping(fields, "env")
+        self.assertEqual({"B02_CLASSES"}, set(env))
+        self.assertEqual(",".join("gr.mastixa.manager." + name for name in (
+            "CountryExtensionsTest", "CadastralM2MTest", "CadastralMigrationTest",
+            "CadastralParcelRepositoryTest", "GreekCadastreDatasetTest", "CadastralUnionTest",
+            "CadastreProvidersTest", "CadastralHardeningTest")), self._workflow_scalar(env, "B02_CLASSES"))
+        dispatch = self._workflow_mapping(fields, "on")["workflow_dispatch"]
+        scope = self._workflow_mapping(self._workflow_mapping(self._workflow_fields(dispatch[1]), "inputs"), "runtime_scope")
+        self.assertEqual("choice", self._workflow_scalar(scope, "type"))
+        self.assertRegex(self._workflow_scalar(scope, "options"), r"^\[\s*api36-full\s*,\s*api26-b02\s*\]$")
+        self.assertEqual("api36-full", self._workflow_scalar(scope, "default"))
+        self.assertEqual({"instrumentation", "b02-api26"}, set(jobs))
+        for name, scope_name, api in (("instrumentation", "api36-full", "36"), ("b02-api26", "api26-b02", "26")):
+            job = jobs[name]
+            self.assertEqual({"if", "runs-on", "timeout-minutes", "env", "steps"}, set(job))
+            self.assertEqual("ubuntu-latest", self._workflow_scalar(job, "runs-on"))
+            self.assertEqual("45", self._workflow_scalar(job, "timeout-minutes"))
+            self.assertEqual("${{inputs.runtime_scope=='" + scope_name + "'}}", re.sub(r"\s+", "", self._workflow_scalar(job, "if")))
+            self.assertEqual({"RUNTIME_SCOPE": (scope_name, ""), "B02_ONLY": ("true" if api == "26" else "false", "")},
+                             self._workflow_mapping(job, "env"))
+            steps = self._workflow_steps(job)
+            self.assertEqual(9, len(steps))
+            self.assertEqual([
+                "actions/checkout@v4", "actions/setup-java@v5", "android-actions/setup-android@v3",
+                "gradle/actions/setup-gradle@v4", "reactivecircus/android-emulator-runner@v2", REPORT_UPLOAD,
+            ], [self._workflow_scalar(step, "uses") for step in steps if "uses" in step])
+            uploads = [step for step in steps if "upload-artifact" in step.get("uses", ("", ""))[0]]
+            self.assertEqual(1, len(uploads))
+            self._assert_report_upload(uploads[0], [
+                "android/app/build/outputs/androidTest-results/connected/**/TEST-*.xml",
+                "android/app/build/reports/androidTests/connected/checks/**",
+                "${{ runner.temp }}/fieltra-runtime-summary/*.json",
+                "${{ runner.temp }}/fieltra-runtime-summary/summary.txt",
+            ])
+            emulators = [step for step in steps if step.get("uses", ("", ""))[0] == "reactivecircus/android-emulator-runner@v2"]
+            self.assertEqual(1, len(emulators))
+            emulator = self._workflow_mapping(emulators[0], "with")
+            self.assertEqual(api, self._workflow_scalar(emulator, "api-level"))
+            self.assertEqual(api == "26", "android.testInstrumentationRunnerArguments.class=$B02_CLASSES" in self._workflow_scalar(emulator, "script"))
+            scripts = "\n".join(step["run"][1] for step in steps if "run" in step)
+            accounting = [step for step in steps if "actual.json" in step.get("run", ("", ""))[1]]
+            self.assertEqual(1, len(accounting))
+            self.assertEqual("always()", self._workflow_scalar(accounting[0], "if"))
+            for guard in ("if not expected", "if not files:", "if duplicate or missing or unexpected:",
+                          "if skipped - allowed_skips:", 'if counts["failed"]:', "if issues:", "raise SystemExit("):
+                self.assertIn(guard, scripts)
+        self.assertEqual(2, text.count("actions/upload-artifact@"))
+
+    def _assert_windows_timeout_report_policy(self, text):
+        fields, jobs = self._report_workflow_jobs(text, trigger="workflow_call")
+        self.assertEqual({"name", "on", "permissions", "jobs"}, set(fields))
+        self.assertEqual(("", ""), self._workflow_mapping(fields, "on")["workflow_call"])
+        self.assertEqual({"diagnostics"}, set(jobs))
+        job = jobs["diagnostics"]
+        self.assertEqual({"runs-on", "timeout-minutes", "env", "steps"}, set(job))
+        self.assertEqual("windows-latest", self._workflow_scalar(job, "runs-on"))
+        self.assertEqual("50", self._workflow_scalar(job, "timeout-minutes"))
+        env = self._workflow_mapping(job, "env")
+        self.assertEqual({"QT_QPA_PLATFORM", "PYTHONUTF8", "MASTIXA_DATA_HOME", "FIELTRA_DIAGNOSTIC_OUTPUT"}, set(env))
+        self.assertEqual("offscreen", self._workflow_scalar(env, "QT_QPA_PLATFORM"))
+        self.assertEqual("1", self._workflow_scalar(env, "PYTHONUTF8"))
+        for key, prefix in (("MASTIXA_DATA_HOME", "fieltra-timeout-home"), ("FIELTRA_DIAGNOSTIC_OUTPUT", "fieltra-windows-timeouts")):
+            self.assertEqual("${{ runner.temp }}/" + prefix + "-${{ github.run_id }}-${{ github.run_attempt }}", self._workflow_scalar(env, key))
+        steps = self._workflow_steps(job)
+        self.assertEqual(6, len(steps))
+        self.assertEqual(["actions/checkout@v4", "actions/setup-python@v5", REPORT_UPLOAD],
+                         [step["uses"][0] for step in steps if "uses" in step])
+        self.assertEqual({"uses", "with"}, set(steps[0]))
+        self.assertEqual({"uses", "with"}, set(steps[1]))
+        self.assertEqual({"persist-credentials": ("false", "")}, self._workflow_mapping(steps[0], "with"))
+        self.assertEqual({"python-version": ("3.14", ""), "architecture": ("x64", "")}, self._workflow_mapping(steps[1], "with"))
+        for step, timeout in ((steps[2], "15"), (steps[3], "25"), (steps[4], "2")):
+            self.assertEqual("pwsh", self._workflow_scalar(step, "shell"))
+            self.assertEqual(timeout, self._workflow_scalar(step, "timeout-minutes"))
+        self.assertEqual("python -m pip install -r requirements-dev.txt -c requirements-windows-rc.txt", self._workflow_scalar(steps[2], "run"))
+        self.assertEqual({"name", "timeout-minutes", "shell", "run"}, set(steps[2]))
+        self.assertEqual({"name", "timeout-minutes", "shell", "run"}, set(steps[3]))
+        self.assertEqual(">-", steps[3]["run"][0])
+        self.assertEqual([
+            "python", "tools/run_windows_tests.py", "--jobs", "1", "--timeout", "120",
+            "--module-timeout", "tests.test_activity_expense_sync=240",
+            "--module-timeout", "tests.test_stabilization=360",
+            "--output", "$env:FIELTRA_DIAGNOSTIC_OUTPUT", *TIMEOUT_MODULES,
+        ], shlex.split(steps[3]["run"][1]))
+        evidence = steps[4]
+        self.assertEqual({"name", "id", "if", "timeout-minutes", "shell", "run"}, set(evidence))
+        self.assertEqual("evidence", self._workflow_scalar(evidence, "id"))
+        self.assertEqual("always()", self._workflow_scalar(evidence, "if"))
+        for guard in ('"results.json"', '"TIMEOUT"', '"exit_code"', '"elapsed_seconds"',
+                      "len(set(names)) != 7", "set(names) != set(expected)", "upload_safe=", "if issues:", "raise SystemExit("):
+            self.assertIn(guard, evidence["run"][1])
+        self._assert_report_upload(steps[5], ["${{ env.FIELTRA_DIAGNOSTIC_OUTPUT }}/" + name
+                                           for name in ("results.json", *(module + ".log" for module in TIMEOUT_MODULES))],
+                                   "${{ always() && steps.evidence.outputs.upload_safe == 'true' }}", timeout=5,
+                                   artifact_name="windows-timeouts-${{ github.run_id }}-${{ github.run_attempt }}")
+
+    def test_reusable_windows_timeout_diagnostics_report_policy(self) -> None:
+        self._assert_windows_timeout_report_policy(self._read(".github/workflows/windows-timeout-diagnostics.yml"))
+
+    def _assert_verify_timeout_routing_policy(self, text):
+        # Match the reviewed expressions, never evaluate arbitrary YAML or expressions.
+        fields = self._workflow_fields(text)
+        self.assertEqual({"name", "on", "permissions", "concurrency", "jobs"}, set(fields))
+        triggers = self._workflow_mapping(fields, "on")
+        self.assertEqual({"push", "pull_request", "workflow_dispatch"}, set(triggers))
+        for event in ("push", "pull_request"):
+            self.assertEqual(("", ""), triggers[event])
+        dispatch = self._workflow_mapping(triggers, "workflow_dispatch")
+        self.assertEqual({"inputs"}, set(dispatch))
+        inputs = self._workflow_mapping(dispatch, "inputs")
+        self.assertEqual({"scope"}, set(inputs))
+        scope = self._workflow_mapping(inputs, "scope")
+        self.assertEqual({"description", "type", "options", "default"}, set(scope))
+        self.assertEqual("choice", self._workflow_scalar(scope, "type"))
+        self.assertEqual("full", self._workflow_scalar(scope, "default"))
+        self.assertRegex(self._workflow_scalar(scope, "options"),
+                         r"^\[\s*full\s*,\s*maps\s*,\s*windows-timeouts\s*\]$")
+        self.assertEqual({"contents": ("read", "")}, self._workflow_mapping(fields, "permissions"))
+        self.assertNotRegex(text, r"(?m)^\s*(?:secrets|continue-on-error|environment)\s*:")
+        self.assertNotRegex(text, r"\$\{\{\s*secrets(?:\.|\[)")
+        self.assertNotIn("actions/upload-artifact", text)
+        ordinary = "${{ github.event_name != 'workflow_dispatch' || inputs.scope != 'windows-timeouts' }}"
+        diagnostic = "${{ github.event_name == 'workflow_dispatch' && inputs.scope == 'windows-timeouts' }}"
+        concurrency = self._workflow_mapping(fields, "concurrency")
+        self.assertEqual({"group", "cancel-in-progress"}, set(concurrency))
+        self.assertEqual(
+            "verify-${{ github.workflow }}-${{ github.ref }}"
+            "${{ github.event_name == 'workflow_dispatch' && inputs.scope == 'windows-timeouts' && '-windows-timeouts' || '' }}",
+            self._workflow_scalar(concurrency, "group"))
+        self.assertEqual(ordinary, self._workflow_scalar(concurrency, "cancel-in-progress"))
+        jobs = self._workflow_mapping(fields, "jobs")
+        self.assertEqual({"source-audit", "windows", "android", "windows-timeouts"}, set(jobs))
+        parsed = {name: self._workflow_mapping(jobs, name) for name in jobs}
+        caller = parsed["windows-timeouts"]
+        self.assertEqual({"if", "permissions", "uses"}, set(caller))
+        self.assertEqual(diagnostic, self._workflow_scalar(caller, "if"))
+        self.assertEqual({"contents": ("read", "")}, self._workflow_mapping(caller, "permissions"))
+        self.assertEqual("./.github/workflows/windows-timeout-diagnostics.yml", self._workflow_scalar(caller, "uses"))
+        for name, runner, limit in (("source-audit", "ubuntu-latest", "10"),
+                                    ("windows", "windows-latest", "45"),
+                                    ("android", "ubuntu-latest", "35")):
+            job = parsed[name]
+            self.assertEqual({"if", "runs-on", "timeout-minutes", "steps"} |
+                             ({"env"} if name == "windows" else set()), set(job))
+            condition = ("${{ inputs.scope != 'maps' && (github.event_name != 'workflow_dispatch' || "
+                         "inputs.scope != 'windows-timeouts') }}" if name == "android" else ordinary)
+            self.assertEqual(condition, self._workflow_scalar(job, "if"))
+            self.assertEqual(runner, self._workflow_scalar(job, "runs-on"))
+            self.assertEqual(limit, self._workflow_scalar(job, "timeout-minutes"))
+        windows_steps = self._workflow_steps(parsed["windows"])
+        commands = [step for step in windows_steps if "tools/run_windows_tests.py" in step.get("run", ("", ""))[1]]
+        self.assertEqual(2, len(commands))
+        full, maps = commands
+        self.assertEqual("${{ inputs.scope != 'maps' }}", self._workflow_scalar(full, "if"))
+        self.assertEqual("${{ inputs.scope == 'maps' }}", self._workflow_scalar(maps, "if"))
+        self.assertEqual(
+            ["python", "tools/run_windows_tests.py", "--jobs", "2", "--timeout", "120",
+             "--module-timeout", "tests.test_activity_expense_sync=240",
+             "--module-timeout", "tests.test_invoice_profile_ownership=360",
+             "--module-timeout", "tests.test_phase16j_composed_ui_localization=180",
+             "--module-timeout", "tests.test_sale_sources=360",
+             "--module-timeout", "tests.test_stabilization=360"], shlex.split(full["run"][1]))
+        self.assertEqual(
+            ["python", "tools/run_windows_tests.py", "--jobs", "2", "--timeout", "120",
+             "tests.test_satellite_maps", "tests.test_map_network", "tests.test_map_acceptance_ui",
+             "tests.test_phase16j_map_ui", "tests.test_phase16j_ui_catalog", "tests.test_gis_ui",
+             "tests.test_cadastral_presentation", "tests.test_kaek_lookup_ui",
+             "tests.test_windows_legal_gate", "tests.test_windows_legal_selection"], shlex.split(maps["run"][1]))
+        android_steps = self._workflow_steps(parsed["android"])
+        jvm = [step for step in android_steps if "javac --release 17" in step.get("run", ("", ""))[1]]
+        self.assertEqual(1, len(jvm))
+        self.assertNotIn("if", jvm[0])
+        self.assertIn("java -cp", jvm[0]["run"][1])
+        build = [step for step in android_steps if "gradlew" in step.get("run", ("", ""))[0]]
+        self.assertEqual(1, len(build))
+        self.assertNotIn("if", build[0])
+        self.assertEqual("android", self._workflow_scalar(build[0], "working-directory"))
+        self.assertEqual("bash ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug assembleChecksAndroidTest --console=plain",
+                         self._workflow_scalar(build[0], "run"))
+
+    def test_verify_routes_only_explicit_manual_scope_to_same_commit_diagnostics(self) -> None:
+        self._assert_verify_timeout_routing_policy(self._read(".github/workflows/verify.yml"))
+
+    def test_verify_timeout_routing_rejects_unsafe_mutations(self) -> None:
+        original = self._read(".github/workflows/verify.yml")
+        manual = "github.event_name == 'workflow_dispatch' && inputs.scope == 'windows-timeouts'"
+        exclusion = "github.event_name != 'workflow_dispatch' || inputs.scope != 'windows-timeouts'"
+        mutations = {
+            "missing dispatch": original.replace("  workflow_dispatch:", "  workflow_call:", 1),
+            "missing push": original.replace("  push:\n", "", 1),
+            "missing PR": original.replace("  pull_request:\n", "", 1),
+            "changed default": original.replace("default: full", "default: windows-timeouts", 1),
+            "removed maps": original.replace("[full, maps, windows-timeouts]", "[full, windows-timeouts]", 1),
+            "automatic diagnostic": original.replace("if: ${{ " + manual + " }}", "if: ${{ always() }}", 1),
+            "shared cancellation group": original.replace("${{ " + manual + " && '-windows-timeouts' || '' }}", "", 1),
+            "cancel running diagnostic": original.replace("cancel-in-progress: ${{ " + exclusion + " }}", "cancel-in-progress: true", 1),
+            "unbounded diagnostic groups": original.replace("${{ github.ref }}", "${{ github.run_id }}", 1),
+            "secrets inheritance": original.replace("  windows-timeouts:\n", "  windows-timeouts:\n    secrets: inherit\n", 1),
+            "extra job": original + "\n  unreviewed:\n    uses: org/repo/.github/workflows/run.yml@main\n",
+            "write permission": original.replace("contents: read", "contents: write", 1),
+            "maps runs full suite": original.replace("if: ${{ inputs.scope != 'maps' }}", "if: ${{ always() }}", 1),
+        }
+        for name in ("source-audit", "windows"):
+            mutations[name + " diagnostic leak"] = original.replace("  " + name + ":\n    if: ${{ " + exclusion + " }}",
+                                                                   "  " + name + ":\n    if: ${{ always() }}", 1)
+        mutations["android diagnostic leak"] = original.replace(
+            "if: ${{ inputs.scope != 'maps' && (" + exclusion + ") }}", "if: ${{ inputs.scope != 'maps' }}", 1)
+        reference = "./.github/workflows/windows-timeout-diagnostics.yml"
+        for label, value in (("main reference", reference + "@main"),
+                             ("development reference", reference + "@develop/v1.0.1"),
+                             ("old commit reference", "Sxara242/Fieltra/" + reference[2:] + "@7219e7b36208398b9432111335c90c38c8f99685"),
+                             ("remote reference", "org/repo/.github/workflows/diagnostics.yml@main")):
+            mutations[label] = original.replace(reference, value, 1)
+        for label, changed in mutations.items():
+            with self.subTest(mutation=label):
+                self.assertNotEqual(original, changed)
+                with self.assertRaises(AssertionError):
+                    self._assert_verify_timeout_routing_policy(changed)
+
+    def test_manual_report_policies_reject_unsafe_mutations(self) -> None:
+        # Only strings are changed: no workflow, test runner or subprocess executes here.
+        for filename, check in (("android-runtime.yml", self._assert_android_runtime_report_policy),
+                                ("windows-timeout-diagnostics.yml", self._assert_windows_timeout_report_policy)):
+            original = self._read(".github/workflows/" + filename)
+            trigger = "workflow_call" if filename == "windows-timeout-diagnostics.yml" else "workflow_dispatch"
+            mutations = {
+                "automatic trigger": original.replace("  " + trigger + ":", "  push:", 1),
+                "additional automatic trigger": original.replace("  " + trigger + ":", "  push:\n  " + trigger + ":", 1),
+                "PR trigger": original.replace("  " + trigger + ":", "  pull_request:", 1),
+                "duplicate trigger": original.replace("  " + trigger + ":", "  " + trigger + ":\n  " + trigger + ":", 1),
+                "flow trigger mapping": original.replace("on:\n  " + trigger + ":", "on: {" + trigger + ": null}", 1),
+                "anchor mapping": original.replace("permissions:", "permissions: &token", 1),
+                "write permission": original.replace("contents: read", "contents: write", 1),
+                "privileged token": original.replace("contents: read", "contents: read\n  actions: write", 1),
+                "long retention": original.replace("retention-days: 1", "retention-days: 7", 1),
+                "unreviewed action": original.replace(REPORT_UPLOAD, "actions/upload-artifact@v4", 1),
+                "persistent credentials": original.replace("persist-credentials: false", "persist-credentials: true", 1),
+                "failure-only evidence lost": original.replace("if: always()", "if: success()", 1),
+                "extra upload": original + "\n      - uses: " + REPORT_UPLOAD + "\n",
+                "release action": original + "\n      - uses: softprops/action-gh-release@v2\n",
+                "automatic rerun": original + "\n      - run: gh run rerun 123\n",
+                "duplicate permissions": original + "\npermissions:\n  contents: write\n",
+            }
+            if filename == "windows-timeout-diagnostics.yml":
+                mutations["direct dispatch"] = original.replace("  workflow_call:", "  workflow_dispatch:", 1)
+                mutations["parallel workers"] = original.replace("--jobs 1", "--jobs 2", 1)
+                mutations["raised limit"] = original.replace("tests.test_activity_expense_sync=240", "tests.test_activity_expense_sync=360", 1)
+                mutations["raised default limit"] = original.replace("--timeout 120", "--timeout 240", 1)
+                mutations["raised stabilization limit"] = original.replace("tests.test_stabilization=360", "tests.test_stabilization=480", 1)
+                mutations["raised execution limit"] = original.replace("timeout-minutes: 25", "timeout-minutes: 30", 1)
+                mutations["raised job limit"] = original.replace("timeout-minutes: 50", "timeout-minutes: 60", 1)
+                mutations["extra module"] = original.replace("          tests.test_batch5_ui\n", "          tests.test_batch5_ui tests.test_unreviewed\n", 1)
+                mutations["extra retry"] = original.replace("--jobs 1", "--jobs 1 --retries 2", 1)
+                mutations["hidden failure"] = original.replace("        timeout-minutes: 25", "        continue-on-error: true\n        timeout-minutes: 25", 1)
+                mutations["arbitrary reusable input"] = original.replace("  workflow_call:\n", "  workflow_call:\n    inputs:\n      command:\n        type: string\n", 1)
+            else:
+                mutations["unexpected B02 class"] = original.replace("gr.mastixa.manager.CadastralHardeningTest", "gr.mastixa.manager.OtherTest", 1)
+            path = ("android/app/build/reports/androidTests/connected/checks/**" if filename == "android-runtime.yml"
+                    else "${{ env.FIELTRA_DIAGNOSTIC_OUTPUT }}/results.json")
+            for label, forbidden in (("workspace upload", "${{ github.workspace }}/**"),
+                                     ("APK upload", "android/app/build/outputs/apk/debug/app-debug.apk"),
+                                     ("installer upload", "dist/Fieltra-Setup.exe"),
+                                     ("MSI upload", "dist/Fieltra.msi"),
+                                     ("signing key upload", "android/release.keystore"),
+                                     ("database upload", "data/mastixa_manager.db")):
+                mutations[label] = original.replace(path, forbidden, 1)
+            for label, changed in mutations.items():
+                with self.subTest(workflow=filename, mutation=label):
+                    self.assertNotEqual(original, changed)
+                    with self.assertRaises(AssertionError):
+                        check(changed)
 
     def test_release_builder_is_ci_usable_and_hashes_dynamic_version_installer(self) -> None:
         build = self._read("packaging/build_release.ps1")

@@ -874,3 +874,221 @@ Next requires separate authorization: one reviewed11-path commit/push, automatic
 full CI/JVM, then conditional API36-full and API26-b02 at the same SHA.
 Local tests/build/compile/lint/Gradle0; commits/pushes/dispatches/reruns0;
 production data/installations/releases/GitHub mutations0. No new files.
+
+---
+
+## B02 final corrective publication - automatic CI FAIL, 2026-10-21
+
+**ONE commit / ONE push COMPLETE. Automatic CI FAIL. JVM EXECUTED/PASS.
+API36 NOT RUN; API26 NOT RUN. ZIP parity PARTIAL; production B02 BLOCKED.
+STOP AT OWNER REVIEW. This result appendix is LOCAL / UNSTAGED.**
+
+Published 7219e7b36208398b9432111335c90c38c8f99685, parent30c2ebe90adc222c42ea5d8e46b611e8d8169d8b,
+develop/v1.0.1; exact11 whitelisted text paths,1013 additions/55 removals.
+[Commit](https://github.com/Sxara242/Fieltra/commit/7219e7b36208398b9432111335c90c38c8f99685);
+[automatic push run39557703102](https://github.com/Sxara242/Fieltra/actions/runs/39557703102),
+attempt1/exact SHA, COMPLETED/FAILURE,09:48:13-10:23:36 Athens.
+
+Source/security PASS1034-file audit/3 tests/Gitleaks no leaks.
+Android build/lint/test-APK compilation PASS. Standalone four-source javac
+--release17 +shared four-vector/negative checker actually EXECUTED/PASS.
+testDebugUnitTest NO-SOURCE, zero Gradle unit tests.
+
+Windows FAIL:152/160 modules PASS,one assertion-failure module,7 TIMEOUT modules;
+1103 harness-reported completed tests. Separate packaging/legal contracts2/2 PASS.
+B02 Python seven modules67/67 PASS; providers/ZIP38/38 PASS.
+New policy mismatch: test_phase16g_windows_packaging.py:317 forbids upload-artifact
+in android-runtime.yml; requested manual one-day report retention triggers it.
+The prepublication review missed this existing contract. No assertion was changed.
+Timeouts: activity_expense_sync240s, batch5_ui120s, batch7_exports120s,
+stabilization360s, transaction_integrity120s, ui_revamp_phase1120s,
+windows_owner_fix_batch1120s. Pre-bound samples/last unfinished methods differ;
+causes remain unproven. Relevant Windows sources/tests unchanged by this commit.
+Of four previous timeout modules, generated_tables_localization PASS24;
+batch5_ui/transaction_integrity/windows_owner_fix_batch1 timed out again.
+
+Mandatory CI gate failed: zero API36/API26 dispatches, zero runtime results/XML/
+HTML. Eight B02 classes/25 methods COMPILED, NOT runtime EXECUTED at this SHA.
+Actual APK replacement and all production integration remain PENDING/BLOCKED.
+CI artifact inventory0; decoded three-job logs retrieved. No invented evidence.
+
+Full exact11-path inventory, job links, stack/sample distinctions,15-contract
+matrix, remaining raw ZIP/regional-reader limitations and proposed next bounded
+policy-test/Windows-timeout package are appended in local ignored
+docs/CODEX_PROJECT_CONTEXT.md under "B02 final corrective publication - CI FAIL /
+runtime gates NOT RUN, 2026-10-21". Do not force-add context/master ledgers.
+No next package executed. Source/workflows are unchanged after publication.
+
+All48 protected hashes match; both protected dirty documents preserved.
+Main/v1.0.0 remain6dd72e1e07a51173b15b5b72ac709e1c7141da5c.
+Index empty; no new files; all preceding document bytes retained.
+112 IDs/26 gaps, DB15/backup19 and accepted stable release remain unchanged.
+Safety: commits1/pushes1/dispatches0/reruns0/other GitHub mutations0;
+local tests/build/compile/lint/Gradle0; production data/device installs/releases0.
+STOP AT OWNER REVIEW. No second commit/push or automatic source correction.
+
+---
+
+## CI policy repair / Windows timeout diagnostics - local owner checkpoint, 2026-10-21
+
+**SOURCE PREPARED ONLY / NOT EXECUTED / NOT PUBLISHED. STOP BEFORE STAGING.**
+Branch develop/v1.0.1; unchanged HEAD/tracking/remote7219e7b36208398b9432111335c90c38c8f99685.
+[Automatic run39557703102](https://github.com/Sxara242/Fieltra/actions/runs/39557703102)
+remains FAIL: source/security PASS, standalone JVM EXECUTED/PASS, Android build/
+lint/test-APK compilation PASS; Gradle unit tests NO-SOURCE. Windows152/160 modules,
+one policy assertion failure, seven timeouts,1103 reported completed tests;
+B02 Python67/67, provider/ZIP38/38, separate packaging/legal2/2 PASS.
+API36/API26 runtime at this SHA NOT RUN; ZIP PARTIAL; production B02 BLOCKED.
+
+Prepared only tests/test_phase16g_windows_packaging.py plus NEW
+.github/workflows/windows-timeout-diagnostics.yml and these four append-only
+canonical records. The old blanket Android runtime uploader ban is replaced
+by manual-only/read-only/pinned-action/one-day/exact-report-path checks for both
+API scopes and missing/duplicate/failure accounting. verify.yml and Windows
+release gate retain their uploader bans; Android update-gate assertions retained.
+Negative policy cases cover automatic triggers, privilege/retention/upload
+expansion, release/rerun steps and diagnostic worker/limit changes.
+No new dependency; restricted stdlib mapping reader is not a general YAML validator.
+New policy tests and workflow: NOT EXECUTED.
+
+New Windows workflow: workflow_dispatch only; windows-latest; contents:read;
+checkout persist-credentials:false; Python3.14x64; existing dev requirements/
+Windows constraints; offscreen Qt/UTF8 and synthetic runner-temp data homes.
+Exactly once, --jobs1 --timeout120, with activity_expense_sync240 and
+stabilization360 overrides; batch5_ui, batch7_exports, transaction_integrity,
+ui_revamp_phase1 and windows_owner_fix_batch1 retain120s. Seven child bounds20min;
+execution step25min, overall job50min. No retries or continue-on-error.
+--output uses runner.temp/fieltra-windows-timeouts-<run_id>-<attempt>.
+Only results.json plus seven explicitly named module logs upload; pinned v4,
+retention1day. Failure-safe accounting refuses missing/inconsistent evidence;
+TIMEOUT/ERROR stay failures and unknown counts stay null. Unsafe redirected
+output suppresses upload. Setup/cleanup/hard cancellation can leave evidence
+incomplete; collection cannot turn a failed runner step into success.
+
+Existing logs/source reviewed: pre-bound SQLite schema/query samples and queued
+Qt/language/backup/worker callbacks support investigation, not a proven cause.
+All seven passed in prior run39483586905; that does not prove contention.
+Single worker removes inter-module concurrency only. Raw runner logs have no
+byte cap; exact upload paths do not prove absence of sensitive runtime content.
+Synthetic-only test output remains an independent obligation.
+
+Future plan needs separate approval: one corrective commit/non-force develop
+push -> automatic full CI evaluation. CI failure stops normal acceptance.
+If timeouts persist: separately authorize one targeted diagnostic dispatch only
+after workflow availability on the reviewed ref is established; retrieve reports.
+Default branch is main; new workflow absent there (read-only404). GitHub's
+workflow_dispatch default-branch prerequisite needs separate availability/
+registration review; no main/settings mutation or workaround performed.
+Serial PASS is not full160-module CI acceptance. API36 then API26 remain separately
+gated on CI acceptance and prior runtime success, at one reviewed SHA.
+
+Full A-K source/log/security assessment, exact paths and source observability
+limitations are appended in ignored docs/CODEX_PROJECT_CONTEXT.md under
+"CI policy repair and Windows timeout diagnostics - LOCAL OWNER CHECKPOINT".
+Production migration/all-writer activation, M:N UI, official datasets, geometry,
+GPS, backup/recovery and actual APK replacement remain pending.112 IDs/26 original
+gaps, DB15/backup19 and accepted stable release unchanged.
+Earlier document bytes and protected work preserved; ignored ledgers stay ignored.
+This package: tests/builds/compile/lint/install/Gradle0; staging/commits/pushes0;
+dispatches/reruns/cancellations/GitHub mutations0; production data/device installs0;
+release activation NO. OWNER REVIEW ONLY.
+
+Final static integrity observation for this local package:
+HEAD, tracking and live remote still7219e7b36208398b9432111335c90c38c8f99685,
+branch develop/v1.0.1; index empty; protected inventory48/48 MATCH.
+Both protected dirty master-source SHA256 values unchanged. All entry bytes of
+all four canonical documents verified preserved by prefix SHA256. Only the six
+authorized paths were edited; the new diagnostic workflow is the sole untracked
+file. Ignored ledgers still ignored. Static diff whitespace inspection found no
+errors; no tests, compilation, lint, workflow validator or execution performed.
+
+---
+
+## Windows diagnostic workflow routing correction - LOCAL OWNER REVIEW, 2026-10-21
+
+**SOURCE PREPARED / STATICALLY REVIEWED ONLY. TESTS NOT EXECUTED.
+NOT STAGED / NOT COMMITTED / NOT PUSHED / NOT DISPATCHED.**
+
+This appendix supersedes the previous proposed direct Windows workflow_dispatch
+entry point; every earlier historical byte remains preserved. Existing CI run
+[39557703102](https://github.com/Sxara242/Fieltra/actions/runs/39557703102)
+at7219e7b36208398b9432111335c90c38c8f99685 remains FAILURE: Windows152/160 modules
+PASS, one blanket android-runtime upload-artifact policy assertion failure and
+seven module timeouts. Source/security, standalone JVM and Android build/lint
+passed in that existing run; API36/API26 at that SHA remain NOT RUN.
+The prepared narrow Android exception remains manual/read-only/report-only,
+fixed-path, pinned uploader and retention1day; android-runtime.yml is untouched.
+
+GitHub requires the workflow_dispatch entry point on the default branch.
+Live read-only checks confirm default main, registered active verify.yml
+(workflow379887851), and workflow_dispatch present in main's verify.yml.
+The new development-only diagnostic file therefore becomes workflow_call only.
+verify.yml adds scope windows-timeouts alongside full/maps, with default full,
+and a manual-only job using ./.github/workflows/windows-timeout-diagnostics.yml.
+GitHub documents this relative call as resolving at the caller's same commit.
+No remote/mutable reusable reference, reusable inputs or secrets inheritance.
+
+Static routing:
+| Event/scope | Source audit | Windows | Android + standalone JVM | Serial diagnostic |
+|---|---|---|---|---|
+| push | Existing | Full | Existing | No |
+| pull_request | Existing | Full | Existing | No |
+| manual/full (default) | Existing | Full | Existing | No |
+| manual/maps | Existing | Existing focused maps + packaging/legal | No | No |
+| manual/windows-timeouts | No | No | No | Only execution job |
+
+Normal job bodies, full/maps filtering and dependency relationships are retained.
+Normal concurrency keeps verify-<workflow>-<ref> and cancellation enabled.
+Only explicit manual diagnostics append -windows-timeouts and disable active-run
+cancellation: separate from normal CI, with at most one running and one pending
+diagnostic per workflow/ref. A newer pending request replaces an older pending
+request under GitHub's default queue behavior. No retry or duplicate execution.
+
+Diagnostic body unchanged: windows-latest, Python3.14x64, contents:read,
+offscreen Qt/UTF8, established requirements/constraints and synthetic runner-temp
+data home. Exactly the seven approved modules once, --jobs1, default120s,
+activity_expense_sync240s, stabilization360s; execution25min/job50min.
+Output runner.temp/fieltra-windows-timeouts-<run_id>-<run_attempt> contains only
+results.json and the seven named module logs in the upload allowlist, retention1day.
+Failed runner exits stay failures; evidence accounting runs after failure and
+rejects missing/inconsistent results. Unsafe redirects suppress upload.
+No continue-on-error, release/installer path, new dependency or production access.
+
+Policy source now checks reusable-only triggering, exact routing/caller reference,
+ordinary job exclusion, unchanged full/maps commands, JVM/build presence,
+concurrency isolation and negative privilege/upload/retention/module/retry/limit/
+reference mutations. Existing stdlib reader is restricted to reviewed mappings;
+duplicate keys, anchors/tags/aliases and unsupported scalar bodies fail closed.
+It is not a general YAML validator. No policy assertion or workflow parser ran.
+
+Integrity: branch develop/v1.0.1; HEAD/tracking/live development remote unchanged
+at7219e7b36208398b9432111335c90c38c8f99685; index empty;48/48 protected hashes MATCH.
+Protected dirty master-source README/RECIPIENT_GUIDE unchanged.
+Main and stable v1.0.0 remain6dd72e1e07a51173b15b5b72ac709e1c7141da5c.
+Only seven whitelisted paths edited; four records append-only; context/master
+remain ignored. Diagnostic YAML remains the sole untracked file (pre-existing).
+No application/Android/JVM implementation or tools/run_windows_tests.py edits.
+112 feature IDs/26 original gaps unchanged; production B02 remains BLOCKED.
+
+Future actions need separate owner approval: final integrity review -> exact
+five-public-path corrective commit -> one non-force develop push -> automatic
+FULL CI assessment. If timeouts persist, separately approve ONE dispatch:
+gh workflow run verify.yml --repo Sxara242/Fieltra --ref develop/v1.0.1 -f scope=windows-timeouts
+Then collect one-day diagnostic artifacts promptly and inspect real serial
+results. Serial PASS is not full Windows acceptance. API36 full runtime follows
+appropriate CI acceptance; API26 B02 follows API36 acceptance, each separately
+authorized at the reviewed SHA. No main modification is required.
+
+Docs verified: [manual dispatch](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow),
+[CLI branch/input selection](https://cli.github.com/manual/gh_workflow_run),
+[relative reusable calls](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows),
+[workflow/concurrency/step timeout syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax).
+Documentation supports selecting the development workflow version and supplying
+its new scope through CLI/API; browser branch-specific choice presentation is
+not assumed. Actual GitHub validation, input acceptance, routing, cancellation,
+runner exits and artifact collection remain NOT EXECUTED/UNVERIFIED.
+
+This package: tests/builds/compilation/lint/Gradle/installations0;
+staging/commits/pushes/dispatches/reruns/GitHub mutations0;
+production-data changes/release generation/production activation0.
+**STOP AT OWNER REVIEW BEFORE STAGING OR COMMIT.**
