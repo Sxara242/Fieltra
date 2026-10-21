@@ -1,3 +1,122 @@
+# B02 Android stabilization — source-only owner review, 2026-10-21
+
+**13 authorized local paths updated. NOT COMPILED / NOT EXECUTED.
+ZIP parity PARTIAL; genuine APK replacement PENDING; B02 activation BLOCKED.**
+
+Branch develop/v1.0.1; HEAD/origin/live development unchanged:
+30c2ebe90adc222c42ea5d8e46b611e8d8169d8b. Index empty; all48 protected hashes
+unchanged, including the two unrelated dirty master-source documents.
+Existing handoff/parity and ignored context/master content retained byte-for-byte.
+No generated artifact, commit/push/dispatch/rerun or local execution.
+
+[API36 run39494776890](https://github.com/Sxara242/Fieltra/actions/runs/39494776890),
+attempt1/exact baseline SHA, remains FAILURE: four B02 fixture NoSuchFileException
+methods, Phase16H sentinel null/order dependence (also stale DB14 expectation),
+PlantingHistory backup18 vs19. Three recovery opt-ins skipped. Console counts
+242 /243-of-242 /245 conflict; zero retained artifacts, no inferred PASS count.
+[Earlier automatic39483586905](https://github.com/Sxara242/Fieltra/actions/runs/39483586905)
+remains SUCCESS: Windows160/160, B02 Python67/67, ZIP38/38; these old results
+do not qualify the modified Android source.
+
+Corrections saved:
+- Four B02 fixture methods use unique private target-.checks cache directories;
+  resource cleanup is recursive, no symlink following/shared cache deletion,
+  SQLite closes first, primary failures preserve suppressed cleanup errors.
+- Phase16H independently creates actual synthetic DB11, exercises migration DDL
+  rollback and real helper upgrade to15, preserving UUID/data/outbox and tables.
+  Two actual-replacement stages are explicitly gated/accounted, pending an
+  approved old seed-capable APK/harness and a real data-preserving replacement.
+- PlantingHistory expectation19; production DB15/backup19 unchanged.
+- InspireOffline rejects unsafe components/aliases/case+NFC collisions and file
+  prefixes; stdlib central/local passes require decoded name/metadata agreement,
+  preserving budgets/CRC/cancellation/publication. Literal hostile ZIP fixtures
+  added within existing test method. No extraction/new dependency/custom parser.
+- JVM checker requires four exact distinct IDs and negative/integrity/Unicode/
+  unsupported-type assertions. verify.yml prepares Temurin21 javac --release17.
+- Manual runtime workflow preserves API36 full suite and adds separately chosen
+  API26 B02-only job: eight classes/25 statically recounted methods. XML identity
+  accounting refuses missing/extra/duplicate/failing/unexpected skipped results.
+  XML/HTML/JSON/text retained on failure, SHA-pinned upload action, one-day policy.
+
+Limits: ZipEntry lacks raw/original name/flags/external attributes. Two standard
+parsers do not establish full byte/header/offset/extra-field or symlink parity;
+ICU versions vary. GreekCadastreDataset has a separate unchanged flat ZIP reader,
+outside the whitelist. Raw parity/shared-reader changes stop for separate scope.
+API26 desugaring/NIO/SQLite/JTS/heap and both changed runtime suites unverified.
+Full suite has original3 recovery opt-ins plus2 visible replacement-stage skips.
+
+[Full A–K owner report, exact13 paths, commands, parity matrix and remaining gates](CODEX_PROJECT_CONTEXT.md#b02-android-stabilization-and-hosted-verification-preparation--2026-10-21).
+Context/master stay ignored local ledgers; do not force-add.
+
+Proposed ONLY after new owner approval: one corrective commit of11 tracked
+whitelist paths, one non-force develop push/automatic full verify including JVM,
+then separate manual API36-full and API26-b02 dispatches at the same reviewed SHA.
+Push CI does not automatically run runtime workflows. All source/runtime tests,
+compilation/build/lint/Gradle/emulator/install/publication in this package: NO.
+No112-feature/26-gap reassignment; all production/B02.6/B02.7/GUI/GPS/live-provider
+and real migration/old-restore/activation gates remain. STOP AT OWNER REVIEW.
+
+---
+
+
+# B02 ZIP corrective publication — automatic CI SUCCESS, 2026-10-20
+
+**ONE commit / ONE non-force push COMPLETE. Automatic hosted CI SUCCESS.
+Windows ZIP regressions PASS. Production/release activation BLOCKED.
+STOP AT OWNER REVIEW. These post-CI result updates are LOCAL/UNCOMMITTED.**
+
+Branch develop/v1.0.1; published HEAD/origin30c2ebe90adc222c42ea5d8e46b611e8d8169d8b,
+parent6b61a488a2d296be20c1ddd5b3d5cc4640958e06.
+Message: fix(b02): harden offline ZIP validation and regression fixtures.
+Exactly four published paths: app/gis/inspire_offline.py,
+tests/test_cadastre_providers.py, this handoff and android/WINDOWS_PARITY_PLAN.md.
+4 text modifications,360 insertions/12 removed lines; no binary/dependency/
+workflow/manifest/Gradle/signing/legal/form or unrelated source change.
+
+[Automatic run39483586905](https://github.com/Sxara242/Fieltra/actions/runs/39483586905), push, attempt1, exact corrective SHA,
+COMPLETED / SUCCESS.22:27:15–22:49:15 Athens (19:27:15–19:49:15 UTC).
+- Source/security PASS:1034-file audit,3 audit tests, verified Gitleaks no leaks.
+- Windows PASS160/160 modules;1255 reported completed tests;0 failed assertions,
+  0 timeouts. Full test step20m59s; separate packaging/legal PASS2/2 (0.380s).
+- Providers DISCOVERED/EXECUTED/PASS38/38, including ALL28 replacement/new ZIP
+  regressions. Literal malformed headers, original/effective names, collisions,
+  CRC/header mismatch, cancellation/publication/resume cases now hosted PASS.
+- Seven B02 Python modules PASS67/67 methods; synthetic source verification only.
+- Android lintDebug/assembleDebug/assembleChecksAndroidTest PASS; production/
+  checks/test Java compiled. testDebugUnitTest NO-SOURCE, zero unit executions.
+- Eight instrumentation classes/25 methods COMPILED, NOT EXECUTED. Standalone
+  JVM NOT DISCOVERED /NOT COMPILED /NOT EXECUTED. No emulator/runtime PASS.
+
+Previous39440425647 had providers1 failure and four120s timeouts. Current
+batch5_ui22, generated_tables_localization24, transaction_integrity32 and
+windows_owner_fix_batch1 16 tests PASS. Unchanged120s bounds and legacy sources;
+one green observation does not establish a lasting timing fix or root cause.
+Prior callback DB-read and deleted-DB/deleted-QObject findings remain open.
+
+[Exact publication, job links/results,28-case inventory, report-time intervals,
+remaining gates and next scope](CODEX_PROJECT_CONTEXT.md#b02-zip-corrective-publication-and-automatic-ci--owner-checkpoint-2026-10-20).
+Context/master remain ignored local ledgers; no force-add/publication.
+
+All48 protected hashes preserved, including both unrelated dirty master-source
+documents. Index empty; no untracked artifacts. These local handoff/parity
+updates plus the two protected dirty docs remain unstaged; app/test match commit.
+All prior canonical content and112 feature IDs/26 gap assignments retained.
+Remote main/v1.0.0 remain6dd72e1e07a51173b15b5b72ac709e1c7141da5c.
+
+No local tests/build/compile/lint/Gradle/install/migration, second source fix,
+commit/push, PR/tag/release, workflow edit, dispatch/rerun or B02.6/B02.7 work.
+Production legacy/all-writer/old-restore/activation/backup/official dataset/
+heap/GUI/GPS/live WMS/Atom/TEE and JVM/Android/API26 runtime gates remain BLOCKED
+or NOT VERIFIED. Next minimal proposed package: separately approved explicit
+hosted JVM step +eight-class API36 instrumentation filter; API26 later. Existing
+runtime workflow can run the full API36 checks suite unchanged only after owner
+dispatch approval. No further Windows full rerun proposed solely for old timeouts.
+STOP AT OWNER REVIEW.
+
+Earlier dated records retain their original evidence and authority.
+
+---
+
 # B02 ZIP remediation and hosted verification preparation — 2026-10-20
 
 **Local ZIP correction SAVED. All new/modified tests NOT EXECUTED.
@@ -716,3 +835,42 @@ A future adapter can reuse GR scoped identities/repository snapshots/jobs, remai
 disabled and preserve competing sources. No TEE code, scraping, credentials or
 network probes; imagery rendering was not established by the owner's screenshot.
 Next: focused regression sources and exact hosted CI/Git proposal, no execution.
+
+---
+
+## B02 ZIP CPU-DoS correction - append-only owner checkpoint, 2026-10-21
+
+**SOURCE ONLY / NOT COMPILED / NOT EXECUTED. ZIP parity PARTIAL.
+Publication PENDING; production B02 BLOCKED. STOP BEFORE STAGING OR COMMIT.**
+
+The preceding publication review STOP is retained. Its O(L squared) growing-
+prefix hashing loop was replaced by a component trie with TreeMap children,
+separate file/explicit/implicit directory states, O(B log E) trie comparison
+work (E<=256), and at most16385 nodes. No full-prefix hashing remains.
+Limits per validation pass:4096 UTF-8 bytes/name,64 components,256KiB aggregate,
+applied independently to decoded and canonical identities; existing256 entries,
+32MiB compressed/48MiB member/64MiB expanded/ratio1000 limits retained.
+Early length/depth checks precede normalization. Token/interrupt checks cover
+scans, normalization boundaries, trie edges and payloads; individual bounded
+library calls and platform metadata parsing have no wall-clock cancellation
+guarantee. Exact, Unicode, depth, aggregate, directory ordering and cancellation
+regressions added as subcases; no new @Test methods: B02 inventory stays25.
+Original CRC/checksum/publication assertions retained; all changes NOT EXECUTED.
+
+This correction changes only InspireOffline.java, CadastreProvidersTest.java
+and append-only handoff/parity/context/master records. CadastralSynthetic and
+all other prior fixes/workflows are unchanged. Context/master stay ignored.
+Full rationale, exact six-path inventory, regression methods, source-only
+Windows comparison, memory/API/platform limits and next controlled sequence
+are appended under "B02 ZIP CPU-DoS local correction - owner review, 2026-10-21"
+in docs/CODEX_PROJECT_CONTEXT.md (private local ledger; never force-add).
+
+Branch/HEAD/origin/live develop remain30c2ebe90adc222c42ea5d8e46b611e8d8169d8b;
+index empty;48 protected hashes and all earlier document bytes preserved.
+Raw flags/names/external attributes/symlinks/ZIP64/Unicode versions and separate
+regional reader remain unresolved. Official datasets, API26/36, genuine APK
+replacement and production integration are unaccepted.112 IDs/26 gaps unchanged.
+Next requires separate authorization: one reviewed11-path commit/push, automatic
+full CI/JVM, then conditional API36-full and API26-b02 at the same SHA.
+Local tests/build/compile/lint/Gradle0; commits/pushes/dispatches/reruns0;
+production data/installations/releases/GitHub mutations0. No new files.

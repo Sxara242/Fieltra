@@ -89,7 +89,7 @@ public class PlantingHistoryTest {
                 assertTrue(expected.getMessage().contains("προηγείται"));
             }
             byte[] backup = LocalBackup.snapshot(store);
-            assertEquals(18, new JSONObject(new String(backup, StandardCharsets.UTF_8)).getInt("schema"));
+            assertEquals(19, new JSONObject(new String(backup, StandardCharsets.UTF_8)).getInt("schema"));
             history.add("event-2", batch, "2026-03-20", 3, "newer");
             assertEquals(5, history.totals(batch).replantings());
             LocalBackup.restore(store, backup, recovery);

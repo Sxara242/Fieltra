@@ -2,7 +2,6 @@ package gr.mastixa.manager;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
-import androidx.test.platform.app.InstrumentationRegistry;
 import android.database.sqlite.SQLiteDatabase;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -49,9 +48,92 @@ public final class CadastreProvidersTest {
     private static byte[] zip(String name)throws IOException {
         var bytes=new ByteArrayOutputStream();try(var z=new ZipOutputStream(bytes)){z.putNextEntry(new ZipEntry(name));z.write(new byte[]{1,2,3});z.closeEntry();}return bytes.toByteArray();
     }
+    private static void zipSecurityCases(Path file)throws Exception {
+        Files.write(file,CadastralSynthetic.rawZip("folder/","folder/nested/","folder/nested/valid.txt"));
+        InspireOffline.inspectZip(file,()->false);
+        Files.write(file,zip("folder/valid.txt"));InspireOffline.inspectZip(file,()->false); // deflate + data descriptor
+        for(String hostile:new String[]{"../escape","folder/../escape","/absolute","C:relative","C:/absolute",
+                "folder\\escape","folder\\..\\escape","\\\\host\\share","//host/share","folder//file","folder/./file",
+                "folder//","","folder/..","name.","name ","folder./file","folder /file","nul"+(char)0+"suffix"}) {
+            Files.write(file,CadastralSynthetic.rawZip(hostile));
+            assertThrows("Hostile member: "+hostile,IOException.class,()->InspireOffline.inspectZip(file,()->false));
+        }
+        for(String[] collision:new String[][]{{"same","same"},{"Name","name"},{"caf\u00e9","cafe\u0301"},
+                {"Stra\u00dfe","STRASSE"},{"\u03c3","\u03c2"},{"folder/","folder"},{"folder","folder/child"},
+                {"folder/child","FOLDER"},{"caf\u00e9","cafe\u0301/child"},{"folder/","FOLDER/"},
+                {"folder","folder/"},{"folder/","folder/"},{"cafe\u0301/child","CAF\u00c9"}}) {
+            Files.write(file,CadastralSynthetic.rawZip(collision));
+            assertThrows(Arrays.toString(collision),IOException.class,()->InspireOffline.inspectZip(file,()->false));
+        }
+        // Equal byte lengths, genuinely different LOC and CEN names.
+        Files.write(file,CadastralSynthetic.rawZip(new String[]{"safe.txt"},new String[]{"evil.txt"}));
+        assertThrows(IOException.class,()->InspireOffline.inspectZip(file,()->false));
+        Files.write(file,CadastralSynthetic.rawZip(new String[]{"safe.txt"},new String[]{"../x.txt"}));
+        assertThrows(IOException.class,()->InspireOffline.inspectZip(file,()->false));
+        byte[] encrypted=CadastralSynthetic.rawZip("safe.txt");
+        int central=30+"safe.txt".length()+3;
+        encrypted[6]|=1;encrypted[central+8]|=1;Files.write(file,encrypted);
+        assertThrows(IOException.class,()->InspireOffline.inspectZip(file,()->false));
+        byte[] crcMismatch=CadastralSynthetic.rawZip("safe.txt");crcMismatch[14]^=1;Files.write(file,crcMismatch);
+        assertThrows(IOException.class,()->InspireOffline.inspectZip(file,()->false));
+        byte[] invalidUtf8=CadastralSynthetic.rawZip("safe.txt");invalidUtf8[30]=(byte)0xff;invalidUtf8[central+46]=(byte)0xff;Files.write(file,invalidUtf8);
+        assertThrows(IOException.class,()->InspireOffline.inspectZip(file,()->false));
+        String[] many=new String[257];for(int n=0;n<many.length;n++)many[n]="entry-"+n;
+        Files.write(file,CadastralSynthetic.rawZip(many));assertThrows(IOException.class,()->InspireOffline.inspectZip(file,()->false));
+        Files.write(file,CadastralSynthetic.rawZip("empty/"));
+        assertThrows(InterruptedIOException.class,()->InspireOffline.inspectZip(file,()->true));
+        Thread.currentThread().interrupt();
+        try{assertThrows(InterruptedIOException.class,()->InspireOffline.inspectZip(file,()->false));}finally{Thread.interrupted();}
+    }
+    private static void refusesZipName(Path file,String reason,String... names)throws Exception {
+        Files.write(file,CadastralSynthetic.rawZip(names));
+        IOException failure=assertThrows(IOException.class,()->InspireOffline.inspectZip(file,()->false));
+        assertTrue("Expected policy refusal: "+reason+", actual: "+failure,failure.getMessage().contains(reason));
+    }
+    /** Deterministic policy boundaries, no timing/benchmark assertions or new test identities. */
+    private static void zipNameResourceCases(Path file)throws Exception {
+        Files.write(file,CadastralSynthetic.rawZip("folder/file.txt","folder/","folder/nested/second.txt","folder/nested/"));
+        InspireOffline.inspectZip(file,()->false); // explicit directory may follow its implicit children
+        String deepest="a/".repeat(63)+"file"; // exactly 64 components
+        for(String accepted:new String[]{"x".repeat(4096),"\u00e9".repeat(2048),"\ud83c\udf31".repeat(1024),deepest}) {
+            Files.write(file,CadastralSynthetic.rawZip(accepted));InspireOffline.inspectZip(file,()->false);
+        }
+        refusesZipName(file,"filename byte budget","a/".repeat(30000)+"x"); // 30,001 components; early length refusal
+        refusesZipName(file,"filename byte budget","x".repeat(65535)); // exact ZIP uint16 name-field maximum
+        refusesZipName(file,"filename byte budget","x".repeat(4097));
+        refusesZipName(file,"filename byte budget","\u00e9".repeat(2048)+"x");
+        refusesZipName(file,"filename byte budget","\ud83c\udf31".repeat(1024)+"x");
+        refusesZipName(file,"filename byte budget","\u0130".repeat(1366)); // full fold expands beyond 4096 UTF-8 bytes
+        refusesZipName(file,"component depth budget","a/".repeat(64)+"file");
+        String[] longNames=new String[65],foldedNames=new String[65];
+        for(int n=0;n<longNames.length;n++) {
+            String suffix=String.format(Locale.ROOT,"%04d",n);
+            longNames[n]="x".repeat(4092)+suffix;
+            foldedNames[n]="\u0130".repeat(1364)+suffix; // decoded2732; canonical4096 bytes
+        }
+        // 64 * 4096 = exactly 256KiB. The next distinct member must refuse.
+        Files.write(file,CadastralSynthetic.rawZip(Arrays.copyOf(longNames,64)));InspireOffline.inspectZip(file,()->false);
+        refusesZipName(file,"aggregate filename budget",longNames);
+        Files.write(file,CadastralSynthetic.rawZip(Arrays.copyOf(foldedNames,64)));InspireOffline.inspectZip(file,()->false);
+        refusesZipName(file,"aggregate canonical filename budget",foldedNames);
+        String[] members=new String[256];for(int n=0;n<members.length;n++)members[n]="member-"+n;
+        Files.write(file,CadastralSynthetic.rawZip(members));InspireOffline.inspectZip(file,()->false);
+        Files.write(file,CadastralSynthetic.rawZip(deepest));
+        // False initially; changes while a single name is being validated, before payload reads.
+        AtomicInteger checkpoints=new AtomicInteger();
+        assertThrows(InterruptedIOException.class,()->InspireOffline.inspectZip(file,()->checkpoints.incrementAndGet()>=16));
+        assertEquals(16,checkpoints.get());
+        checkpoints.set(0);
+        try {
+            assertThrows(InterruptedIOException.class,()->InspireOffline.inspectZip(file,()->{
+                if(checkpoints.incrementAndGet()==16)Thread.currentThread().interrupt();return false;
+            }));
+            assertTrue("Interruption must remain signalled",Thread.currentThread().isInterrupted());
+        }finally{Thread.interrupted();}
+    }
     @Test public void explicitOfflinePublicationReuseCancelAndCorruption()throws Exception {
-        Path root=Files.createTempDirectory(InstrumentationRegistry.getInstrumentation().getContext().getCacheDir().toPath(),"offline-synthetic-");
-        try(var index=SQLiteDatabase.create(null)) {
+        try(var fixture=CadastralSynthetic.fixture();var index=SQLiteDatabase.create(null)) {
+            Path root=fixture.root;
             var store=new InspireOffline.Store(root,index);var d=InspireOffline.parseFeed(bytes(FEED),new InspireOffline.FeedDescriptor("https://example.invalid/atom/feed.xml","source","terms"),0).get(0);var link=d.links().get(0);
             byte[] archive=zip("synthetic.txt");AtomicInteger calls=new AtomicInteger();
             CadastralProviderIO.Transport transport=(url,max,cancel,http)->{calls.incrementAndGet();return new CadastralProviderIO.Response(200,"application/zip",archive,url,"");};
@@ -59,6 +141,11 @@ public final class CadastreProvidersTest {
             var wrong=new InspireOffline.Dataset(d.identifier(),d.title(),d.version(),d.updated(),d.spatialCoverage(),List.of(bad),d.feedUrl(),d.attribution(),d.rights(),d.termsReference(),d.retrievedAt(),d.spatialIdentifiers(),d.feedHash());
             assertThrows(IOException.class,()->store.download(wrong,bad,true,()->false,transport,null));
             assertEquals(InspireOffline.Availability.MISSING,store.availability(wrong,bad));
+            try(var files=Files.list(root)){assertEquals(0,files.filter(p->p.toString().endsWith(".zip")||p.toString().endsWith(".part")).count());}
+            byte[] deepArchive=CadastralSynthetic.rawZip("a/".repeat(4000)+"x");
+            CadastralProviderIO.Transport hostile=(url,max,cancel,http)->new CadastralProviderIO.Response(200,"application/zip",deepArchive,url,"");
+            assertThrows(IOException.class,()->store.download(d,link,true,()->false,hostile,null));
+            assertEquals(InspireOffline.Availability.MISSING,store.availability(d,link));
             try(var files=Files.list(root)){assertEquals(0,files.filter(p->p.toString().endsWith(".zip")||p.toString().endsWith(".part")).count());}
             calls.set(0);
             assertThrows(IllegalArgumentException.class,()->store.download(d,link,false,()->false,transport,null));
@@ -69,9 +156,8 @@ public final class CadastreProvidersTest {
             assertEquals(InspireOffline.Availability.AVAILABLE,store.availability(d,link));Files.write(target,new byte[]{9});assertEquals(InspireOffline.Availability.CORRUPT,store.availability(d,link));
             Path malformed=root.resolve("bad.zip");Files.write(malformed,zip("../escape"));assertThrows(IOException.class,()->InspireOffline.inspectZip(malformed,()->false));
             Files.write(malformed,archive);assertThrows(InterruptedIOException.class,()->InspireOffline.inspectZip(malformed,()->true));
-        }finally {
-            // Only this test-created private directory; no farm/profile or shared cache.
-            try(var paths=Files.list(root)){for(Path file:paths.toList())Files.deleteIfExists(file);}Files.deleteIfExists(root);
+            zipSecurityCases(malformed); // Same B02 method inventory; every case must reach assertions on API26 and API36.
+            zipNameResourceCases(malformed);
         }
     }
 }

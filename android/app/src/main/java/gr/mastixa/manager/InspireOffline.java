@@ -4,6 +4,8 @@ import android.database.sqlite.SQLiteDatabase;
 import java.io.*;
 import java.nio.file.*;
 import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
+import android.icu.lang.UCharacter;
 import java.security.*;
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -90,22 +92,127 @@ public final class InspireOffline {
             StringBuilder result=new StringBuilder();for(byte b:digest.digest())result.append(String.format(Locale.ROOT,"%02x",b&255));return result.toString();
         }catch(NoSuchAlgorithmException e){throw new IllegalStateException(e);}
     }
-    /** No extraction API exists: ZIP paths never become filesystem paths. */
+    private static void zipCancellation(CadastralMigration.Cancellation cancel)throws InterruptedIOException {
+        if(cancel.cancelled()||Thread.currentThread().isInterrupted())throw new InterruptedIOException("Cancelled");
+    }
+    // Application acceptance limits, not ZIP-format limits. Apply to decoded UTF-8
+    // and comparison identities independently, in BOTH standard-library passes.
+    private static final int MAX_ZIP_NAME_BYTES=4096,MAX_ZIP_COMPONENTS=64,MAX_ZIP_NAMES_BYTES=256*1024;
+    private static final class ZipNameBudget {int decoded,canonical;}
+    private static final class ZipPathNode {
+        // At most 256 siblings: deterministic bounded lookup even for hash collisions.
+        final Map<String,ZipPathNode> children=new TreeMap<>();
+        boolean file,explicitDirectory;
+    }
+    private static int zipNameBytes(String name,CadastralMigration.Cancellation cancel)throws IOException {
+        // Well-formed UTF-8 needs at least as many bytes as UTF-16 code units.
+        // Reject giant decoded names before encoding, splitting or normalization.
+        zipCancellation(cancel);
+        if(name.length()>MAX_ZIP_NAME_BYTES)throw new IOException("ZIP filename byte budget");
+        int bytes=0,nextCheck=0;
+        for(int n=0;n<name.length();n++) {
+            if(n>=nextCheck){zipCancellation(cancel);nextCheck=n+64;}
+            char c=name.charAt(n);
+            if(c<0x80)bytes++;
+            else if(c<0x800)bytes+=2;
+            else if(Character.isHighSurrogate(c)) {
+                if(n+1>=name.length()||!Character.isLowSurrogate(name.charAt(n+1)))throw new IOException("Invalid ZIP Unicode");
+                n++;bytes+=4;
+            }else if(Character.isLowSurrogate(c))throw new IOException("Invalid ZIP Unicode");
+            else bytes+=3;
+            if(bytes>MAX_ZIP_NAME_BYTES)throw new IOException("ZIP filename byte budget");
+        }
+        zipCancellation(cancel);return bytes;
+    }
+    private static String[] zipMemberComponents(String name,ZipNameBudget budget,CadastralMigration.Cancellation cancel)throws IOException {
+        int decoded=zipNameBytes(name,cancel);
+        if(decoded>MAX_ZIP_NAMES_BYTES-budget.decoded)throw new IOException("ZIP aggregate filename budget");
+        budget.decoded+=decoded;
+        if(name.isEmpty()||name.startsWith("/")||name.contains("\\")||name.contains(":")||name.indexOf(0)>=0)throw new IOException("Unsafe ZIP member");
+        boolean directory=name.endsWith("/");int end=name.length()-(directory?1:0),depth=1;
+        for(int n=0;n<end;n++) {
+            if((n&63)==0)zipCancellation(cancel);
+            if(name.charAt(n)=='/'&&++depth>MAX_ZIP_COMPONENTS)throw new IOException("ZIP component depth budget");
+        }
+        // Only bounded individual components become keys. Never materialize all
+        // progressively longer prefixes or hash the accumulated path.
+        String[] parts=name.substring(0,end).split("/",-1);int canonical=parts.length-1+(directory?1:0);
+        for(int n=0;n<parts.length;n++) {
+            zipCancellation(cancel);String component=parts[n];
+            if(component.isEmpty()||component.equals(".")||component.equals("..")||component.endsWith(".")||component.endsWith(" "))throw new IOException("Unsafe ZIP component");
+            component=Normalizer.normalize(component,Normalizer.Form.NFC);zipCancellation(cancel);
+            if(component.length()>MAX_ZIP_NAME_BYTES)throw new IOException("ZIP canonical filename byte budget");
+            component=UCharacter.foldCase(component,true);zipCancellation(cancel);
+            if(component.length()>MAX_ZIP_NAME_BYTES)throw new IOException("ZIP canonical filename byte budget");
+            component=Normalizer.normalize(component,Normalizer.Form.NFC);zipCancellation(cancel);
+            canonical+=zipNameBytes(component,cancel);
+            if(canonical>MAX_ZIP_NAME_BYTES)throw new IOException("ZIP canonical filename byte budget");
+            if(canonical>MAX_ZIP_NAMES_BYTES-budget.canonical)throw new IOException("ZIP aggregate canonical filename budget");
+            parts[n]=component;
+        }
+        budget.canonical+=canonical;return parts;
+    }
+    private static void registerZipMember(ZipPathNode root,String[] parts,boolean directory,CadastralMigration.Cancellation cancel)throws IOException {
+        ZipPathNode node=root;
+        for(String component:parts) {
+            zipCancellation(cancel);
+            if(node.file)throw new IOException("ZIP file/directory prefix conflict");
+            ZipPathNode child=node.children.get(component);
+            if(child==null){child=new ZipPathNode();node.children.put(component,child);}node=child;
+        }
+        zipCancellation(cancel);
+        if(node.file||node.explicitDirectory||(!directory&&!node.children.isEmpty()))throw new IOException("ZIP member collision");
+        if(directory)node.explicitDirectory=true;else node.file=true;
+    }
+    private static void readZipMember(InputStream in,ZipEntry entry,CadastralMigration.Cancellation cancel)throws IOException {
+        CRC32 crc=new CRC32();long consumed=0;byte[] buffer=new byte[65536];int n;
+        while((n=in.read(buffer))!=-1) {
+            zipCancellation(cancel);consumed+=n;
+            if(consumed>entry.getSize())throw new IOException("ZIP length mismatch");crc.update(buffer,0,n);
+        }
+        if(consumed!=entry.getSize()||crc.getValue()!=entry.getCrc())throw new IOException("ZIP CRC/length mismatch");
+    }
+    /** No extraction. Both stdlib decoded views must agree; raw headers are NOT exposed.
+     * Raw byte/offset/extra-field and external-attribute parity requires separate review. */
     public static void inspectZip(Path archive,CadastralMigration.Cancellation cancel)throws IOException {
+        zipCancellation(cancel);
         if(Files.size(archive)>MAX_ZIP)throw new IOException("ZIP compressed budget");
-        Set<String> names=new HashSet<>();long total=0;int count=0;
-        try(ZipFile zip=new ZipFile(archive.toFile())) {
+        ZipPathNode names=new ZipPathNode();ZipNameBudget centralNames=new ZipNameBudget();
+        List<ZipEntry> members=new ArrayList<>();long total=0;
+        try(ZipFile zip=new ZipFile(archive.toFile(),StandardCharsets.UTF_8)) {
             var entries=zip.entries();
             while(entries.hasMoreElements()) {
+                zipCancellation(cancel);
                 ZipEntry e=entries.nextElement();String name=e.getName();
-                if(++count>256||name.isEmpty()||name.startsWith("/")||name.contains("\\")||name.contains(":")||name.indexOf(0)>=0||!names.add(name.toLowerCase(Locale.ROOT)))throw new IOException("Unsafe ZIP member");
-                for(String component:name.split("/",-1))if(component.equals("..")||component.equals("."))throw new IOException("ZIP traversal");
-                if(e.getSize()<0||e.getSize()>48*1024*1024||(total+=e.getSize())>64*1024*1024||e.getSize()>Math.max(1,e.getCompressedSize())*1000L)throw new IOException("ZIP expansion budget");
-                CRC32 crc=new CRC32();long consumed=0;byte[] buffer=new byte[65536];int n;
-                try(InputStream in=zip.getInputStream(e)){while((n=in.read(buffer))!=-1){if(cancel.cancelled()||Thread.currentThread().isInterrupted())throw new InterruptedIOException("Cancelled");consumed+=n;if(consumed>e.getSize())throw new IOException("ZIP length mismatch");crc.update(buffer,0,n);}}
-                if(consumed!=e.getSize()||crc.getValue()!=e.getCrc())throw new IOException("ZIP CRC/length mismatch");
+                if(members.size()>=256)throw new IOException("ZIP entry budget");
+                registerZipMember(names,zipMemberComponents(name,centralNames,cancel),e.isDirectory(),cancel);
+                if(e.getSize()<0||e.getCompressedSize()<0||e.getSize()>48*1024*1024||(total+=e.getSize())>64*1024*1024||e.getSize()>Math.max(1,e.getCompressedSize())*1000L)throw new IOException("ZIP expansion budget");
+                if(e.isDirectory()&&e.getSize()!=0)throw new IOException("ZIP directory has payload");
+                if(e.getMethod()!=ZipEntry.STORED&&e.getMethod()!=ZipEntry.DEFLATED)throw new IOException("Unsupported ZIP compression");
+                members.add(e);
             }
-        }if(count==0)throw new IOException("Empty ZIP");
+            if(members.isEmpty())throw new IOException("Empty ZIP");
+            // Preserve the existing central-directory CRC/length read, without extraction.
+            for(ZipEntry entry:members) {
+                zipCancellation(cancel);
+                try(InputStream in=zip.getInputStream(entry)){readZipMember(in,entry,cancel);}
+            }
+            // ZipFile alone does not promise local-name consistency. Independently read
+            // local records using the standard parser, with the SAME bounds and charset.
+            // Reject reordered/extra/missing local entries instead of resolving ambiguity.
+            try(ZipInputStream local=new ZipInputStream(Files.newInputStream(archive),StandardCharsets.UTF_8)) {
+                ZipNameBudget localNames=new ZipNameBudget();
+                for(ZipEntry expected:members) {
+                    zipCancellation(cancel);ZipEntry actual=local.getNextEntry();
+                    if(actual==null||!actual.getName().equals(expected.getName())||actual.getMethod()!=expected.getMethod())throw new IOException("ZIP local/central member mismatch");
+                    zipMemberComponents(actual.getName(),localNames,cancel);readZipMember(local,expected,cancel);
+                    if(actual.getSize()!=expected.getSize()||actual.getCompressedSize()!=expected.getCompressedSize()||actual.getCrc()!=expected.getCrc())throw new IOException("ZIP local/central metadata mismatch");
+                    local.closeEntry();
+                }
+                zipCancellation(cancel);
+                if(local.getNextEntry()!=null)throw new IOException("Extra local ZIP member");
+            }
+        }catch(IllegalArgumentException e){throw new IOException("Invalid ZIP metadata/encoding",e);}
     }
     public static boolean resumeIsValid(int status,String contentRange,String etag,String previousEtag,long offset,long total) {
         if(status!=206||etag==null||etag.startsWith("W/")||!etag.equals(previousEtag)||contentRange==null)return false;

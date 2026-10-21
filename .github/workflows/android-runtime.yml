@@ -1,12 +1,24 @@
 name: Android runtime instrumentation (development)
 on:
   workflow_dispatch:
+    inputs:
+      runtime_scope:
+        description: Run one independently reviewed runtime contract
+        type: choice
+        options: [api36-full, api26-b02]
+        default: api36-full
 permissions:
   contents: read
+env:
+  B02_CLASSES: gr.mastixa.manager.CountryExtensionsTest,gr.mastixa.manager.CadastralM2MTest,gr.mastixa.manager.CadastralMigrationTest,gr.mastixa.manager.CadastralParcelRepositoryTest,gr.mastixa.manager.GreekCadastreDatasetTest,gr.mastixa.manager.CadastralUnionTest,gr.mastixa.manager.CadastreProvidersTest,gr.mastixa.manager.CadastralHardeningTest
 jobs:
   instrumentation:
+    if: ${{ inputs.runtime_scope == 'api36-full' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    env:
+      RUNTIME_SCOPE: api36-full
+      B02_ONLY: 'false'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,11 +38,303 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - name: Checks-app instrumentation
+      - name: Record expected test identities from source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, pathlib, re
+          selected = set(os.environ["B02_CLASSES"].split(","))
+          expected = []
+          for path in sorted(pathlib.Path("android/app/src/androidTest/java/gr/mastixa/manager").glob("*.java")):
+              cls = "gr.mastixa.manager." + path.stem
+              if os.environ["B02_ONLY"] == "true" and cls not in selected:
+                  continue
+              text = re.sub(r'\"(?:\\.|[^\"\\])*\"|/\*.*?\*/|//[^\n]*',
+                            lambda m: m.group(0) if m.group(0).startswith('"') else "", path.read_text(encoding="utf-8"), flags=re.S)
+              for method in re.findall(r"@Test(?:\([^)]*\))?\s+public\s+void\s+(\w+)\s*\(", text):
+                  expected.append(cls + "#" + method)
+          if not expected or len(expected) != len(set(expected)):
+              raise SystemExit("Missing/duplicate source test identities")
+          if os.environ["B02_ONLY"] == "true" and (len(expected) != 25 or {s.split("#")[0] for s in expected} != selected):
+              raise SystemExit("B02 must contain exactly eight classes / 25 methods")
+          out = pathlib.Path(os.environ["RUNNER_TEMP"]) / "fieltra-runtime-summary"
+          out.mkdir()
+          (out / "expected.json").write_text(json.dumps(sorted(expected), indent=2), encoding="utf-8")
+          print(f"Source inventory: {len(expected)} methods (not a runtime discovery count)")
+          PY
+      - name: Checks-app instrumentation (API36 full suite)
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 36
           arch: x86_64
           working-directory: android
           disable-animations: true
-          script: bash ./gradlew --no-daemon connectedChecksAndroidTest --console=plain
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -memory 2048
+          script: bash -o pipefail -c 'bash ./gradlew --no-daemon connectedChecksAndroidTest --console=plain 2>&1 | tee "$RUNNER_TEMP/fieltra-runtime-console.txt"'
+      - name: Account for actual JUnit XML methods
+        if: always()
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import collections, json, os, pathlib, re, xml.etree.ElementTree as ET
+          out = pathlib.Path(os.environ["RUNNER_TEMP"]) / "fieltra-runtime-summary"
+          out.mkdir(exist_ok=True)
+          issues, rows, declared = [], [], []
+          expected_file = out / "expected.json"
+          expected = set(json.loads(expected_file.read_text())) if expected_file.exists() else set()
+          if not expected:
+              issues.append("Source inventory unavailable")
+          files = sorted(pathlib.Path("android/app/build/outputs/androidTest-results/connected").glob("**/TEST-*.xml"))
+          if not files:
+              issues.append("No instrumentation JUnit XML: runtime NOT VERIFIED")
+          for path in files:
+              try:
+                  root = ET.parse(path).getroot()
+                  suites = [root] if root.tag == "testsuite" else root.findall(".//testsuite")
+                  for suite in suites:
+                      cases = suite.findall("testcase")
+                      if not cases:
+                          continue
+                      suite_rows = []
+                      for case in cases:
+                          failure = case.find("failure")
+                          error = case.find("error")
+                          skipped = case.find("skipped")
+                          state = "failed" if failure is not None or error is not None else "skipped" if skipped is not None else "passed"
+                          detail = failure if failure is not None else error if error is not None else skipped
+                          row = dict(identity=case.get("classname", "") + "#" + case.get("name", ""), state=state,
+                                     message="" if detail is None else detail.get("message", ""),
+                                     detail="" if detail is None else "".join(detail.itertext()), report=str(path))
+                          rows.append(row)
+                          suite_rows.append(row)
+                      counts = collections.Counter(row["state"] for row in suite_rows)
+                      declared.append(dict(report=str(path), attributes=dict(suite.attrib), observed=dict(counts)))
+                      for attr, actual in (("tests", len(cases)), ("failures", sum(c.find("failure") is not None for c in cases)),
+                                           ("errors", sum(c.find("error") is not None for c in cases)), ("skipped", counts["skipped"])):
+                          if attr in suite.attrib and int(suite.get(attr)) != actual:
+                              issues.append(f"{path}: declared {attr} differs from testcase elements")
+              except (ET.ParseError, ValueError, OSError) as exc:
+                  issues.append(f"{path}: unreadable report: {exc}")
+          identities = [row["identity"] for row in rows]
+          actual = set(identities)
+          duplicate = sorted(key for key, count in collections.Counter(identities).items() if count > 1)
+          missing, unexpected = sorted(expected - actual), sorted(actual - expected)
+          if duplicate or missing or unexpected:
+              issues.append("Duplicate, missing or unexpected test identities; inspect summary")
+          counts = collections.Counter(row["state"] for row in rows)
+          allowed_skips = {
+              "gr.mastixa.manager.AndroidNetworkRecoveryTest#cachedTilesOfflineAndUncachedTilesRecoverWithoutReopening",
+              "gr.mastixa.manager.GisProcessRecoveryTest#durableGeometryPendingSyncAndRecordingSurviveProcessLoss",
+              "gr.mastixa.manager.GpsServiceRecoveryTest#disabledGpsKeepsStatusAndRecoversWithoutReopening",
+              "gr.mastixa.manager.Phase16HUpgradeTest#seedLegacyState",
+              "gr.mastixa.manager.Phase16HUpgradeTest#verifyPreservedAndMigrated",
+          }
+          if os.environ["B02_ONLY"] == "true":
+              allowed_skips = set()
+              if len(rows) != 25 or len(actual) != 25:
+                  issues.append("API26 requires independent XML evidence of all 25 methods")
+          skipped = {row["identity"] for row in rows if row["state"] == "skipped"}
+          if skipped - allowed_skips:
+              issues.append("Unexpected skipped tests: " + ", ".join(sorted(skipped - allowed_skips)))
+          if counts["failed"]:
+              issues.append("JUnit reported failing/error methods")
+          log = pathlib.Path(os.environ["RUNNER_TEMP"]) / "fieltra-runtime-console.txt"
+          text = log.read_text(encoding="utf-8", errors="replace") if log.exists() else ""
+          discovered = [int(n) for n in re.findall(r"Starting (\d+) tests on", text)]
+          finished = [int(n) for n in re.findall(r"Finished (\d+) tests on", text)]
+          discrepancies = []
+          if discovered != [len(rows)] or finished != [len(rows)]:
+              discrepancies.append("Runner discovery/finished totals disagree with XML or are absent; no inferred PASS count")
+              print("::warning::" + discrepancies[-1])
+              if os.environ["B02_ONLY"] == "true":
+                  issues.append("API26 runner counts require reconciliation with all 25 XML methods")
+          summary = dict(source_inventory=len(expected), runner_discovered=discovered, runner_finished=finished,
+                         xml_reported=len(rows), executed=len(rows)-counts["skipped"], passed=counts["passed"],
+                         failed=counts["failed"], skipped=counts["skipped"], missing=missing, unexpected=unexpected,
+                         duplicate=duplicate, issues=issues, discrepancies=discrepancies, suites=declared, methods=rows)
+          (out / "actual.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
+          totals = {k: v for k, v in summary.items() if k not in ("methods", "suites")}
+          report = json.dumps(totals, indent=2, ensure_ascii=False)
+          (out / "summary.txt").write_text(report + "\n", encoding="utf-8")
+          print(report)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
+              stream.write("### Android runtime accounting\n\n\x60\x60\x60json\n" + report + "\n\x60\x60\x60\n")
+          if issues:
+              raise SystemExit("Runtime acceptance refused; inspect retained XML and actual.json")
+          PY
+      - name: Retain instrumentation XML, HTML and synthetic accounting
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: android-${{ env.RUNTIME_SCOPE }}-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 1
+          if-no-files-found: error
+          path: |
+            android/app/build/outputs/androidTest-results/connected/**/TEST-*.xml
+            android/app/build/reports/androidTests/connected/checks/**
+            ${{ runner.temp }}/fieltra-runtime-summary/*.json
+            ${{ runner.temp }}/fieltra-runtime-summary/summary.txt
+  b02-api26:
+    if: ${{ inputs.runtime_scope == 'api26-b02' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      RUNTIME_SCOPE: api26-b02
+      B02_ONLY: 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools emulator
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-disabled: true
+      - name: Enable KVM access
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Record expected test identities from source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, pathlib, re
+          selected = set(os.environ["B02_CLASSES"].split(","))
+          expected = []
+          for path in sorted(pathlib.Path("android/app/src/androidTest/java/gr/mastixa/manager").glob("*.java")):
+              cls = "gr.mastixa.manager." + path.stem
+              if os.environ["B02_ONLY"] == "true" and cls not in selected:
+                  continue
+              text = re.sub(r'\"(?:\\.|[^\"\\])*\"|/\*.*?\*/|//[^\n]*',
+                            lambda m: m.group(0) if m.group(0).startswith('"') else "", path.read_text(encoding="utf-8"), flags=re.S)
+              for method in re.findall(r"@Test(?:\([^)]*\))?\s+public\s+void\s+(\w+)\s*\(", text):
+                  expected.append(cls + "#" + method)
+          if not expected or len(expected) != len(set(expected)):
+              raise SystemExit("Missing/duplicate source test identities")
+          if os.environ["B02_ONLY"] == "true" and (len(expected) != 25 or {s.split("#")[0] for s in expected} != selected):
+              raise SystemExit("B02 must contain exactly eight classes / 25 methods")
+          out = pathlib.Path(os.environ["RUNNER_TEMP"]) / "fieltra-runtime-summary"
+          out.mkdir()
+          (out / "expected.json").write_text(json.dumps(sorted(expected), indent=2), encoding="utf-8")
+          print(f"Source inventory: {len(expected)} methods (not a runtime discovery count)")
+          PY
+      - name: API26 B02 only (eight classes / 25 methods)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 26
+          arch: x86_64
+          working-directory: android
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -memory 2048
+          script: bash -o pipefail -c 'bash ./gradlew --no-daemon connectedChecksAndroidTest "-Pandroid.testInstrumentationRunnerArguments.class=$B02_CLASSES" --console=plain 2>&1 | tee "$RUNNER_TEMP/fieltra-runtime-console.txt"'
+      - name: Account for actual JUnit XML methods
+        if: always()
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import collections, json, os, pathlib, re, xml.etree.ElementTree as ET
+          out = pathlib.Path(os.environ["RUNNER_TEMP"]) / "fieltra-runtime-summary"
+          out.mkdir(exist_ok=True)
+          issues, rows, declared = [], [], []
+          expected_file = out / "expected.json"
+          expected = set(json.loads(expected_file.read_text())) if expected_file.exists() else set()
+          if not expected:
+              issues.append("Source inventory unavailable")
+          files = sorted(pathlib.Path("android/app/build/outputs/androidTest-results/connected").glob("**/TEST-*.xml"))
+          if not files:
+              issues.append("No instrumentation JUnit XML: runtime NOT VERIFIED")
+          for path in files:
+              try:
+                  root = ET.parse(path).getroot()
+                  suites = [root] if root.tag == "testsuite" else root.findall(".//testsuite")
+                  for suite in suites:
+                      cases = suite.findall("testcase")
+                      if not cases:
+                          continue
+                      suite_rows = []
+                      for case in cases:
+                          failure = case.find("failure")
+                          error = case.find("error")
+                          skipped = case.find("skipped")
+                          state = "failed" if failure is not None or error is not None else "skipped" if skipped is not None else "passed"
+                          detail = failure if failure is not None else error if error is not None else skipped
+                          row = dict(identity=case.get("classname", "") + "#" + case.get("name", ""), state=state,
+                                     message="" if detail is None else detail.get("message", ""),
+                                     detail="" if detail is None else "".join(detail.itertext()), report=str(path))
+                          rows.append(row)
+                          suite_rows.append(row)
+                      counts = collections.Counter(row["state"] for row in suite_rows)
+                      declared.append(dict(report=str(path), attributes=dict(suite.attrib), observed=dict(counts)))
+                      for attr, actual in (("tests", len(cases)), ("failures", sum(c.find("failure") is not None for c in cases)),
+                                           ("errors", sum(c.find("error") is not None for c in cases)), ("skipped", counts["skipped"])):
+                          if attr in suite.attrib and int(suite.get(attr)) != actual:
+                              issues.append(f"{path}: declared {attr} differs from testcase elements")
+              except (ET.ParseError, ValueError, OSError) as exc:
+                  issues.append(f"{path}: unreadable report: {exc}")
+          identities = [row["identity"] for row in rows]
+          actual = set(identities)
+          duplicate = sorted(key for key, count in collections.Counter(identities).items() if count > 1)
+          missing, unexpected = sorted(expected - actual), sorted(actual - expected)
+          if duplicate or missing or unexpected:
+              issues.append("Duplicate, missing or unexpected test identities; inspect summary")
+          counts = collections.Counter(row["state"] for row in rows)
+          allowed_skips = {
+              "gr.mastixa.manager.AndroidNetworkRecoveryTest#cachedTilesOfflineAndUncachedTilesRecoverWithoutReopening",
+              "gr.mastixa.manager.GisProcessRecoveryTest#durableGeometryPendingSyncAndRecordingSurviveProcessLoss",
+              "gr.mastixa.manager.GpsServiceRecoveryTest#disabledGpsKeepsStatusAndRecoversWithoutReopening",
+              "gr.mastixa.manager.Phase16HUpgradeTest#seedLegacyState",
+              "gr.mastixa.manager.Phase16HUpgradeTest#verifyPreservedAndMigrated",
+          }
+          if os.environ["B02_ONLY"] == "true":
+              allowed_skips = set()
+              if len(rows) != 25 or len(actual) != 25:
+                  issues.append("API26 requires independent XML evidence of all 25 methods")
+          skipped = {row["identity"] for row in rows if row["state"] == "skipped"}
+          if skipped - allowed_skips:
+              issues.append("Unexpected skipped tests: " + ", ".join(sorted(skipped - allowed_skips)))
+          if counts["failed"]:
+              issues.append("JUnit reported failing/error methods")
+          log = pathlib.Path(os.environ["RUNNER_TEMP"]) / "fieltra-runtime-console.txt"
+          text = log.read_text(encoding="utf-8", errors="replace") if log.exists() else ""
+          discovered = [int(n) for n in re.findall(r"Starting (\d+) tests on", text)]
+          finished = [int(n) for n in re.findall(r"Finished (\d+) tests on", text)]
+          discrepancies = []
+          if discovered != [len(rows)] or finished != [len(rows)]:
+              discrepancies.append("Runner discovery/finished totals disagree with XML or are absent; no inferred PASS count")
+              print("::warning::" + discrepancies[-1])
+              if os.environ["B02_ONLY"] == "true":
+                  issues.append("API26 runner counts require reconciliation with all 25 XML methods")
+          summary = dict(source_inventory=len(expected), runner_discovered=discovered, runner_finished=finished,
+                         xml_reported=len(rows), executed=len(rows)-counts["skipped"], passed=counts["passed"],
+                         failed=counts["failed"], skipped=counts["skipped"], missing=missing, unexpected=unexpected,
+                         duplicate=duplicate, issues=issues, discrepancies=discrepancies, suites=declared, methods=rows)
+          (out / "actual.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
+          totals = {k: v for k, v in summary.items() if k not in ("methods", "suites")}
+          report = json.dumps(totals, indent=2, ensure_ascii=False)
+          (out / "summary.txt").write_text(report + "\n", encoding="utf-8")
+          print(report)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
+              stream.write("### Android runtime accounting\n\n\x60\x60\x60json\n" + report + "\n\x60\x60\x60\n")
+          if issues:
+              raise SystemExit("Runtime acceptance refused; inspect retained XML and actual.json")
+          PY
+      - name: Retain instrumentation XML, HTML and synthetic accounting
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: android-${{ env.RUNTIME_SCOPE }}-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 1
+          if-no-files-found: error
+          path: |
+            android/app/build/outputs/androidTest-results/connected/**/TEST-*.xml
+            android/app/build/reports/androidTests/connected/checks/**
+            ${{ runner.temp }}/fieltra-runtime-summary/*.json
+            ${{ runner.temp }}/fieltra-runtime-summary/summary.txt

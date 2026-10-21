@@ -101,6 +101,19 @@ jobs:
           cache-disabled: true
       - name: Install SDK 36
         run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Standalone B02 JVM contracts (Java 17 API compatibility)
+        shell: bash
+        run: |
+          set -euo pipefail
+          b02_classes="$RUNNER_TEMP/fieltra-b02-jvm"
+          mkdir -p "$b02_classes"
+          javac --release 17 -encoding UTF-8 -d "$b02_classes" \
+            android/app/src/main/java/gr/mastixa/manager/CountryExtensions.java \
+            android/app/src/main/java/gr/mastixa/manager/CadastralProtocol.java \
+            android/app/src/main/java/gr/mastixa/manager/CadastralFingerprint.java \
+            android/source-checks/gr/mastixa/manager/CadastralContractsCheck.java
+          java -cp "$b02_classes" gr.mastixa.manager.CadastralContractsCheck \
+            shared/fixtures/cadastral_fingerprints.tsv
       - name: Android build, lint and test APK compilation
         working-directory: android
         run: bash ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug assembleChecksAndroidTest --console=plain
